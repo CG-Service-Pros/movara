@@ -1,0 +1,213 @@
+{
+  "$id": "https://unpkg.com/@motion/terminology/schema/terminology-pack.schema.json",
+  "title": "Motion terminology pack",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "locale": {
+      "default": "en",
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "author": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "license": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "attribution": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "format": {
+      "type": "number",
+      "const": 1
+    },
+    "terms": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "vision_plan",
+          "core_values",
+          "core_focus",
+          "long_range_target",
+          "marketing_strategy",
+          "three_year_picture",
+          "one_year_plan",
+          "quarterly_plan",
+          "long_term_issues",
+          "accountability_chart",
+          "seat",
+          "leadership_team",
+          "people_review",
+          "priority",
+          "milestone",
+          "scorecard",
+          "metric",
+          "issue",
+          "issues_list",
+          "todo",
+          "headline",
+          "weekly_meeting",
+          "check_in",
+          "metric_review",
+          "priority_review",
+          "headline_review",
+          "todo_review",
+          "issue_solving",
+          "wrap_up",
+          "planning_session",
+          "alignment_meeting",
+          "identify",
+          "discuss",
+          "solve",
+          "core_process"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "singular": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "plural": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "short": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 280
+          }
+        },
+        "required": [
+          "singular",
+          "plural"
+        ]
+      }
+    },
+    "meetingTemplates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "agenda": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "term": {
+                  "type": "string",
+                  "enum": [
+                    "vision_plan",
+                    "core_values",
+                    "core_focus",
+                    "long_range_target",
+                    "marketing_strategy",
+                    "three_year_picture",
+                    "one_year_plan",
+                    "quarterly_plan",
+                    "long_term_issues",
+                    "accountability_chart",
+                    "seat",
+                    "leadership_team",
+                    "people_review",
+                    "priority",
+                    "milestone",
+                    "scorecard",
+                    "metric",
+                    "issue",
+                    "issues_list",
+                    "todo",
+                    "headline",
+                    "weekly_meeting",
+                    "check_in",
+                    "metric_review",
+                    "priority_review",
+                    "headline_review",
+                    "todo_review",
+                    "issue_solving",
+                    "wrap_up",
+                    "planning_session",
+                    "alignment_meeting",
+                    "identify",
+                    "discuss",
+                    "solve",
+                    "core_process"
+                  ]
+                },
+                "minutes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 480
+                }
+              },
+              "required": [
+                "term",
+                "minutes"
+              ]
+            }
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "agenda"
+        ]
+      }
+    },
+    "statuses": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "version",
+    "format",
+    "terms"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@motion/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@motion/db": "workspace:*",
+    "@motion/terminology": "workspace:*",
+    "date-fns": "^4.4.0",
+    "drizzle-orm": "^0.45.4",
+    "uuid": "^14.0.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@motion/config": "workspace:*",
+    "@types/node": "^22",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

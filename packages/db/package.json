@@ -1,0 +1,37 @@
+{
+  "name": "@motion/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./seed": "./src/seed.ts",
+    "./schema": "./src/schema/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate && tsx scripts/embed-migrations.ts",
+    "db:migrate": "tsx src/cli.ts migrate",
+    "db:seed": "tsx src/cli.ts seed",
+    "db:reset": "tsx src/cli.ts reset",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.14",
+    "@motion/terminology": "workspace:*",
+    "better-auth": "^1.7.15",
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^4.0.0",
+    "uuid": "^14.0.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@motion/config": "workspace:*",
+    "@types/node": "^22",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

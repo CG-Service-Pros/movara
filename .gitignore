@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env*
+.DS_Store
+# Competitive research and raw captures stay private; never publish.
+research/
+design/stageshow/shots/
+!.env.example
+.data/
+.next/
+.turbo/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+next-env.d.ts

@@ -1,0 +1,44 @@
+.ka .ka-window { position: absolute; top: var(--gutter); left: var(--gutter); width: 936px; height: 620px; background: var(--ss-canvas); box-shadow: var(--ss-shadow-hero); }
+.ka .ka-crumb { margin-left: 2px; font-size: 13px; font-weight: 600; color: var(--ss-text-strong); }
+.ka .ka-body { background: var(--ss-surface); }
+.ka .ka-split { display: grid; grid-template-columns: 268px minmax(0, 1fr); height: 100%; }
+
+.ka .ka-list { padding: 12px 10px 0; border-right: 1px solid var(--ss-line); display: flex; flex-direction: column; gap: 2px; }
+.ka .ka-agent { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 9px; }
+.ka .ka-agent[data-selected] { background: var(--ss-accent-soft); }
+.ka .ka-agent .k-agent { border-radius: 8px; }
+.ka .ka-agent .k-agent svg { width: 15px; height: 15px; }
+.ka .ka-agent__name { font-size: 13px; font-weight: 600; color: var(--ss-text-strong); }
+.ka .ka-agent__client { margin-top: 2px; font-size: 11.5px; color: var(--ss-text); }
+.ka .ka-agent__seen { font-size: 11px; color: var(--ss-text-faint); }
+.ka .ka-agent__seen[data-live] { color: var(--ss-success-text); font-weight: 600; }
+
+.ka .ka-detail { padding: 18px 22px 0; min-width: 0; }
+.ka .ka-request { padding: 14px 16px; border-radius: 12px; background: var(--ss-surface); box-shadow: 0 0 0 1px var(--ss-line), 0 4px 14px -6px rgba(16, 24, 40, 0.12); transition: box-shadow 0.4s ease; }
+.ka .ka-request__head { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ss-text-strong); }
+.ka .ka-request__head b { font-weight: 600; }
+.ka .ka-request__what { display: flex; flex-direction: column; gap: 3px; margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--ss-canvas); }
+.ka .ka-request__where { font-size: 11.5px; color: var(--ss-text); }
+.ka .ka-request__goal { font-size: 13.5px; font-weight: 600; color: var(--ss-text-strong); }
+.ka .ka-request__actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.ka .ka-request__from { margin-right: auto; font-size: 11.5px; color: var(--ss-text-faint); }
+.ka .ka-approve { transition: background-color 0.3s ease, scale 0.12s ease; }
+.ka .ka-approve[data-done] { background: var(--ss-success); }
+.ka .ka-approve[data-pressed] { scale: 0.97; }
+.ka .ka-done { display: inline-flex; align-items: center; gap: 6px; }
+.ka .ka-done .ss-check { --ss-accent: #fff; }
+
+.ka .ka-label { margin: 20px 0 6px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ss-text-faint); }
+.ka .ka-scope { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; border-bottom: 1px solid var(--ss-line-faint); }
+.ka .ka-scope__label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 550; color: var(--ss-text-strong); }
+.ka .ka-scope__hint { margin-top: 2px; font-size: 11.5px; color: var(--ss-text); }
+.ka .ka-tag { padding: 1px 7px; border-radius: 999px; background: rgba(232, 163, 23, 0.14); color: #a26b00; font-size: 10.5px; font-weight: 600; }
+.ka .ka-entry { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 34px; font-size: 12.5px; color: var(--ss-text-strong); }
+.ka .ka-entry b { font-weight: 600; }
+.ka .ka-entry__t { font-size: 11px; color: var(--ss-text-faint); }
+
+.ka .ka-connect { margin: 14px 2px 0; padding: 14px; border-radius: 10px; background: var(--ss-canvas); }
+.ka .ka-connect__label { font-size: 11.5px; font-weight: 600; color: var(--ss-text); }
+.ka .ka-connect__url { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding: 7px 10px; border-radius: 7px; background: var(--ss-surface); box-shadow: 0 0 0 1px var(--ss-line); font: 500 12px var(--ss-mono, ui-monospace, monospace); color: var(--ss-text-strong); }
+.ka .ka-connect__url svg { color: var(--ss-icon); }
+.ka .ka-connect__hint { margin-top: 10px; font-size: 11.5px; line-height: 1.45; color: var(--ss-text); white-space: normal; }

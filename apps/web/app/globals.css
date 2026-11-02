@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@import '@motion/ui/theme.css';
+
+/* Tailwind must scan the shared UI package too (it lives outside this app). */
+@source '../../../packages/ui/src';
+@source '../components';
+
+html,
+body {
+  height: 100%;
+}
+body {
+  background: var(--m-canvas);
+  color: var(--m-body);
+}
+
+/* Org logos: show the dark variant in dark mode when one exists. */
+.logo-dark { display: none; }
+[data-theme='dark'] .logo-dark { display: block; }
+[data-theme='dark'] .logo-light.has-dark { display: none; }

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://unpkg.com/@motion/terminology/schema/terminology-pack.schema.json",
+  "id": "community.eos",
+  "name": "EOS",
+  "version": "1.0.0",
+  "locale": "en",
+  "format": 1,
+  "description": "Terminology used by companies running on EOS. Community pack; not affiliated with or endorsed by EOS Worldwide.",
+  "author": "Motion community",
+  "license": "Apache-2.0",
+  "attribution": "EOS\u00ae, Traction\u00ae, Level 10 Meeting\u2122, V/TO\u2122 and related terms are trademarks of EOS Worldwide, LLC. This pack is not affiliated with or endorsed by EOS Worldwide.",
+  "terms": {
+    "vision_plan": {
+      "singular": "Vision/Traction Organizer",
+      "plural": "Vision/Traction Organizers",
+      "short": "V/TO"
+    },
+    "long_range_target": {
+      "singular": "10-Year Target",
+      "plural": "10-Year Targets"
+    },
+    "three_year_picture": {
+      "singular": "3-Year Picture",
+      "plural": "3-Year Pictures"
+    },
+    "one_year_plan": {
+      "singular": "1-Year Plan",
+      "plural": "1-Year Plans"
+    },
+    "accountability_chart": {
+      "singular": "Accountability Chart",
+      "plural": "Accountability Charts",
+      "short": "A/C"
+    },
+    "people_review": {
+      "singular": "People Analyzer",
+      "plural": "People Analyzers"
+    },
+    "priority": {
+      "singular": "Rock",
+      "plural": "Rocks"
+    },
+    "metric": {
+      "singular": "Measurable",
+      "plural": "Measurables"
+    },
+    "issues_list": {
+      "singular": "Issues List",
+      "plural": "Issues Lists"
+    },
+    "weekly_meeting": {
+      "singular": "Level 10 Meeting",
+      "plural": "Level 10 Meetings",
+      "short": "Level 10"
+    },
+    "check_in": {
+      "singular": "Segue",
+      "plural": "Segues"
+    },
+    "priority_review": {
+      "singular": "Rock Review",
+      "plural": "Rock Review"
+    },
+    "headline_review": {
+      "singular": "Customer/Employee Headlines",
+      "plural": "Customer/Employee Headlines",
+      "short": "Headlines"
+    },
+    "todo_review": {
+      "singular": "To-Do List",
+      "plural": "To-Do List"
+    },
+    "issue_solving": {
+      "singular": "IDS",
+      "plural": "IDS",
+      "description": "Identify, Discuss, Solve."
+    },
+    "wrap_up": {
+      "singular": "Conclude",
+      "plural": "Concludes"
+    },
+    "planning_session": {
+      "singular": "Quarterly Session",
+      "plural": "Quarterly Sessions"
+    },
+    "alignment_meeting": {
+      "singular": "Same Page Meeting",
+      "plural": "Same Page Meetings"
+    },
+    "core_process": {
+      "singular": "Core Process",
+      "plural": "Core Processes"
+    }
+  },
+  "meetingTemplates": [
+    {
+      "key": "l10",
+      "name": "Level 10 Meeting",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 5
+        },
+        {
+          "term": "metric_review",
+          "minutes": 5
+        },
+        {
+          "term": "priority_review",
+          "minutes": 5
+        },
+        {
+          "term": "headline_review",
+          "minutes": 5
+        },
+        {
+          "term": "todo_review",
+          "minutes": 5
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 60
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 5
+        }
+      ]
+    }
+  ]
+}

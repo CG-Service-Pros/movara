@@ -1,0 +1,28 @@
+{
+  "name": "@motion/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "bin": { "motion-mcp": "./src/index.ts" },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@motion/core": "workspace:*",
+    "@motion/db": "workspace:*",
+    "@motion/terminology": "workspace:*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@motion/config": "workspace:*",
+    "@types/node": "^22",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

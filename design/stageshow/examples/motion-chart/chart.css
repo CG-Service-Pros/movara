@@ -1,0 +1,30 @@
+.kc .kc-window { position: absolute; top: var(--gutter); left: var(--gutter); width: 936px; height: 620px; background: var(--ss-canvas); box-shadow: var(--ss-shadow-hero); }
+.kc .kc-head { display: flex; align-items: center; gap: 10px; margin-left: 2px; }
+.kc .kc-head__title { font-size: 13px; font-weight: 600; color: var(--ss-text-strong); }
+.kc .kc-ver { padding: 2px 8px; border-radius: 999px; background: var(--ss-canvas); font-size: 11.5px; color: var(--ss-text); }
+.kc .kc-tools { display: flex; align-items: center; gap: 10px; }
+.kc .kc-seg { display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--ss-canvas); }
+.kc .kc-seg span { display: flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--ss-text); }
+.kc .kc-seg span[data-on] { background: var(--ss-surface); color: var(--ss-text-strong); box-shadow: 0 0 0 1px var(--ss-line), 0 1px 2px rgba(16,24,40,.06); }
+
+/* The canvas: a quiet dot grid, the chart centered on it */
+.kc .kc-body { background: var(--ss-surface); }
+.kc .kc-canvas { height: 100%; padding-top: 18px; background-image: radial-gradient(circle, #dfe3e8 1px, transparent 1.2px); background-size: 16px 16px; }
+.kc .kc-tree { display: flex; flex-direction: column; align-items: center; }
+.kc .kc-stem { width: 1.5px; height: 16px; background: #c9cfd8; }
+.kc .kc-branch { position: relative; display: grid; grid-template-columns: repeat(3, 196px); gap: 14px; padding-top: 16px; }
+.kc .kc-branch::before { content: ''; position: absolute; top: 0; left: 98px; right: 98px; height: 1.5px; background: #c9cfd8; }
+.kc .kc-leaf { position: relative; }
+.kc .kc-leaf::before { content: ''; position: absolute; top: -16px; left: 50%; width: 1.5px; height: 16px; background: #c9cfd8; }
+
+.kc .kc-seat { width: 196px; padding: 12px 14px; border-radius: 12px; background: var(--ss-surface); box-shadow: 0 0 0 1px var(--ss-line), 0 2px 6px rgba(16, 24, 40, 0.05); }
+.kc .kc-level .kc-seat { width: 220px; }
+.kc .kc-seat[data-open] { background: #fbfcfd; box-shadow: 0 0 0 1px var(--ss-line); outline: 1.5px dashed #c9cfd8; outline-offset: -1.5px; }
+.kc .kc-seat__title { font-size: 13px; font-weight: 640; color: var(--ss-text-strong); }
+.kc .kc-seat__who { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12.5px; color: var(--ss-text-strong); }
+.kc .kc-seat__who--open { color: var(--ss-text); }
+.kc .kc-open-disc { width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #c9cfd8; }
+.kc .kc-seat__roles { list-style: none; margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid var(--ss-line-faint); display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--ss-text); }
+.kc .kc-seat__agent { display: flex; align-items: center; gap: 7px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--ss-line-faint); font-size: 11.5px; color: var(--ss-text); }
+.kc .kc-seat__agent .k-agent svg { width: 10px; height: 10px; }
+.kc .kc-seat__link { margin-top: 8px; padding: 5px 8px; border-radius: 7px; background: var(--ss-accent-soft); font-size: 11.5px; font-weight: 550; color: var(--ss-accent-text); }

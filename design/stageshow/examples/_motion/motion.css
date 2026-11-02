@@ -1,0 +1,135 @@
+/* Motion's look: the design tokens every Motion mockup shares.
+   Cool neutral grays (zinc family), one brand accent that each installation
+   replaces with its own, status colors that only ever mean status, Inter
+   with the system stack as fallback, 8px controls, 12px windows.
+   Agents are first-class actors: people are circles, agents are rounded
+   squares, everywhere. */
+.motion .ss-stage {
+  --gutter: 32px;
+  --ss-well: #eceef1;
+  --ss-canvas: #f6f7f9;
+  --ss-chrome: #f6f7f9;
+  --ss-surface: #ffffff;
+  --ss-raised: #ffffff;
+  --ss-line: #e6e8ec;
+  --ss-line-faint: #eff1f4;
+  --ss-text: #646b76;
+  --ss-text-strong: #15181d;
+  --ss-text-faint: #9aa1ab;
+  --ss-icon: #6f7681;
+  --ss-icon-faint: #b3b9c2;
+  --ss-accent: #2f5bea;
+  --ss-accent-soft: rgba(47, 91, 234, 0.1);
+  --ss-accent-text: #2449c4;
+  --ss-success: #18a058;
+  --ss-success-soft: rgba(24, 160, 88, 0.12);
+  --ss-success-text: #12804a;
+  --ss-danger: #e5484d;
+  --ss-danger-soft: rgba(229, 72, 77, 0.11);
+  --ss-danger-text: #c6343a;
+  --ss-warning: #e8a317;
+  --ss-font: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ss-radius-sm: 6px;
+  --ss-radius-md: 8px;
+  --ss-radius-lg: 10px;
+
+  --k-nav-active: #e9ecf0;
+  --k-agent: #15181d;
+  --k-agent-text: #ffffff;
+
+  overflow: hidden;
+  background: var(--ss-well);
+  font-family: var(--ss-font);
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+/* ---- Window frame: sidebar on canvas, content in an inset white panel ---- */
+.motion .k-window .ss-window__side { border-right: 0; }
+.motion .k-window[data-kind='sidebar'] .ss-window__main {
+  margin: 8px 8px 0 0;
+  border-radius: 10px 10px 0 0;
+  background: var(--ss-surface);
+  box-shadow: 0 0 0 1px var(--ss-line), 0 1px 2px rgba(16, 24, 40, 0.04);
+  overflow: hidden;
+}
+.motion .k-window .ss-window__bar { background: transparent; gap: 10px; }
+
+/* ---- Sidebar ---- */
+.motion .k-side { display: flex; flex-direction: column; gap: 18px; padding: 2px 10px 0; height: 100%; }
+.motion .k-brand { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; }
+.motion .k-brand__word { font-size: 14px; font-weight: 650; letter-spacing: -0.015em; color: var(--ss-text-strong); }
+.motion .k-search {
+  display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 10px;
+  border-radius: 8px; background: var(--ss-surface); box-shadow: 0 0 0 1px var(--ss-line);
+  color: var(--ss-text-faint); font-size: 12px;
+}
+.motion .k-search__key { margin-left: auto; padding: 1px 5px; border-radius: 4px; background: var(--ss-canvas); font-size: 10.5px; color: var(--ss-text); }
+.motion .k-group { display: flex; flex-direction: column; gap: 1px; }
+.motion .k-section { display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; font-size: 11px; font-weight: 550; color: var(--ss-text-faint); }
+.motion .k-nav {
+  display: flex; align-items: center; gap: 9px; height: 28px; padding: 0 8px;
+  border-radius: 7px; font-size: 13px; font-weight: 500; color: #3d434c;
+}
+.motion .k-nav svg { flex: none; color: var(--ss-icon); }
+.motion .k-nav[data-active] { background: var(--k-nav-active); color: var(--ss-text-strong); }
+.motion .k-nav[data-active] svg { color: var(--ss-text-strong); }
+.motion .k-nav__count { margin-left: auto; font-size: 11px; color: var(--ss-text-faint); font-variant-numeric: tabular-nums; }
+
+/* ---- Agent mark: a rounded square, never a circle ---- */
+.motion .k-agent {
+  display: inline-grid; place-items: center; flex: none;
+  width: 18px; height: 18px; border-radius: 5px;
+  background: var(--k-agent); color: var(--k-agent-text);
+}
+.motion .k-agent svg { width: 11px; height: 11px; }
+
+/* ---- Status marks for priorities ---- */
+.motion .k-status { flex: none; }
+.motion .k-status[data-s='on'] { color: var(--ss-success); }
+.motion .k-status[data-s='off'] { color: var(--ss-danger); }
+.motion .k-status[data-s='done'] { color: var(--ss-text-strong); }
+
+.motion .k-pill {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px;
+  border-radius: 999px; font-size: 11.5px; font-weight: 550; white-space: nowrap;
+}
+.motion .k-pill[data-s='on'] { background: var(--ss-success-soft); color: var(--ss-success-text); }
+.motion .k-pill[data-s='off'] { background: var(--ss-danger-soft); color: var(--ss-danger-text); }
+.motion .k-pill[data-s='done'] { background: var(--ss-canvas); color: var(--ss-text); }
+
+.motion .k-btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px;
+  border-radius: 8px; font-size: 12.5px; font-weight: 550; white-space: nowrap;
+  background: var(--ss-surface); color: var(--ss-text-strong); box-shadow: 0 0 0 1px var(--ss-line), 0 1px 1px rgba(16,24,40,.04);
+}
+.motion .k-btn[data-primary] { background: var(--ss-accent); color: #fff; box-shadow: none; }
+
+/* ---- Dark theme: same roles, depth from lighter surfaces, not shadow ---- */
+.motion .ss-stage[data-theme='dark'] {
+  --ss-well: #0b0c0e;
+  --ss-canvas: #111215;
+  --ss-chrome: #111215;
+  --ss-surface: #17181c;
+  --ss-raised: #1e2025;
+  --ss-line: #26282e;
+  --ss-line-faint: #1f2126;
+  --ss-text: #9aa1ab;
+  --ss-text-strong: #eef0f3;
+  --ss-text-faint: #646b76;
+  --ss-icon: #8b929c;
+  --ss-icon-faint: #4a5059;
+  --ss-accent: #5b7cff;
+  --ss-accent-soft: rgba(91, 124, 255, 0.14);
+  --ss-accent-text: #9db1ff;
+  --ss-success: #2fbf71;
+  --ss-success-soft: rgba(47, 191, 113, 0.14);
+  --ss-success-text: #5fd796;
+  --ss-danger: #f0595e;
+  --ss-danger-soft: rgba(240, 89, 94, 0.14);
+  --ss-danger-text: #ff8a8e;
+  --k-nav-active: #1e2025;
+  --k-agent: #eef0f3;
+  --k-agent-text: #111215;
+}
+.motion .ss-stage[data-theme='dark'] .k-nav { color: #c4c9d0; }
+.motion .ss-stage[data-theme='dark'] .k-window[data-kind='sidebar'] .ss-window__main { box-shadow: 0 0 0 1px var(--ss-line); }

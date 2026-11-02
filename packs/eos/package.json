@@ -1,0 +1,19 @@
+{
+  "name": "@motion-community/pack-eos",
+  "version": "1.0.0",
+  "description": "EOS terminology pack for Motion (community, unofficial).",
+  "main": "pack.json",
+  "files": [
+    "pack.json",
+    "README.md"
+  ],
+  "keywords": [
+    "motion",
+    "motion-pack",
+    "terminology"
+  ],
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@motion/terminology": "^1.0.0"
+  }
+}

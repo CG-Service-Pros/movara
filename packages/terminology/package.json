@@ -1,0 +1,28 @@
+{
+  "name": "@motion/terminology",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./resolve": "./src/resolve.ts",
+    "./packs/*": "./packs/*",
+    "./schema/*": "./schema/*",
+    "./*": "./src/*.ts"
+  },
+  "files": ["src", "packs", "schema"],
+  "scripts": {
+    "build:schema": "tsx scripts/generate-json-schema.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": { "zod": "^4.6.7" },
+  "devDependencies": {
+    "@motion/config": "workspace:*",
+    "@types/node": "^22",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

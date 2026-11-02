@@ -1,0 +1,38 @@
+.ki .ki-window { position: absolute; top: var(--gutter); left: var(--gutter); width: 856px; height: 580px; background: var(--ss-canvas); box-shadow: var(--ss-shadow-hero); }
+.ki .ki-crumb { margin-left: 2px; font-size: 13px; font-weight: 600; color: var(--ss-text-strong); }
+.ki .ki-body { background: var(--ss-surface); position: relative; }
+.ki .ki-page { padding: 20px 24px 0; }
+.ki .ki-active { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 10px; box-shadow: 0 0 0 1px var(--ss-line); }
+.ki .ki-active__label { font-size: 11.5px; color: var(--ss-text-faint); }
+.ki .ki-active__name { margin-top: 3px; font-size: 14px; font-weight: 600; color: var(--ss-text-strong); }
+.ki .ki-active__name span { font-weight: 400; color: var(--ss-text); }
+.ki .ki-term { display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 4px; border-bottom: 1px solid var(--ss-line-faint); font-size: 13px; }
+.ki .ki-term__t { font-weight: 550; color: var(--ss-text-strong); }
+.ki .ki-term__c { color: var(--ss-text); }
+
+.ki .ki-scrim { position: absolute; inset: 0; background: rgba(21, 24, 29, 0.18); }
+.ki .ki-dialog {
+  position: absolute; top: 20px; left: 50%; translate: -50% 0; width: 420px;
+  padding: 18px 18px 16px; border-radius: 14px; background: var(--ss-surface);
+  box-shadow: 0 0 0 1px rgba(16, 24, 40, 0.06), 0 24px 48px -12px rgba(16, 24, 40, 0.28);
+}
+.ki .ki-dialog__title { font-size: 15px; font-weight: 640; letter-spacing: -0.01em; color: var(--ss-text-strong); }
+.ki .ki-seg { margin-top: 14px; font-size: 12px; font-weight: 550; background: var(--ss-canvas); }
+.ki .ki-field { margin-top: 10px; font: 500 13px var(--ss-mono, ui-monospace, monospace); }
+.ki .ki-preview { padding-top: 10px; }
+.ki .ki-pack { padding: 12px 14px; border-radius: 10px; background: var(--ss-canvas); }
+.ki .ki-pack__name { font-size: 13.5px; font-weight: 620; color: var(--ss-text-strong); }
+.ki .ki-pack__name span { margin-left: 4px; font-size: 12px; font-weight: 450; color: var(--ss-text); }
+.ki .ki-pack__meta { margin-top: 3px; font-size: 11.5px; color: var(--ss-text); }
+.ki .ki-changes { margin-top: 10px; }
+.ki .ki-change { display: grid; grid-template-columns: 150px 14px 1fr; align-items: center; gap: 10px; height: 26px; font-size: 12.5px; color: var(--ss-icon-faint); }
+.ki .ki-change__from { color: var(--ss-text); }
+.ki .ki-change__to { font-weight: 600; color: var(--ss-text-strong); }
+.ki .ki-change--more { display: flex; height: 22px; font-size: 12px; color: var(--ss-text-faint); }
+.ki .ki-attrib { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--ss-line-faint); font-size: 11px; line-height: 1.45; color: var(--ss-text-faint); white-space: normal; }
+.ki .ki-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.ki .ki-apply { transition: background-color 0.3s ease, scale 0.12s ease; }
+.ki .ki-apply[data-done] { background: var(--ss-success); }
+.ki .ki-apply[data-pressed] { scale: 0.97; }
+.ki .ki-done { display: inline-flex; align-items: center; gap: 6px; }
+.ki .ki-done .ss-check { --ss-accent: #fff; }

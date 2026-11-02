@@ -1,0 +1,208 @@
+{
+  "$schema": "../schema/terminology-pack.schema.json",
+  "id": "motion.standard",
+  "name": "Standard",
+  "version": "1.0.0",
+  "locale": "en",
+  "format": 1,
+  "description": "Plain-language defaults that work for any company.",
+  "license": "Apache-2.0",
+  "terms": {
+    "vision_plan": {
+      "singular": "Vision plan",
+      "plural": "Vision plans",
+      "description": "One page that says where the company is going and how it gets there."
+    },
+    "core_values": {
+      "singular": "Core value",
+      "plural": "Core values"
+    },
+    "core_focus": {
+      "singular": "Core focus",
+      "plural": "Core focus"
+    },
+    "long_range_target": {
+      "singular": "10-year goal",
+      "plural": "10-year goals"
+    },
+    "marketing_strategy": {
+      "singular": "Marketing strategy",
+      "plural": "Marketing strategy"
+    },
+    "three_year_picture": {
+      "singular": "3-year picture",
+      "plural": "3-year picture"
+    },
+    "one_year_plan": {
+      "singular": "1-year plan",
+      "plural": "1-year plans"
+    },
+    "quarterly_plan": {
+      "singular": "Quarterly plan",
+      "plural": "Quarterly plans"
+    },
+    "long_term_issues": {
+      "singular": "Long-term issue",
+      "plural": "Long-term issues"
+    },
+    "accountability_chart": {
+      "singular": "Accountability chart",
+      "plural": "Accountability charts",
+      "short": "Accountability",
+      "description": "Who owns what: seats, their responsibilities and the people in them."
+    },
+    "seat": {
+      "singular": "Seat",
+      "plural": "Seats"
+    },
+    "leadership_team": {
+      "singular": "Leadership team",
+      "plural": "Leadership teams"
+    },
+    "people_review": {
+      "singular": "People review",
+      "plural": "People reviews"
+    },
+    "priority": {
+      "singular": "Priority",
+      "plural": "Priorities",
+      "description": "A 90-day commitment with one owner and a due date."
+    },
+    "milestone": {
+      "singular": "Milestone",
+      "plural": "Milestones"
+    },
+    "scorecard": {
+      "singular": "Scorecard",
+      "plural": "Scorecards",
+      "description": "The handful of weekly numbers that show whether the business is on track."
+    },
+    "metric": {
+      "singular": "Metric",
+      "plural": "Metrics",
+      "description": "A number with an owner and a goal, reported every period."
+    },
+    "issue": {
+      "singular": "Issue",
+      "plural": "Issues",
+      "description": "Any problem, idea or obstacle to discuss and solve."
+    },
+    "issues_list": {
+      "singular": "Issues list",
+      "plural": "Issues lists",
+      "short": "Issues"
+    },
+    "todo": {
+      "singular": "To-do",
+      "plural": "To-dos",
+      "description": "A 7-day action item with one owner."
+    },
+    "headline": {
+      "singular": "Headline",
+      "plural": "Headlines",
+      "description": "Short news about a customer or employee."
+    },
+    "weekly_meeting": {
+      "singular": "Weekly meeting",
+      "plural": "Weekly meetings",
+      "description": "The team's weekly 90-minute meeting."
+    },
+    "check_in": {
+      "singular": "Check-in",
+      "plural": "Check-ins"
+    },
+    "metric_review": {
+      "singular": "Scorecard review",
+      "plural": "Scorecard review",
+      "short": "Scorecard"
+    },
+    "priority_review": {
+      "singular": "Priority review",
+      "plural": "Priority review",
+      "short": "Priorities"
+    },
+    "headline_review": {
+      "singular": "Headlines",
+      "plural": "Headlines"
+    },
+    "todo_review": {
+      "singular": "To-do review",
+      "plural": "To-do review"
+    },
+    "issue_solving": {
+      "singular": "Solve issues",
+      "plural": "Solve issues",
+      "description": "Identify, discuss and solve the most important issues."
+    },
+    "wrap_up": {
+      "singular": "Wrap-up",
+      "plural": "Wrap-ups"
+    },
+    "planning_session": {
+      "singular": "Planning session",
+      "plural": "Planning sessions"
+    },
+    "alignment_meeting": {
+      "singular": "Alignment check-in",
+      "plural": "Alignment check-ins"
+    },
+    "identify": {
+      "singular": "Identify",
+      "plural": "Identify"
+    },
+    "discuss": {
+      "singular": "Discuss",
+      "plural": "Discuss"
+    },
+    "solve": {
+      "singular": "Solve",
+      "plural": "Solve"
+    },
+    "core_process": {
+      "singular": "Core process",
+      "plural": "Core processes"
+    }
+  },
+  "meetingTemplates": [
+    {
+      "key": "weekly",
+      "name": "Weekly meeting",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 5
+        },
+        {
+          "term": "metric_review",
+          "minutes": 5
+        },
+        {
+          "term": "priority_review",
+          "minutes": 5
+        },
+        {
+          "term": "headline_review",
+          "minutes": 5
+        },
+        {
+          "term": "todo_review",
+          "minutes": 5
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 60
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 5
+        }
+      ]
+    }
+  ],
+  "statuses": {
+    "on_track": "On track",
+    "off_track": "Off track",
+    "done": "Done",
+    "not_done": "Not done"
+  }
+}

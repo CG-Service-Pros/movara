@@ -1,0 +1,32 @@
+.kv .kv-window { position: absolute; top: var(--gutter); left: var(--gutter); width: 936px; height: 620px; background: var(--ss-canvas); box-shadow: var(--ss-shadow-hero); }
+.kv .kv-head { display: flex; align-items: center; gap: 10px; margin-left: 10px; }
+.kv .kv-head__title { font-size: 13px; font-weight: 600; color: var(--ss-text-strong); }
+.kv .kv-ver { padding: 2px 8px; border-radius: 999px; background: var(--ss-canvas); font-size: 11.5px; color: var(--ss-text); }
+.kv .kv-tools { display: flex; gap: 8px; }
+.kv .kv-body { background: var(--ss-surface); }
+.kv .kv-doc { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding: 22px 26px 0; }
+.kv .kv-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.kv .kv-colhead { font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ss-text-faint); }
+.kv .kv-sec { padding: 14px 16px; border-radius: 12px; box-shadow: 0 0 0 1px var(--ss-line); }
+.kv .kv-sec__t { margin-bottom: 10px; font-size: 12px; font-weight: 600; color: var(--ss-text); }
+.kv .kv-values { display: flex; flex-wrap: wrap; gap: 6px; }
+.kv .kv-values span { padding: 4px 10px; border-radius: 999px; background: var(--ss-canvas); font-size: 12.5px; font-weight: 550; color: var(--ss-text-strong); }
+.kv .kv-kv { display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 3px 0; font-size: 12.5px; }
+.kv .kv-kv span { color: var(--ss-text); }
+.kv .kv-kv b { font-weight: 550; color: var(--ss-text-strong); }
+.kv .kv-big { font-size: 16px; font-weight: 620; letter-spacing: -0.015em; color: var(--ss-text-strong); }
+.kv .kv-figs { display: flex; gap: 28px; }
+.kv .kv-figs div { display: flex; flex-direction: column; gap: 2px; }
+.kv .kv-figs span { font-size: 11.5px; color: var(--ss-text); }
+.kv .kv-figs b { font-size: 18px; font-weight: 640; letter-spacing: -0.02em; color: var(--ss-text-strong); font-variant-numeric: tabular-nums; }
+.kv .kv-goals { margin: 12px 0 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: var(--ss-text-strong); }
+.kv .kv-goals li::marker { color: var(--ss-text-faint); font-size: 12px; }
+.kv .kv-new { margin-left: -8px; padding: 6px 8px; border-radius: 8px; background: var(--ss-accent-soft); }
+.kv .kv-new::marker { color: var(--ss-accent-text); }
+.kv .kv-new > span:first-child { font-weight: 600; }
+.kv .kv-prov { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 11.5px; color: var(--ss-accent-text); }
+.kv .kv-prov .k-agent svg { width: 9px; height: 9px; }
+.kv .kv-pri { display: flex; align-items: center; gap: 10px; height: 30px; font-size: 13px; color: var(--ss-text-strong); }
+.kv .kv-dot { width: 8px; height: 8px; border-radius: 50%; }
+.kv .kv-dot[data-s='on'] { background: var(--ss-success); }
+.kv .kv-dot[data-s='off'] { background: var(--ss-danger); }

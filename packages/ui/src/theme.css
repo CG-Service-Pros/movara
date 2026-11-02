@@ -1,0 +1,140 @@
+/* Motion design tokens as a Tailwind v4 theme.
+   Source of truth: design/stageshow/examples/_motion/motion.css.
+   Light by default, dark through <html data-theme="dark"> (or any wrapper).
+   The org accent is overridable by setting --accent (and optionally --accent-dark)
+   on a wrapper element: <div style={{ '--accent': '#d9480f' }}>.
+
+   Usage in apps:  @import "tailwindcss"; @import "@motion/ui/theme.css";
+   Utilities: bg-canvas bg-surface bg-raised bg-well border-line border-line-faint
+   text-ink (strong) text-body text-faint text-icon text-accent bg-accent bg-accent-soft
+   text-accent-text text-success text-danger text-warning bg-success-soft ... rounded-sm/md/lg/xl */
+
+:root,
+[data-theme='light'] {
+  --m-well: #eceef1;
+  --m-canvas: #f6f7f9;
+  --m-surface: #ffffff;
+  --m-raised: #ffffff;
+  --m-line: #e6e8ec;
+  --m-line-faint: #eff1f4;
+  --m-body: #646b76;
+  --m-ink: #15181d;
+  --m-nav-text: #3d434c;
+  --m-faint: #9aa1ab;
+  --m-icon: #6f7681;
+  --m-icon-faint: #b3b9c2;
+  --m-accent-default: #2f5bea;
+  --m-accent-text-default: #2449c4;
+  --m-success: #18a058;
+  --m-success-text: #12804a;
+  --m-danger: #e5484d;
+  --m-danger-text: #c6343a;
+  --m-warning: #e8a317;
+  --m-warning-text: #a86f00;
+  --m-nav-active: #e9ecf0;
+  --m-agent: #15181d;
+  --m-agent-text: #ffffff;
+  --m-shadow-panel: 0 0 0 1px var(--m-line), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --m-shadow-pop: 0 0 0 1px var(--m-line), 0 8px 24px rgba(16, 24, 40, 0.1);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --m-well: #0b0c0e;
+  --m-canvas: #111215;
+  --m-surface: #17181c;
+  --m-raised: #1e2025;
+  --m-line: #26282e;
+  --m-line-faint: #1f2126;
+  --m-body: #9aa1ab;
+  --m-ink: #eef0f3;
+  --m-nav-text: #c4c9d0;
+  --m-faint: #646b76;
+  --m-icon: #8b929c;
+  --m-icon-faint: #4a5059;
+  --m-accent-default: #5b7cff;
+  --m-accent-text-default: #9db1ff;
+  --m-success: #2fbf71;
+  --m-success-text: #5fd796;
+  --m-danger: #f0595e;
+  --m-danger-text: #ff8a8e;
+  --m-warning: #e8a317;
+  --m-warning-text: #f0b94a;
+  --m-nav-active: #1e2025;
+  --m-agent: #eef0f3;
+  --m-agent-text: #111215;
+  --m-shadow-panel: 0 0 0 1px var(--m-line);
+  --m-shadow-pop: 0 0 0 1px var(--m-line), 0 8px 24px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-well: var(--m-well);
+  --color-canvas: var(--m-canvas);
+  --color-surface: var(--m-surface);
+  --color-raised: var(--m-raised);
+  --color-line: var(--m-line);
+  --color-line-faint: var(--m-line-faint);
+  --color-body: var(--m-body);
+  --color-ink: var(--m-ink);
+  --color-nav: var(--m-nav-text);
+  --color-faint: var(--m-faint);
+  --color-icon: var(--m-icon);
+  --color-icon-faint: var(--m-icon-faint);
+  --color-nav-active: var(--m-nav-active);
+  --color-agent: var(--m-agent);
+  --color-agent-text: var(--m-agent-text);
+
+  /* Accent: --accent on any wrapper overrides it. */
+  --color-accent: var(--accent, var(--m-accent-default));
+  --color-accent-soft: color-mix(in srgb, var(--accent, var(--m-accent-default)) 12%, transparent);
+  --color-accent-text: var(--accent-text, var(--accent, var(--m-accent-text-default)));
+
+  --color-success: var(--m-success);
+  --color-success-soft: color-mix(in srgb, var(--m-success) 13%, transparent);
+  --color-success-text: var(--m-success-text);
+  --color-danger: var(--m-danger);
+  --color-danger-soft: color-mix(in srgb, var(--m-danger) 12%, transparent);
+  --color-danger-text: var(--m-danger-text);
+  --color-warning: var(--m-warning);
+  --color-warning-soft: color-mix(in srgb, var(--m-warning) 15%, transparent);
+  --color-warning-text: var(--m-warning-text);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
+  --shadow-panel: var(--m-shadow-panel);
+  --shadow-pop: var(--m-shadow-pop);
+
+  --text-2xs: 11px;
+  --text-xs: 11.5px;
+  --text-sm: 12.5px;
+  --text-base: 13px;
+  --text-lg: 17px;
+  --text-xl: 18px;
+  --text-3xl: 30px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    background: var(--m-canvas);
+    color: var(--m-body);
+  }
+  body {
+    font-variant-numeric: tabular-nums;
+  }
+  * {
+    border-color: var(--m-line);
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+}
