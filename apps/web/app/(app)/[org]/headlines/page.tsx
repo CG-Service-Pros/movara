@@ -4,7 +4,7 @@ import { HeadlinesView } from '@/components/headlines/headlines-view'
 import { peopleAndTeams } from '@/components/issues/server'
 import { getMyTeams, requireModule } from '@/lib/ctx'
 
-export default async function HeadlinesPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ team?: string }> }) {
+export default async function HeadlinesPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ team?: string; id?: string; new?: string }> }) {
   const { org: slug } = await params
   const sp = await searchParams
   const { ctx, terms } = await requireModule(slug, 'headlines')
@@ -20,6 +20,8 @@ export default async function HeadlinesPage({ params, searchParams }: { params: 
         teams={teams}
         teamId={teamId}
         defaultTeamId={myTeams[0]?.id ?? teams[0]?.id ?? ''}
+        highlightId={sp.id}
+        openNew={sp.new === '1'}
         meId={actingPersonId(ctx)}
         now={new Date().toISOString()}
         labels={{ headline: terms.t('headline'), headlines: terms.t('headline', 'plural') }}

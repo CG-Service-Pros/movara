@@ -11,7 +11,7 @@ export const handlers: HandlerMap = {
     listIssues(ctx, {
       teamId: query.get('teamId') ?? undefined,
       horizon: (query.get('horizon') as 'short' | 'long' | null) ?? undefined,
-      status: (query.get('status') as 'open' | 'solved' | 'dropped' | 'all' | null) ?? undefined,
+      status: (query.get('status')?.split(',') as ('open' | 'solved' | 'dropped')[] | undefined) ?? undefined,
       ownerId: query.get('ownerId') ?? undefined,
       limit: query.get('limit') ? Number(query.get('limit')) : undefined,
     }),

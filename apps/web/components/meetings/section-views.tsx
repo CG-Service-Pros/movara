@@ -49,23 +49,14 @@ function DropButton({ b, act, type, id, emphasis }: { b: Bundle; act: Act; type:
 
 // ------------------------------------------------------------------ check-in
 
-export function CheckInView({ b, meetingKey }: { b: Bundle; meetingKey: string }) {
-  const [shared, setShared] = useState<string[]>([])
-  const key = `motion-checkin-${meetingKey}`
-  useEffect(() => {
-    try {
-      setShared(JSON.parse(sessionStorage.getItem(key) ?? '[]'))
-    } catch {}
-  }, [key])
-  const toggle = (id: string) =>
-    setShared((s) => {
-      const n = s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
-      try {
-        sessionStorage.setItem(key, JSON.stringify(n))
-      } catch {}
-      return n
-    })
+export function CheckInView({ b, act }: { b: Bundle; act: Act }) {
+  // Who has shared is part of the live meeting state (core `meeting.set_shared`), so the whole room sees it.
   const att = b.live.attendees
+  const shared = b.live.sharedIds.filter((id) => att.some((a) => a.id === id))
+  const toggle = (id: string) => {
+    const on = !b.live.sharedIds.includes(id)
+    void act({ k: 'shared', personId: id, shared: on }, (x) => ({ ...x, live: { ...x.live, sharedIds: on ? [...x.live.sharedIds, id] : x.live.sharedIds.filter((s) => s !== id) } }))
+  }
   return (
     <>
       <SectionTitle aside={<span className="text-sm text-body tabular-nums">{shared.length} of {att.length} shared</span>}>{b.labels.check_in?.s}</SectionTitle>

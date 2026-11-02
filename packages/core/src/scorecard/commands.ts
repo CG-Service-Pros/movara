@@ -37,7 +37,7 @@ async function loadMetric(ctx: Ctx, id: string) {
 
 const scSnap = (s: typeof scorecards.$inferSelect) => ({ teamId: s.teamId, interval: s.interval, weekStartDay: s.weekStartDay, periodsShown: s.periodsShown })
 const mSnap = (m: typeof metrics.$inferSelect) => ({
-  title: m.title, ownerIds: m.ownerIds, comparison: m.comparison, goal: m.goal, goalUpper: m.goalUpper, unit: m.unit, scale: m.scale, decimals: m.decimals, additive: m.additive,
+  title: m.title, description: m.description, ownerIds: m.ownerIds, comparison: m.comparison, goal: m.goal, goalUpper: m.goalUpper, unit: m.unit, scale: m.scale, decimals: m.decimals, additive: m.additive,
 })
 
 // ---- Scorecards -------------------------------------------------------------------
@@ -91,6 +91,7 @@ export const scorecardUpdateSettings = defineCommand({
 
 const metricFields = {
   title: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(1000).nullable(),
   ownerIds: z.array(z.uuid()).max(10),
   comparison: comparisonSchema,
   goal: z.number(),
@@ -108,6 +109,7 @@ export const metricCreate = defineCommand({
   input: z.object({
     scorecardId: z.uuid(),
     title: metricFields.title,
+    description: metricFields.description.optional(),
     ownerIds: metricFields.ownerIds.default([]),
     comparison: metricFields.comparison.default('gte'),
     goal: metricFields.goal,
@@ -126,7 +128,7 @@ export const metricCreate = defineCommand({
     const [last] = await ctx.db.select({ sort: metrics.sort }).from(metrics).where(scoped(metrics, ctx, eq(metrics.scorecardId, input.scorecardId))).orderBy(desc(metrics.sort)).limit(1)
     const [row] = await ctx.db
       .insert(metrics)
-      .values({ ...base(ctx), ...input, goalUpper: input.goalUpper ?? null, source: input.source ?? null, sort: last ? last.sort + 1 : 0 })
+      .values({ ...base(ctx), ...input, description: input.description || null, goalUpper: input.goalUpper ?? null, source: input.source ?? null, sort: last ? last.sort + 1 : 0 })
       .returning()
     return { data: row!, entity: { type: 'metric', id: row!.id }, before: null, after: mSnap(row!) }
   },
@@ -138,6 +140,7 @@ export const metricUpdate = defineCommand({
   input: z.object({
     metricId: z.uuid(),
     title: metricFields.title.optional(),
+    description: metricFields.description.optional(),
     ownerIds: metricFields.ownerIds.optional(),
     comparison: metricFields.comparison.optional(),
     goal: metricFields.goal.optional(),
@@ -154,7 +157,7 @@ export const metricUpdate = defineCommand({
     const { metricId, ...patch } = input
     checkGoal({ comparison: patch.comparison ?? before.comparison, goal: patch.goal ?? before.goal, goalUpper: patch.goalUpper === undefined ? before.goalUpper : patch.goalUpper })
     if (patch.ownerIds) await mustHavePeople(ctx, patch.ownerIds)
-    const [after] = await ctx.db.update(metrics).set({ ...patch, ...touch(metrics, ctx) }).where(scoped(metrics, ctx, eq(metrics.id, metricId))).returning()
+    const [after] = await ctx.db.update(metrics).set({ ...patch, ...(patch.description !== undefined ? { description: patch.description || null } : {}), ...touch(metrics, ctx) }).where(scoped(metrics, ctx, eq(metrics.id, metricId))).returning()
     return { data: after!, entity: { type: 'metric', id: metricId }, before: mSnap(before), after: mSnap(after!) }
   },
 })

@@ -27,6 +27,7 @@ import { createIssuesAction } from '@/app/(app)/[org]/issues/actions'
 export type MetricItem = {
   id: string
   title: string
+  description: string | null
   ownerIds: string[]
   comparison: Comparison
   goal: number | null
@@ -45,7 +46,7 @@ const key = (metricId: string, period: string) => `${metricId}|${period}`
 const INTERVAL_WORD: Record<Interval, string> = { day: 'day', week: 'week', month: 'month', quarter: 'quarter' }
 
 export function ScorecardView({
-  orgSlug, scorecard, shownPeriods, scorecards, periods, metrics, provenance, people, labels,
+  orgSlug, scorecard, shownPeriods, scorecards, periods, metrics, provenance, people, labels, highlightId, openNew,
 }: {
   orgSlug: string
   scorecard: SC
@@ -56,16 +57,22 @@ export function ScorecardView({
   provenance: Record<string, Provenance>
   people: PersonLite[]
   labels: Labels
+  /** Deep links: `?id=<metricId>` highlights the row, `?new=1` opens the add dialog. */
+  highlightId?: string
+  openNew?: boolean
 }) {
   const router = useRouter()
   const { act } = useAct()
   const [order, setOrder] = React.useState<'fwd' | 'rev'>('fwd')
   const [edits, setEdits] = React.useState<Record<string, number | null>>({})
   const [editing, setEditing] = React.useState<string | null>(null)
-  const [dialog, setDialog] = React.useState<{ metric: MetricItem | null } | null>(null)
+  const [dialog, setDialog] = React.useState<{ metric: MetricItem | null } | null>(openNew ? { metric: null } : null)
   const [settings, setSettings] = React.useState(false)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   React.useEffect(() => setEdits({}), [metrics])
+  React.useEffect(() => {
+    if (highlightId) scrollRef.current?.querySelector(`[data-metric-id="${highlightId}"]`)?.scrollIntoView({ block: 'center' })
+  }, [highlightId])
   React.useEffect(() => {
     const el = scrollRef.current
     if (el) el.scrollLeft = order === 'fwd' ? el.scrollWidth : 0
@@ -164,11 +171,11 @@ export function ScorecardView({
                 const avg = vals.length ? sum / vals.length : null
                 const owner = m.ownerIds[0] ? personName(m.ownerIds[0]) : undefined
                 return (
-                  <tr key={m.id} className="group">
+                  <tr key={m.id} data-metric-id={m.id} data-highlight={m.id === highlightId || undefined} className={cn('group', m.id === highlightId && '[&>td]:bg-accent-soft')}>
                     <td className="sticky left-0 z-10 h-12 border-b border-line-faint bg-surface pr-2">
                       <div className="flex items-center gap-2.5">
                         {owner ? <Avatar name={owner.name} size={22} /> : <span className="size-[22px] rounded-full bg-canvas" />}
-                        <span className="min-w-0 flex-1 truncate font-[500] text-ink" title={m.title}>{m.title}</span>
+                        <span className="min-w-0 flex-1 truncate font-[500] text-ink" title={m.description ? `${m.title}: ${m.description}` : m.title}>{m.title}</span>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button size="icon" variant="ghost" className="size-6 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100" aria-label={`Actions for ${m.title}`}><MoreHorizontal size={15} strokeWidth={1.7} /></Button>
@@ -292,6 +299,7 @@ const COMPARISONS: { value: Comparison; label: string }[] = [
 function MetricDialog({ open, metric, onOpenChange, orgSlug, scorecardId, people, labels }: { open: boolean; metric: MetricItem | null; onOpenChange: (o: boolean) => void; orgSlug: string; scorecardId: string; people: PersonLite[]; labels: Labels }) {
   const { act, pending } = useAct()
   const [title, setTitle] = React.useState(metric?.title ?? '')
+  const [description, setDescription] = React.useState(metric?.description ?? '')
   const [owners, setOwners] = React.useState<string[]>(metric?.ownerIds ?? [])
   const [comparison, setComparison] = React.useState<Comparison>(metric?.comparison ?? 'gte')
   const [goal, setGoal] = React.useState(metric?.goal != null ? String(metric.goal) : '')
@@ -306,7 +314,7 @@ function MetricDialog({ open, metric, onOpenChange, orgSlug, scorecardId, people
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!valid) return
-    const input: MetricInput = { title: title.trim(), ownerIds: owners, comparison, goal: goalN, goalUpper: comparison === 'between' ? upperN : null, unit, scale: Number(scale), decimals: Math.max(0, Math.min(6, Math.round(Number(decimals) || 0))), additive }
+    const input: MetricInput = { title: title.trim(), description: description.trim() || null, ownerIds: owners, comparison, goal: goalN, goalUpper: comparison === 'between' ? upperN : null, unit, scale: Number(scale), decimals: Math.max(0, Math.min(6, Math.round(Number(decimals) || 0))), additive }
     act(() => (metric ? updateMetricAction(orgSlug, metric.id, input) : createMetricAction(orgSlug, scorecardId, input)), { success: metric ? 'Saved' : `${labels.metric} added`, onDone: () => onOpenChange(false) })
   }
   return (
@@ -318,6 +326,7 @@ function MetricDialog({ open, metric, onOpenChange, orgSlug, scorecardId, people
             <DialogDescription>A number someone owns and reports every period, with a goal.</DialogDescription>
           </DialogHeader>
           <Field label="Title" htmlFor="m-title"><Input id="m-title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Qualified leads" /></Field>
+          <Field label="Description" htmlFor="m-desc" hint="Optional. What this number measures and where it comes from."><Input id="m-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Leads that passed qualification this week" /></Field>
           <Field label="Owners"><OwnerPicker people={people} value={owners} onChange={setOwners} placeholder="No owner" /></Field>
           <div className="grid grid-cols-[1fr_1fr] gap-3">
             <Field label="Goal">

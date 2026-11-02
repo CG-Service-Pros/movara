@@ -118,7 +118,7 @@ export function buildTools(terms: Terms): ToolDef[] {
   // ------------------------------------------------------------------ Issues
   read('issues_list', `List ${Is} (open by rank by default). Filter by team, short/long-term horizon, owner, status.`, {
     teamId: z.uuid().optional(), horizon: z.enum(['short', 'long']).optional(), ownerId: z.uuid().optional(),
-    status: z.enum(['open', 'solved', 'dropped', 'all']).optional(), ...paging,
+    status: z.union([z.enum(['open', 'solved', 'dropped', 'all']), z.array(z.enum(['open', 'solved', 'dropped'])).min(1)]).optional().describe('One status or an array of statuses'), ...paging,
   }, async (ctx, a) => {
     const { limit, cursor, ...f } = a
     return compact(paginate((await listIssues(ctx, f)).map((i) => ({ ...i, statusLabel: terms.status(i.status) })), limit, cursor), ['description'])
@@ -132,7 +132,7 @@ export function buildTools(terms: Terms): ToolDef[] {
   // ------------------------------------------------------------------ To-dos
   read('todos_list', `List ${Ts}, soonest due first. Filter by owner, team, status, overdue.`, {
     ownerId: z.uuid().optional(), teamId: z.uuid().optional(), personal: z.boolean().optional(),
-    status: z.enum(['open', 'pending', 'done']).optional(), overdue: z.boolean().optional(), ...paging,
+    status: z.union([z.enum(['open', 'pending', 'done']), z.array(z.enum(['open', 'pending', 'done'])).min(1)]).optional().describe('One status or an array of statuses'), overdue: z.boolean().optional(), ...paging,
   }, async (ctx, a) => {
     const { limit, cursor, ...f } = a
     return compact(paginate(await listTodos(ctx, f), limit, cursor), ['description'])

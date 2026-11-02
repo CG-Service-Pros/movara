@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 const actor = z.object({ type: z.enum(['person', 'agent']), id: z.string(), onBehalfOf: z.string().optional() })
 
-/** Who proposed/approved a piece of content. `approvedBy` is filled in from the approval when reading. */
+/** Who proposed/approved a piece of content. `approvedBy` is stored at approval time; legacy goals without it are backfilled from the approval when reading. */
 export const Provenance = z.object({
   proposedBy: actor,
   approvalId: z.string().optional(),

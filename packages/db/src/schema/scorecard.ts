@@ -28,6 +28,7 @@ export const metrics = pgTable(
     orgId: uuid('org_id').notNull().references(() => orgs.id, { onDelete: 'cascade' }),
     scorecardId: uuid('scorecard_id').notNull().references(() => scorecards.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
+    description: text('description'),
     ownerIds: uuid('owner_ids').array().notNull().default([]),
     comparison: metricComparison('comparison').notNull().default('gte'),
     goal: numeric('goal', { mode: 'number' }),

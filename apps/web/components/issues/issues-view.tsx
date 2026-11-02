@@ -36,7 +36,7 @@ export type IssueItem = {
 type Tab = 'short' | 'long' | 'solved'
 
 export function IssuesView({
-  orgSlug, issues, solved, sources, people, teams, teamId, initialTab, now, labels,
+  orgSlug, issues, solved, sources, people, teams, teamId, initialTab, now, labels, initialSelectedId = null, openNew = false,
 }: {
   orgSlug: string
   issues: IssueItem[]
@@ -48,12 +48,15 @@ export function IssuesView({
   initialTab: Tab
   now: string
   labels: { issue: string; issues: string; solve: string }
+  /** Deep links: `?id=<issueId>` opens its sheet, `?new=1` opens the create dialog. */
+  initialSelectedId?: string | null
+  openNew?: boolean
 }) {
   const router = useRouter()
   const { act } = useAct()
   const [tab, setTab] = React.useState<Tab>(initialTab)
-  const [selectedId, setSelectedId] = React.useState<string | null>(null)
-  const [creating, setCreating] = React.useState(false)
+  const [selectedId, setSelectedId] = React.useState<string | null>(initialSelectedId)
+  const [creating, setCreating] = React.useState(openNew)
   const personOf = (id: string | null) => people.find((p) => p.id === id) ?? null
 
   const short = issues.filter((i) => i.horizon === 'short')

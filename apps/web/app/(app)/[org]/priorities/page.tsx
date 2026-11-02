@@ -15,7 +15,7 @@ import { PrioritiesView } from '@/components/priorities/priorities-view'
 import type { Labels, PLevel, PStatus, PriorityItem, Tab } from '@/components/priorities/types'
 import { requireModule } from '@/lib/ctx'
 
-type SP = { q?: string; tab?: string; team?: string; id?: string }
+type SP = { q?: string; tab?: string; team?: string; id?: string; new?: string }
 
 export default async function PrioritiesPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<SP> }) {
   const [{ org: slug }, sp] = await Promise.all([params, searchParams])
@@ -80,6 +80,7 @@ export default async function PrioritiesPage({ params, searchParams }: { params:
       tab={tab}
       teamId={sp.team ?? null}
       selectedId={detail ? detail.id : null}
+      openNew={sp.new === '1'}
       items={items}
       detail={detail}
       people={people.map((p) => ({ id: p.id, name: p.name }))}

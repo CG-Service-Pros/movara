@@ -1,0 +1,12 @@
+{
+  "extends": "@motion/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "resolveJsonModule": true,
+    "sourceMap": false
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,61 @@
+# Manual npm publish for the two public packages. Changesets is not set up yet.
+# Requires the NPM_TOKEN repository secret (an npm automation token with publish rights
+# to the @motion and @motion-community scopes).
+name: Release (npm)
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to publish
+        type: choice
+        options:
+          - all
+          - "@motion/terminology"
+          - "@motion-community/pack-eos"
+        default: all
+      dry_run:
+        description: Dry run (npm publish --dry-run)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write # allows npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @motion/terminology typecheck
+      - run: pnpm --filter @motion/terminology test
+
+      # pnpm publish applies "publishConfig" overrides (exports -> dist) before packing.
+      # npm publish would ship the monorepo-only TypeScript-source "exports" field.
+      - name: Publish @motion/terminology
+        if: inputs.package == 'all' || inputs.package == '@motion/terminology'
+        working-directory: packages/terminology
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+        run: |
+          pnpm build
+          pnpm publish --access public --no-git-checks ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Publish @motion-community/pack-eos
+        if: inputs.package == 'all' || inputs.package == '@motion-community/pack-eos'
+        working-directory: packs/eos
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+        run: npm publish --access public ${{ inputs.dry_run && '--dry-run' || '' }}

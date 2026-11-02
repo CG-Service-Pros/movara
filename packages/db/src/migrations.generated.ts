@@ -157,5 +157,13 @@ export const MIGRATIONS: { tag: string; folderMillis: number; hash: string; sql:
       "\nCREATE UNIQUE INDEX \"request_log_org_request_uq\" ON \"request_log\" USING btree (\"org_id\",\"request_id\");",
       "\nCREATE INDEX \"request_log_org_created_idx\" ON \"request_log\" USING btree (\"org_id\",\"created_at\");"
     ]
+  },
+  {
+    "tag": "0001_metric_description",
+    "folderMillis": 1793662924395,
+    "hash": "5df3eaabda44e532d773e39ea176b560298d75df385c90c87eb9f0ea8ba1ed2e",
+    "sql": [
+      "ALTER TABLE \"metrics\" ADD COLUMN \"description\" text;"
+    ]
   }
 ]

@@ -6,7 +6,7 @@ import { MotionError } from '../errors'
 import { found, scoped } from '../helpers'
 import { orgCalendar } from '../issues/internal'
 import { elapsedOf, loadMeeting, type MeetingRow, type SeriesRow } from './state'
-import type { IdsStatus, MeetingSettings, MeetingStats } from './types'
+import type { IdsStatus, IdsStep, MeetingSettings, MeetingStats } from './types'
 
 // ------------------------------------------------------------------ getMeeting
 
@@ -64,6 +64,7 @@ export type LiveState = {
   settings: MeetingSettings
   ids: {
     status: IdsStatus
+    step: IdsStep
     currentIssueId: string | null
     focusIssueIds: string[]
     focusIssues: LiveFocusIssue[]
@@ -75,7 +76,10 @@ export type LiveState = {
   ratings: { count: number; mine: number | null; average: number | null; all: Record<string, number> | null }
   counts: { openTodos: number; pendingTodos: number; doneTodos: number; newTodos: number; headlinesToReview: number; headlinesReviewed: number; openIssues: number }
   reviewedHeadlineIds: string[]
+  /** Check-in: ids of attendees marked as having shared. */
+  sharedIds: string[]
   newTodoIds: string[]
+  newHeadlineIds: string[]
   stats: MeetingStats | null
   summary: string | null
 }
@@ -136,6 +140,7 @@ export async function getLiveState(ctx: Ctx, meetingId: string, opts: { sinceRev
     settings: s.settings,
     ids: {
       status: s.idsState.status,
+      step: s.idsState.step,
       currentIssueId: s.idsState.currentIssueId,
       focusIssueIds: s.focusIssueIds,
       focusIssues,
@@ -151,7 +156,9 @@ export async function getLiveState(ctx: Ctx, meetingId: string, opts: { sinceRev
     },
     counts: { openTodos: nTodo('open'), pendingTodos: nTodo('pending'), doneTodos: nTodo('done'), newTodos: s.newTodoIds.length, headlinesToReview: hl?.toReview ?? 0, headlinesReviewed: hl?.reviewed ?? 0, openIssues: oi?.n ?? 0 },
     reviewedHeadlineIds: s.reviewedHeadlineIds,
+    sharedIds: s.sharedIds,
     newTodoIds: s.newTodoIds,
+    newHeadlineIds: s.newHeadlineIds,
     stats: s.stats ?? null,
     summary: l.meeting.summary,
   }

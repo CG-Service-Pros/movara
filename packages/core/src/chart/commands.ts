@@ -378,7 +378,7 @@ export const chartProposeChange = defineCommand({
       data: { revision: final, published: willPublish },
       entity: E(final.id),
       before: null,
-      after: { ...revSnap(final), ops: input.ops.map((o) => o.op), reason: input.reason ?? null },
+      after: { ...revSnap(final), ops: input.ops.map((o) => o.op), reason: input.reason ?? null, ...(h.approvedBy ? { approvedBy: h.approvedBy } : {}) },
     }
   },
 })

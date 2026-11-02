@@ -1,7 +1,7 @@
 {
   "name": "@motion-community/pack-eos",
   "version": "1.0.0",
-  "description": "EOS terminology pack for Motion (community, unofficial).",
+  "description": "EOS terminology pack for Motion (community, unofficial; not affiliated with EOS Worldwide).",
   "main": "pack.json",
   "files": [
     "pack.json",
@@ -10,10 +10,30 @@
   "keywords": [
     "motion",
     "motion-pack",
-    "terminology"
+    "terminology",
+    "eos",
+    "rocks",
+    "level-10"
   ],
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@motion/terminology": "^1.0.0"
+    "@motion/terminology": ">=0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OscarCGPro/motion.git",
+    "directory": "packs/eos"
+  },
+  "homepage": "https://github.com/OscarCGPro/motion/tree/main/packs/eos",
+  "bugs": {
+    "url": "https://github.com/OscarCGPro/motion/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": "./pack.json",
+    "./pack.json": "./pack.json",
+    "./package.json": "./package.json"
   }
 }

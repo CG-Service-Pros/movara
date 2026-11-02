@@ -1,10 +1,10 @@
-import { actingPersonId, listMeetings, listTodos, todayIn } from '@motion/core'
+import { actingPersonId, getTodo, listMeetings, listTodos, todayIn } from '@motion/core'
 import { Page } from '@/components/shell/page'
 import { TodosView } from '@/components/todos/todos-view'
 import { peopleAndTeams, resolveSources } from '@/components/issues/server'
 import { getMyTeams, requireModule } from '@/lib/ctx'
 
-export default async function TodosPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ view?: string }> }) {
+export default async function TodosPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ view?: string; id?: string; new?: string }> }) {
   const { org: slug } = await params
   const sp = await searchParams
   const { ctx, org, terms } = await requireModule(slug, 'todos')
@@ -15,6 +15,8 @@ export default async function TodosPage({ params, searchParams }: { params: Prom
     id: t.id, title: t.title, description: t.description, ownerId: t.ownerId, teamId: t.teamId, dueDate: t.dueDate, status: t.status,
     doneAt: t.doneAt?.toISOString() ?? null, source: resolve(t.source), actorAgent: t.createdByActor?.type === 'agent',
   }))
+  const target = sp.id ? await getTodo(ctx, sp.id).catch(() => null) : null
+  const me = actingPersonId(ctx)
   return (
     <Page title={terms.t('todo', 'plural')}>
       <TodosView
@@ -23,10 +25,12 @@ export default async function TodosPage({ params, searchParams }: { params: Prom
         people={people}
         teams={teams}
         myTeamIds={myTeams.map((t) => t.id)}
-        meId={actingPersonId(ctx)}
+        meId={me}
         today={todayIn(org)}
         liveTeamIds={[...new Set(live.map((m) => m.teamId))]}
-        initialView={sp.view === 'team' || sp.view === 'all' ? sp.view : 'my'}
+        initialView={target && target.ownerId !== me ? 'all' : sp.view === 'team' || sp.view === 'all' ? sp.view : 'my'}
+        initialSelectedId={target?.id ?? null}
+        openNew={sp.new === '1'}
         labels={{ todo: terms.t('todo'), todos: terms.t('todo', 'plural') }}
       />
     </Page>

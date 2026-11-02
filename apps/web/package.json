@@ -14,6 +14,7 @@
   "dependencies": {
     "@motion/core": "workspace:*",
     "@motion/db": "workspace:*",
+    "@motion/mcp": "workspace:*",
     "@motion/terminology": "workspace:*",
     "@motion/ui": "workspace:*",
     "@radix-ui/react-checkbox": "^1.4.1",

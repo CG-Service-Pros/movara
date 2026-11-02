@@ -105,5 +105,7 @@ export function buildQuickActions(o: { org: string; terms: Terms; teams: NavTeam
   if (m.issues) out.push({ id: 'new:issue', label: `New ${T.t('issue').toLowerCase()}`, href: `/${org}/issues?${team}new=1`, group: 'Create', icon: 'issues' })
   if (m.todos) out.push({ id: 'new:todo', label: `New ${T.t('todo').toLowerCase()}`, href: `/${org}/todos?new=1`, group: 'Create', icon: 'todos' })
   if (m.headlines) out.push({ id: 'new:headline', label: `New ${T.t('headline').toLowerCase()}`, href: `/${org}/headlines?new=1`, group: 'Create', icon: 'headlines' })
+  if (m.scorecard) out.push({ id: 'new:metric', label: `New ${T.t('metric').toLowerCase()}`, href: `/${org}/scorecard?${team}new=1`, group: 'Create', icon: 'scorecard' })
+  if (m.meetings) out.push({ id: 'new:meeting', label: `New ${T.t('weekly_meeting').toLowerCase()}`, href: `/${org}/meetings?new=1`, group: 'Create', icon: 'meeting' })
   return out
 }

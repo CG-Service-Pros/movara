@@ -1,4 +1,4 @@
-import { hasRole } from '@motion/core'
+import { hasRole, terminologyHistoryOf } from '@motion/core'
 import { previewImport, TERM_KEYS, STANDARD_PACK, resolveTerm } from '@motion/terminology'
 import { Page } from '@/components/shell/page'
 import { SettingsBody } from '@/components/settings/ui'
@@ -37,8 +37,9 @@ export default async function TerminologyPage({ params }: { params: Promise<{ or
     }
   })
 
-  const prev = org.terminologyPreviousPack
-  const previousName = pack || prev ? (prev ? prev.name : STANDARD_PACK.name) : null
+  const history = terminologyHistoryOf(org)
+  const prev = history[history.length - 1]
+  const previousName = history.length ? (prev ? prev.name : STANDARD_PACK.name) : null
 
   return (
     <Page title="Terminology" meta="The words your company uses">
@@ -49,6 +50,7 @@ export default async function TerminologyPage({ params }: { params: Promise<{ or
           canEdit={hasRole(ctx, 'admin')}
           active={pack ? { id: pack.id, name: pack.name, version: pack.version, author: pack.author, attribution: pack.attribution } : null}
           previousName={previousName}
+          historyDepth={history.length}
           rows={rows}
           overrides={overrides}
           templates={pack?.meetingTemplates ?? null}

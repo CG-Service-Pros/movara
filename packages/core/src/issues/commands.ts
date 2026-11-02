@@ -4,7 +4,7 @@ import { issues } from '@motion/db'
 import { MotionError } from '../errors'
 import type { Ctx } from '../ctx'
 import { assertVersion, found, scoped, touch } from '../helpers'
-import { bumpLiveRev } from '../meetings/live'
+import { addToLiveMeetings, bumpLiveRev } from '../meetings/live'
 import { defineCommand } from '../runner'
 import { assertPeople, assertTeam, insertIssues, nextIssueRank, sourceSchema } from './internal'
 
@@ -37,7 +37,7 @@ export const issueCreate = defineCommand({
   summary: (i) => `Create issue "${i.title}"`,
   run: async (ctx, input) => {
     const rows = await insertIssues(ctx, input)
-    await bumpLiveRev(ctx, [input.teamId])
+    await addToLiveMeetings(ctx, input.teamId, { issueIds: rows.map((r) => r.id) })
     return { data: rows, entity: { type: 'issue', id: rows[0]!.id }, before: null, after: { title: input.title, ids: rows.map((r) => r.id), ownerIds: rows.map((r) => r.ownerId), source: input.source ?? null } }
   },
 })

@@ -47,21 +47,18 @@ export function IdsView({ b, act, today }: { b: Bundle; act: Act; today: string 
   const picks = ids.focusIssueIds.filter((i) => !ids.discussedIssueIds.includes(i))
   const current = ids.currentIssueId ? (byId.get(ids.currentIssueId) ?? null) : null
   const focusTotal = ids.focusIssueIds.length
-  const [step, setStep] = useState<Step>('discuss')
-  const lastCurrent = useRef<string | null>(null)
-  useEffect(() => {
-    if (ids.currentIssueId !== lastCurrent.current) {
-      lastCurrent.current = ids.currentIssueId
-      setStep(ids.currentIssueId ? 'discuss' : 'identify')
-    }
-  }, [ids.currentIssueId])
-  const shownStep: Step = current ? step : 'identify'
+  // The step lives in the meeting's server state (core `ids.set_step`), so everyone in the room sees the same one.
+  const shownStep: Step = current ? ids.step : 'identify'
+  const setStep = (s: Step) => {
+    if (s === shownStep) return
+    void act({ k: 'ids_step', step: s }, (x) => ({ ...x, live: { ...x.live, ids: { ...x.live.ids, step: s } } }))
+  }
 
   const setPicks = (next: string[]) =>
     act({ k: 'focus', issueIds: next }, (x) => {
       const focus = [...x.live.ids.focusIssueIds.filter((i) => x.live.ids.discussedIssueIds.includes(i)), ...next]
       const cur = x.live.ids.currentIssueId && next.includes(x.live.ids.currentIssueId) ? x.live.ids.currentIssueId : null
-      return { ...x, live: { ...x.live, ids: { ...x.live.ids, focusIssueIds: focus, currentIssueId: cur, status: cur ? 'discussing' : next.length ? 'prioritizing' : x.live.ids.status } } }
+      return { ...x, live: { ...x.live, ids: { ...x.live.ids, focusIssueIds: focus, currentIssueId: cur, status: cur ? 'discussing' : next.length ? 'prioritizing' : x.live.ids.status, step: cur ? x.live.ids.step : 'identify' } } }
     })
   const togglePick = (id: string) => {
     if (picks.includes(id)) return setPicks(picks.filter((p) => p !== id))
@@ -69,7 +66,7 @@ export function IdsView({ b, act, today }: { b: Bundle; act: Act; today: string 
     return setPicks([...picks, id])
   }
   const startDiscussing = (issueId?: string) =>
-    act({ k: 'ids_start', issueId: issueId ?? picks[0]! }, (x) => ({ ...x, live: { ...x.live, ids: { ...x.live.ids, currentIssueId: issueId ?? picks[0]!, status: 'discussing' } } }))
+    act({ k: 'ids_start', issueId: issueId ?? picks[0]! }, (x) => ({ ...x, live: { ...x.live, ids: { ...x.live.ids, currentIssueId: issueId ?? picks[0]!, status: 'discussing', step: 'discuss' } } }))
 
   const resolve = (issue: BIssue, solved: boolean) =>
     act({ k: 'resolve', issueId: issue.id, solved }, (x) => {
@@ -77,7 +74,7 @@ export function IdsView({ b, act, today }: { b: Bundle; act: Act; today: string 
       const next = x.live.ids.focusIssueIds.find((i) => !d.includes(i)) ?? null
       return {
         ...x,
-        live: { ...x.live, ids: { ...x.live.ids, discussedIssueIds: d, solvedIssueIds: solved ? [...x.live.ids.solvedIssueIds, issue.id] : x.live.ids.solvedIssueIds, currentIssueId: next, status: next ? 'discussing' : 'complete' } },
+        live: { ...x.live, ids: { ...x.live.ids, discussedIssueIds: d, solvedIssueIds: solved ? [...x.live.ids.solvedIssueIds, issue.id] : x.live.ids.solvedIssueIds, currentIssueId: next, status: next ? 'discussing' : 'complete', step: next ? 'discuss' : 'identify' } },
       }
     })
 

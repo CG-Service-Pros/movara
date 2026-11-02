@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1.7
+# Motion web app (Next.js 16). Build from the repo root:
+#   docker build -f docker/Dockerfile.web -t motion-web .
+# next.config.ts does not enable `output: 'standalone'`, so this image runs `next start`
+# on a pruned monorepo (only @motion/web, @motion/mcp and what they depend on).
+ARG NODE_VERSION=22
+
+FROM node:${NODE_VERSION}-bookworm-slim AS base
+ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH CI=1 NEXT_TELEMETRY_DISABLED=1
+RUN corepack enable
+WORKDIR /app
+
+# 1. Prune the monorepo. apps/web mounts the MCP route from apps/mcp/src, so keep both.
+FROM base AS pruner
+COPY . .
+RUN pnpm dlx turbo@2 prune @motion/web @motion/mcp --docker
+
+# 2. Install (cached on lockfile) and build.
+FROM base AS builder
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+COPY --from=pruner /app/out/full/ .
+RUN pnpm --filter @motion/web build
+
+# 3. Runtime.
+FROM base AS runner
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
+RUN groupadd --system --gid 1001 motion && useradd --system --uid 1001 --gid motion --create-home motion
+COPY --from=builder --chown=motion:motion /app /app
+USER motion
+EXPOSE 3000
+HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/sign-in').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+WORKDIR /app/apps/web
+CMD ["pnpm", "exec", "next", "start", "-H", "0.0.0.0"]

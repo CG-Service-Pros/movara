@@ -153,7 +153,7 @@ const proposeInput = z
  * Agents (scope propose:vision) get an approval card; nothing changes until a person approves.
  * Approving (or a person/admin running it directly with `publish`) applies the change to a draft
  * revision and publishes it; otherwise it stays in the draft. Goals carry provenance
- * (proposedBy, approvalId, source, at); `approvedBy` is resolved from the approval when reading.
+ * (proposedBy, approvalId, source, at); `approvedBy` is stored at approval time (`h.approvedBy`).
  */
 export const visionProposeChange = defineCommand({
   name: 'vision.propose_change',
@@ -171,8 +171,9 @@ export const visionProposeChange = defineCommand({
     // Publishing builds on the published content (an unrelated in-progress draft is left alone).
     let rev = willPublish ? await createDraftRow(ctx, plan) : ((await currentRevision(ctx, plan.id, 'draft')) ?? (await createDraftRow(ctx, plan)))
     const sections = structuredClone(sectionsOf(rev)) as Record<string, any>
-    const provenance: Provenance = { proposedBy: ctx.actor, approvalId: h.approvalId, source: input.source, at: new Date().toISOString() }
+    const provenance: Provenance = { proposedBy: ctx.actor, approvalId: h.approvalId, approvedBy: h.approvedBy, source: input.source, at: new Date().toISOString() }
     if (!provenance.approvalId) delete provenance.approvalId
+    if (!provenance.approvedBy) delete provenance.approvedBy
     if (!provenance.source) delete provenance.source
 
     if (input.op === 'add_goal') {

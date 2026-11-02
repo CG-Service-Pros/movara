@@ -2,6 +2,9 @@ import type { AgendaItemJson } from '@motion/db'
 
 export type SectionTimer = { elapsedMs: number; runningSince: string | null }
 export type IdsStatus = 'idle' | 'prioritizing' | 'discussing' | 'complete'
+/** The IDS step shown for the current issue: Identify, Discuss, Solve. */
+export type IdsStep = 'identify' | 'discuss' | 'solve'
+export const IDS_STEPS: IdsStep[] = ['identify', 'discuss', 'solve']
 
 export type PresenceEntry = {
   kind: 'person' | 'agent'
@@ -44,6 +47,8 @@ export type StoredMeetingState = {
   focusIssueIds: string[]
   idsState: {
     status: IdsStatus
+    /** Explicit step; reset to 'discuss' when an issue starts and to 'identify' when none is current. */
+    step: IdsStep
     currentIssueId: string | null
     discussedIssueIds: string[]
     solvedIssueIds: string[]
@@ -54,6 +59,8 @@ export type StoredMeetingState = {
   newTodoIds: string[]
   newHeadlineIds: string[]
   reviewedHeadlineIds: string[]
+  /** Check-in: ids of people who have shared. */
+  sharedIds: string[]
   /** Set by meeting end. */
   stats?: MeetingStats
 }

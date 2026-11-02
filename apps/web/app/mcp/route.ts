@@ -1,6 +1,5 @@
 import { getDb } from '@/lib/db'
-// Relative import: apps/web does not list @motion/mcp as a dependency (kept out of the shared package.json).
-import { sharedMcpHttpHandler } from '../../../mcp/src/http-handler'
+import { sharedMcpHttpHandler } from '@motion/mcp/http-handler'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

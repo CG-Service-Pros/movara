@@ -25,13 +25,14 @@ export type HeadlineItem = { id: string; text: string; kind: Kind; ownerId: stri
 const KIND: Record<Kind, { label: string; tone: BadgeTone }> = { customer: { label: 'Customer', tone: 'accent' }, employee: { label: 'Employee', tone: 'warning' }, general: { label: 'General', tone: 'neutral' } }
 type Tab = 'review' | 'reviewed' | 'all'
 
-export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defaultTeamId, meId, now, labels }: {
-  orgSlug: string; headlines: HeadlineItem[]; people: PersonLite[]; teams: TeamLite[]; teamId: string | null; defaultTeamId: string; meId: string; now: string; labels: { headline: string; headlines: string }
+export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defaultTeamId, meId, now, labels, highlightId, openNew }: {
+  highlightId?: string; openNew?: boolean; orgSlug: string; headlines: HeadlineItem[]; people: PersonLite[]; teams: TeamLite[]; teamId: string | null; defaultTeamId: string; meId: string; now: string; labels: { headline: string; headlines: string }
 }) {
   const router = useRouter()
   const { act } = useAct()
-  const [tab, setTab] = React.useState<Tab>('review')
-  const [posting, setPosting] = React.useState(false)
+  const [tab, setTab] = React.useState<Tab>(() => { const h = highlightId ? headlines.find((x) => x.id === highlightId) : undefined; return h ? (h.reviewedAt ? 'reviewed' : 'review') : 'review' })
+  const [posting, setPosting] = React.useState(!!openNew)
+  React.useEffect(() => { if (highlightId) document.querySelector(`[data-headline-id="${highlightId}"]`)?.scrollIntoView({ block: 'center' }) }, [highlightId])
   const [cascading, setCascading] = React.useState<HeadlineItem | null>(null)
   const person = (id: string | null) => people.find((p) => p.id === id) ?? null
   const teamName = (id: string | null) => teams.find((t) => t.id === id)?.name ?? null
@@ -63,7 +64,7 @@ export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defau
       ) : (
         <ul className="flex flex-col">
           {list.map((h) => (
-            <li key={h.id} className="group flex items-start gap-3 border-b border-line-faint px-2 py-2.5 last:border-0 hover:bg-canvas">
+            <li key={h.id} data-headline-id={h.id} data-highlight={h.id === highlightId || undefined} className={cn('group flex items-start gap-3 border-b border-line-faint px-2 py-2.5 last:border-0 hover:bg-canvas', h.id === highlightId && 'bg-accent-soft')}>
               <Checkbox className="mt-0.5" checked={!!h.reviewedAt} aria-label={h.reviewedAt ? 'Mark not reviewed' : 'Mark reviewed'} onCheckedChange={(c) => act(() => reviewHeadlineAction(orgSlug, h.id, c === true), { success: c === true ? 'Marked reviewed' : 'Marked not reviewed' })} />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <p className={cn('text-base font-[500]', h.reviewedAt ? 'text-body' : 'text-ink')}>{h.text}</p>

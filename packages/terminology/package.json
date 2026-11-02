@@ -1,8 +1,25 @@
 {
   "name": "@motion/terminology",
-  "version": "1.0.0",
-  "type": "module",
+  "version": "0.1.0",
+  "description": "Terminology packs for Motion: term keys, pack schema (Zod + JSON Schema), resolver and the neutral Standard pack.",
   "license": "Apache-2.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OscarCGPro/motion.git",
+    "directory": "packages/terminology"
+  },
+  "homepage": "https://github.com/OscarCGPro/motion/tree/main/packages/terminology",
+  "bugs": {
+    "url": "https://github.com/OscarCGPro/motion/issues"
+  },
+  "keywords": [
+    "motion",
+    "terminology",
+    "white-label",
+    "mcp",
+    "zod"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
@@ -11,13 +28,44 @@
     "./schema/*": "./schema/*",
     "./*": "./src/*.ts"
   },
-  "files": ["src", "packs", "schema"],
+  "files": [
+    "dist",
+    "packs",
+    "schema",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/src/index.js",
+    "types": "./dist/src/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      },
+      "./schema": {
+        "types": "./dist/src/schema.d.ts",
+        "default": "./dist/src/schema.js"
+      },
+      "./resolve": {
+        "types": "./dist/src/resolve.d.ts",
+        "default": "./dist/src/resolve.js"
+      },
+      "./packs/*": "./packs/*",
+      "./schema/*": "./schema/*",
+      "./package.json": "./package.json"
+    }
+  },
   "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/postbuild.mjs",
     "build:schema": "tsx scripts/generate-json-schema.ts",
+    "prepublishOnly": "pnpm build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
-  "dependencies": { "zod": "^4.6.7" },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
   "devDependencies": {
     "@motion/config": "workspace:*",
     "@types/node": "^22",

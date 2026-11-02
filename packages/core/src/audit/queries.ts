@@ -1,5 +1,5 @@
-import { and, desc, eq, gte, lt, lte, or, sql } from 'drizzle-orm'
-import { auditEvents } from '@motion/db'
+import { and, desc, eq, gte, inArray, lt, lte, or, sql } from 'drizzle-orm'
+import { auditEvents, milestones } from '@motion/db'
 import { requireRead, type Ctx } from '../ctx'
 import { decodeCursor, encodeCursor } from '../helpers'
 
@@ -49,4 +49,35 @@ export async function listAudit(ctx: Ctx, input: ListAuditInput = {}): Promise<{
   const items = rows.slice(0, limit)
   const last = items[items.length - 1]
   return { items, nextCursor: rows.length > limit && last ? encodeCursor(last.at, last.id) : null }
+}
+
+export type ListActivityInput = {
+  entityType: string
+  entityId: string
+  /** For a priority: also include the events of its milestones (default true). Ignored for other entity types. */
+  includeChildren?: boolean
+  limit?: number
+}
+
+/**
+ * Activity of one entity, newest first. For a priority this also returns its milestones' events
+ * (including milestones that were deleted since), which is what the priority's activity feed shows.
+ */
+export async function listActivity(ctx: Ctx, input: ListActivityInput): Promise<AuditEventRow[]> {
+  requireRead(ctx)
+  const own = and(eq(auditEvents.entityType, input.entityType), eq(auditEvents.entityId, input.entityId))
+  let where = own
+  if (input.entityType === 'priority' && input.includeChildren !== false) {
+    const ms = await ctx.db.select({ id: milestones.id }).from(milestones).where(and(eq(milestones.orgId, ctx.orgId), eq(milestones.priorityId, input.entityId)))
+    where = or(
+      own,
+      and(eq(auditEvents.entityType, 'milestone'), or(ms.length ? inArray(auditEvents.entityId, ms.map((m) => m.id)) : undefined, sql`${auditEvents.diff}->>'priorityId' = ${input.entityId}`)),
+    )
+  }
+  return ctx.db
+    .select()
+    .from(auditEvents)
+    .where(and(eq(auditEvents.orgId, ctx.orgId), where))
+    .orderBy(desc(auditEvents.at), desc(auditEvents.id))
+    .limit(Math.min(input.limit ?? 50, 200))
 }

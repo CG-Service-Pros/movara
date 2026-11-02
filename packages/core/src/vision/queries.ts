@@ -12,7 +12,7 @@ export function sectionsOf(rev: Pick<VisionRevisionRow, 'content'>): VisionSecti
   return ((rev.content as { sections?: VisionSections } | null)?.sections ?? {}) as VisionSections
 }
 
-/** Fill `provenance.approvedBy` on goals from the approval that authorized them. */
+/** Legacy fallback: goals written before `approvedBy` was stored get it from the approval's `decidedBy`. */
 async function hydrate(ctx: Ctx, rev: VisionRevisionRow): Promise<VisionRevisionRow> {
   const s = sectionsOf(rev)
   const goals: Goal[] = [...(s.oneYear?.goals ?? []), ...(s.threeYear?.goals ?? [])]

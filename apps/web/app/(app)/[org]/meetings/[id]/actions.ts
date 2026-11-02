@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import {
-  endMeeting, execute, headlineCascade, headlinePost, idsFocus, idsResolve, idsStart, isMotionError, issueUpdate, meetingCapture, meetingDropToIssue,
-  meetingJoin, meetingNextSection, meetingScheduleNext, meetingPause, meetingRate, meetingResume, meetingReviewHeadline, meetingSetSection, meetingSetSettings,
+  endMeeting, execute, headlineCascade, headlinePost, idsFocus, idsResolve, idsSetStep, idsStart, isMotionError, issueUpdate, meetingCapture, meetingDropToIssue,
+  meetingJoin, meetingNextSection, meetingPause, meetingRate, meetingResume, meetingReviewHeadline, meetingSetSection, meetingSetSettings, meetingSetShared,
   meetingStart, prioritySetStatus, todoComplete, todoUncomplete,
 } from '@motion/core'
 import { loadBundle } from '@/components/meetings/bundle'
@@ -24,6 +24,8 @@ export type MeetingOp =
   | { k: 'focus'; issueIds: string[] }
   | { k: 'ids_start'; issueId: string }
   | { k: 'capture_todo'; issueId: string; title: string; ownerId: string; dueDate?: string }
+  | { k: 'ids_step'; step: 'identify' | 'discuss' | 'solve' }
+  | { k: 'shared'; personId: string; shared: boolean }
   | { k: 'resolve'; issueId: string; solved: boolean }
   | { k: 'notes'; issueId: string; description: string }
   | { k: 'rate'; score: number }
@@ -51,6 +53,8 @@ export async function meetingAction(slug: string, meetingId: string, op: Meeting
       case 'capture_todo':
         await execute(ctx, meetingCapture, { meetingId, todos: [{ title: op.title, ownerIds: [op.ownerId], dueDate: op.dueDate || undefined }], source: { type: 'issue', id: op.issueId } })
         break
+      case 'ids_step': await execute(ctx, idsSetStep, { meetingId, step: op.step }); break
+      case 'shared': await execute(ctx, meetingSetShared, { meetingId, personId: op.personId, shared: op.shared }); break
       case 'resolve': await execute(ctx, idsResolve, { meetingId, issueId: op.issueId, solved: op.solved }); break
       case 'notes': await execute(ctx, issueUpdate, { issueId: op.issueId, description: op.description }); break
       case 'rate': await execute(ctx, meetingRate, { meetingId, score: op.score }); break
@@ -65,12 +69,8 @@ export async function meetingAction(slug: string, meetingId: string, op: Meeting
         break
       }
       case 'end': {
+        // Core schedules the next occurrence of a recurring series as part of meeting.end.
         await endMeeting(ctx, { meetingId })
-        // Keep the cadence going: schedule the series' next occurrence (best effort, weekly series only).
-        try {
-          const live = await loadBundle(ctx, meetingId)
-          await execute(ctx, meetingScheduleNext, { seriesId: live.live.seriesId }).catch(() => null)
-        } catch {}
         revalidatePath(`/${slug}/meetings`)
         break
       }

@@ -1,7 +1,8 @@
-import { and, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
-import { meetings, meetingSeries } from '@motion/db'
+import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
+import { meetings, meetingSeries, type MeetingState } from '@motion/db'
 import type { Ctx } from '../ctx'
 import { scoped } from '../helpers'
+import { readState } from './state'
 
 /** Live-meeting plumbing used by the todos/issues/headlines areas (no dependency on the meetings commands). */
 
@@ -25,5 +26,27 @@ export async function bumpLiveRev(ctx: Ctx, teamIds: (string | null | undefined)
     .update(meetings)
     .set({ state: sql`jsonb_set(${meetings.state}, '{rev}', to_jsonb(coalesce((${meetings.state}->>'rev')::int, 0) + 1))` })
     .where(scoped(meetings, ctx, inArray(meetings.id, live)))
+  return live.length
+}
+
+export type LiveAdditions = { todoIds?: string[]; issueIds?: string[]; headlineIds?: string[] }
+
+/**
+ * Items created by ANY path (REST, MCP, UI) for a team whose meeting is live are recorded on that meeting
+ * (`newTodoIds`, `idsState.addedIssueIds`, `newHeadlineIds`), and `rev` is bumped. Returns how many meetings were live.
+ */
+export async function addToLiveMeetings(ctx: Ctx, teamId: string | null | undefined, added: LiveAdditions): Promise<number> {
+  const live = await findLiveMeetingIds(ctx, [teamId])
+  for (const id of live) {
+    const [m] = await ctx.db.select().from(meetings).where(scoped(meetings, ctx, eq(meetings.id, id))).limit(1).for('update')
+    if (!m) continue
+    const s = readState(m.state)
+    const merge = (list: string[], more?: string[]) => [...new Set([...list, ...(more ?? [])])]
+    s.newTodoIds = merge(s.newTodoIds, added.todoIds)
+    s.idsState.addedIssueIds = merge(s.idsState.addedIssueIds, added.issueIds)
+    s.newHeadlineIds = merge(s.newHeadlineIds, added.headlineIds)
+    s.rev += 1
+    await ctx.db.update(meetings).set({ state: s as unknown as MeetingState }).where(scoped(meetings, ctx, eq(meetings.id, id)))
+  }
   return live.length
 }

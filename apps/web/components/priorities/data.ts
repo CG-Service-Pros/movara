@@ -1,5 +1,5 @@
 import 'server-only'
-import { getPriority, listAgents, listAudit, listPeople, type Ctx, type Terms } from '@motion/core'
+import { getPriority, listActivity, listAgents, listPeople, type Ctx, type Terms } from '@motion/core'
 import { buildActivityItems, type ActivityItem, type AuditEventLike } from '@/components/shell/activity-feed'
 import type { PriorityDetailData, PLevel, PStatus } from './types'
 
@@ -12,16 +12,11 @@ export async function actorDirectory(ctx: Ctx) {
   }
 }
 
-/** The priority, its milestones and a merged activity feed (the priority's and its milestones' audit events). */
+/** The priority, its milestones and its activity feed (core `listActivity`: the priority's and its milestones' events). */
 export async function loadPriorityDetail(ctx: Ctx, id: string, terms: Terms): Promise<PriorityDetailData> {
   const p = await getPriority(ctx, id)
-  const [dir, own, ...ms] = await Promise.all([
-    actorDirectory(ctx),
-    listAudit(ctx, { entityType: 'priority', entityId: id, limit: 30 }),
-    ...p.milestones.map((m) => listAudit(ctx, { entityType: 'milestone', entityId: m.id, limit: 10 })),
-  ])
+  const [dir, events] = await Promise.all([actorDirectory(ctx), listActivity(ctx, { entityType: 'priority', entityId: id, includeChildren: true, limit: 25 })])
   const titles = new Map(p.milestones.map((m) => [m.id, m.title]))
-  const events = [...own.items, ...ms.flatMap((r) => r.items)].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, 25)
   const activity: ActivityItem[] = buildActivityItems(events as AuditEventLike[], dir, {
     statusLabel: (v) => terms.status(v),
     entityTitle: (e) => (e.entityId ? titles.get(e.entityId) : undefined),

@@ -12,7 +12,7 @@ Demo data (seeded when the embedded DB is empty): org slug `vindex` ("Vindex Con
 Sam Ortiz. Teams "Leadership team" (is_leadership, all five) and "Delivery team" (Sam, Theo, Ines). Demo API key for
 the Ops Agent: `mk_live_demo_ops_agent_0000000000000000` (scopes read, write:todos, write:issues,
 write:priorities, write:headlines). Other agents: Notes Agent, Sales Agent. Data: 8 Q4-2026 priorities with
-milestones, a 13-week weekly scorecard (anchor week 2026-11-02; "Qualified leads" is missing for the current week),
+milestones, a 13-week weekly scorecard (anchor week 2026-11-02; "Qualified leads", owned by the demo user, is missing for the current week),
 9 issues, 11 to-dos, 4 headlines, meeting series "Leadership weekly" (standard agenda) with one past meeting
 (ratings) and one upcoming, a published vision plan (v4) and chart (v3), one pending approval
 (`vision.propose_change`, from the Notes Agent), audit events. `pnpm db:reset` recreates all of it.

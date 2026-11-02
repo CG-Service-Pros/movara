@@ -13,9 +13,10 @@ export const consoleEmailSender: EmailSender = {
   },
 }
 
-let defaultSender: EmailSender = noopEmailSender
+// Kept on globalThis so every bundle of core in the same process (Next.js instrumentation, route handlers, server actions) shares it.
+const g = globalThis as unknown as { __motionEmailSender?: EmailSender }
 /** Set the process-wide default sender (used by `endMeeting` unless one is passed). */
 export function setEmailSender(sender: EmailSender | null): void {
-  defaultSender = sender ?? noopEmailSender
+  g.__motionEmailSender = sender ?? noopEmailSender
 }
-export const getEmailSender = (): EmailSender => defaultSender
+export const getEmailSender = (): EmailSender => g.__motionEmailSender ?? noopEmailSender

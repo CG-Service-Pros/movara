@@ -37,7 +37,7 @@ export const approvalsDecide = defineCommand({
       if (!cmd) throw new MotionError('validation', `Unknown command "${approval.action}"`)
       if (requester.type !== 'agent') throw new MotionError('validation', 'Only agent requests can be approved')
       const agentCtx = await ctxForAgent(ctx.db, ctx.orgId, requester.id)
-      const r = await execute(agentCtx, cmd, approval.payload, { skipApproval: true, approvalId: approval.id })
+      const r = await execute(agentCtx, cmd, approval.payload, { skipApproval: true, approvalId: approval.id, approvedBy: ctx.actor })
       result = r.ok ? (cmd.redactResult ? { redacted: true, entity: r.entity } : { data: r.data, entity: r.entity, auditId: r.auditId }) : null
     }
 

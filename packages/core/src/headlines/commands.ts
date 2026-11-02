@@ -5,7 +5,7 @@ import type { Ctx } from '../ctx'
 import { MotionError } from '../errors'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
 import { assertPeople, assertTeam } from '../issues/internal'
-import { bumpLiveRev } from '../meetings/live'
+import { addToLiveMeetings, bumpLiveRev } from '../meetings/live'
 import { defineCommand } from '../runner'
 import { insertHeadlines } from './internal'
 
@@ -38,7 +38,7 @@ export const headlinePost = defineCommand({
   summary: (i) => `Post headline "${i.text}"`,
   run: async (ctx, input) => {
     const rows = await insertHeadlines(ctx, input)
-    await bumpLiveRev(ctx, [input.teamId])
+    await addToLiveMeetings(ctx, input.teamId, { headlineIds: rows.map((r) => r.id) })
     return { data: rows, entity: { type: 'headline', id: rows[0]!.id }, before: null, after: { text: input.text, kind: input.kind, ids: rows.map((r) => r.id), teamId: input.teamId } }
   },
 })
@@ -91,7 +91,7 @@ export const headlineCascade = defineCommand({
           .values(todo.map((teamId) => ({ ...base(ctx), text: src.text, kind: src.kind, ownerId: src.ownerId, teamId, cascadedFromId: origin })))
           .returning()
       : []
-    await bumpLiveRev(ctx, todo)
+    for (const r of rows) await addToLiveMeetings(ctx, r.teamId, { headlineIds: [r.id] })
     return { data: rows, entity: { type: 'headline', id: src.id }, before: null, after: { cascadedTo: todo, skipped: teamIds.filter((t) => have.has(t)), copyIds: rows.map((r) => r.id) } }
   },
 })

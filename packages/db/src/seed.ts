@@ -130,7 +130,7 @@ export async function seedDemo(db: Db): Promise<{ created: boolean; orgId: strin
     await tx.insert(s.scorecards).values({ ...c, id: SC, teamId: T.lead, interval: 'week', weekStartDay: 1, periodsShown: 13 })
     type MSeed = { title: string; owner: string; cmp: 'gte' | 'lte'; goal: number; unit: 'number' | 'percent' | 'currency'; scale: number; last5: (number | null)[]; base: number; spread: number; additive: boolean }
     const MS: MSeed[] = [
-      { title: 'Qualified leads', owner: P.maya, cmp: 'gte', goal: 10, unit: 'number', scale: 1, last5: [12, 9, 11, 14, null], base: 11, spread: 4, additive: true },
+      { title: 'Qualified leads', owner: P.oscar, cmp: 'gte', goal: 10, unit: 'number', scale: 1, last5: [12, 9, 11, 14, null], base: 11, spread: 4, additive: true },
       { title: 'Revenue booked', owner: P.theo, cmp: 'gte', goal: 40000, unit: 'currency', scale: 1000, last5: [46000, 38000, 52000, 41000, 44000], base: 42000, spread: 12000, additive: true },
       { title: 'Projects on schedule', owner: P.sam, cmp: 'gte', goal: 90, unit: 'percent', scale: 1, last5: [92, 88, 95, 91, 93], base: 91, spread: 6, additive: false },
       { title: 'Client NPS', owner: P.ines, cmp: 'gte', goal: 50, unit: 'number', scale: 1, last5: [54, 61, 48, 57, 59], base: 54, spread: 10, additive: false },
@@ -285,7 +285,7 @@ export async function seedDemo(db: Db): Promise<{ created: boolean; orgId: strin
       ev(oscarActor, null, 'priority.set_status', 'priority', priorityIds['Ship the agent MCP server v1']!, { before: { status: 'off_track' }, after: { status: 'on_track' } }, '2026-10-26T13:40:00Z'),
       ev(agentActor(A.notes, P.maya), P.maya, 'todo.create', 'todo', newId(), { after: { title: 'Draft the seven-day partner onboarding checklist' } }, '2026-10-26T13:55:00Z', 'notes-0001'),
       ev(agentActor(A.sales, P.theo), P.theo, 'metric.record_values', 'metric', metricRows[0]!.id!, { after: { periodStart: addDays(ANCHOR_MONDAY, -7), value: 14 } }, '2026-10-26T12:30:00Z', 'hubspot-1026'),
-      ev(agentActor(A.ops, P.oscar), P.oscar, 'milestone.toggle', 'milestone', auditId, { before: { doneAt: null }, after: { doneAt: '2026-10-30T16:20:00Z' } }, '2026-10-30T16:20:00Z', 'ops-0042'),
+      ev(agentActor(A.ops, P.oscar), P.oscar, 'milestone.toggle', 'milestone', auditId, { before: { doneAt: null }, after: { doneAt: '2026-10-30T16:20:00Z' }, milestoneTitle: 'Audit log for agent writes', priorityId: priorityIds['Ship the agent MCP server v1']! }, '2026-10-30T16:20:00Z', 'ops-0042'),
       ev(oscarActor, null, 'vision.publish', 'vision_revision', VP, { after: { number: 4 } }, '2026-10-30T15:00:00Z'),
       ev(oscarActor, null, 'chart.publish', 'chart_revision', CR, { after: { number: 3 } }, '2026-11-01T15:00:00Z'),
       ev(agentActor(A.notes, P.maya), P.maya, 'vision.propose_change', 'approval', AP, { after: { status: 'pending' } }, '2026-11-02T13:58:00Z', 'notes-0107'),

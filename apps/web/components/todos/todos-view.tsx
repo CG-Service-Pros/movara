@@ -34,7 +34,7 @@ export type TodoItem = {
 type View = 'my' | 'team' | 'all'
 
 export function TodosView({
-  orgSlug, todos, people, teams, myTeamIds, meId, today, liveTeamIds, initialView, labels,
+  orgSlug, todos, people, teams, myTeamIds, meId, today, liveTeamIds, initialView, labels, initialSelectedId = null, openNew = false,
 }: {
   orgSlug: string
   todos: TodoItem[]
@@ -46,11 +46,14 @@ export function TodosView({
   liveTeamIds: string[]
   initialView: View
   labels: { todo: string; todos: string }
+  /** Deep links: `?id=<todoId>` opens its sheet, `?new=1` opens the create dialog. */
+  initialSelectedId?: string | null
+  openNew?: boolean
 }) {
   const { act } = useAct()
   const [view, setView] = React.useState<View>(initialView)
-  const [selectedId, setSelectedId] = React.useState<string | null>(null)
-  const [creating, setCreating] = React.useState(false)
+  const [selectedId, setSelectedId] = React.useState<string | null>(initialSelectedId)
+  const [creating, setCreating] = React.useState(openNew)
   const person = (id: string | null) => people.find((p) => p.id === id) ?? null
   const teamName = (id: string | null) => (id ? (teams.find((t) => t.id === id)?.name ?? null) : null)
 

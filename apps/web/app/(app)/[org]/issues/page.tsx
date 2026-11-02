@@ -1,17 +1,19 @@
 import { Suspense } from 'react'
-import { listIssues } from '@motion/core'
+import { getIssue, listIssues } from '@motion/core'
 import { Page } from '@/components/shell/page'
 import { IssuesView } from '@/components/issues/issues-view'
 import { IssuesSkeleton } from '@/components/issues/issues-skeleton'
 import { peopleAndTeams, resolveSources } from '@/components/issues/server'
 import { getMyTeams, requireModule } from '@/lib/ctx'
 
-export default async function IssuesPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ team?: string; tab?: string; issue?: string }> }) {
+export default async function IssuesPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ team?: string; tab?: string; id?: string; issue?: string; new?: string }> }) {
   const { org: slug } = await params
   const sp = await searchParams
   const { ctx, terms } = await requireModule(slug, 'issues')
   const [{ people, teams }, myTeams] = await Promise.all([peopleAndTeams(ctx), getMyTeams(slug)])
-  const teamId = sp.team === 'all' ? null : (teams.find((t) => t.id === sp.team)?.id ?? myTeams[0]?.id ?? teams[0]?.id ?? null)
+  // Deep link: ?id=<issueId> opens that issue (switching to its team and tab).
+  const target = (sp.id ?? sp.issue) ? await getIssue(ctx, (sp.id ?? sp.issue)!).catch(() => null) : null
+  const teamId = target ? target.teamId : sp.team === 'all' ? null : (teams.find((t) => t.id === sp.team)?.id ?? myTeams[0]?.id ?? teams[0]?.id ?? null)
   const [open, solved] = await Promise.all([
     listIssues(ctx, { teamId: teamId ?? undefined, status: 'open' }),
     listIssues(ctx, { teamId: teamId ?? undefined, status: 'solved', limit: 30 }),
@@ -36,7 +38,9 @@ export default async function IssuesPage({ params, searchParams }: { params: Pro
           people={people}
           teams={teams}
           teamId={teamId}
-          initialTab={sp.tab === 'long' || sp.tab === 'solved' ? sp.tab : 'short'}
+          initialTab={target ? (target.status === 'solved' ? 'solved' : target.horizon === 'long' ? 'long' : 'short') : sp.tab === 'long' || sp.tab === 'solved' ? sp.tab : 'short'}
+          initialSelectedId={target?.id ?? null}
+          openNew={sp.new === '1'}
           now={new Date().toISOString()}
           labels={{ issue: terms.t('issue'), issues: terms.t('issue', 'plural'), solve: terms.t('solve') }}
         />

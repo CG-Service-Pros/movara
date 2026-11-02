@@ -21,6 +21,8 @@ export function TerminologyPanel(props: {
   orgName: string
   active: ActivePack
   previousName: string | null
+  /** How many earlier packs "Revert" can step back through. */
+  historyDepth?: number
   rows: TermRow[]
   overrides: Record<string, Partial<TermVal>>
   templates: unknown
@@ -74,9 +76,9 @@ export function TerminologyPanel(props: {
         {canEdit && (
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             {props.previousName !== undefined && props.previousName !== null && (
-              <Button loading={pending} onClick={() => save(() => revertPack(slug), 'Reverted')}><Undo2 size={14} strokeWidth={1.7} />Revert to {props.previousName}</Button>
+              <Button loading={pending} title={`Go back to the previously applied pack${(props.historyDepth ?? 0) > 1 ? ` (${props.historyDepth} earlier packs in history)` : ''}`} onClick={() => save(() => revertPack(slug), 'Reverted')}><Undo2 size={14} strokeWidth={1.7} />Revert to {props.previousName}</Button>
             )}
-            {active && <Button loading={pending} onClick={() => save(() => resetToStandard(slug), 'Using Standard terms')}>Use Standard</Button>}
+            {active && <Button loading={pending} title="Reset to the built-in Standard terms and clear the pack history" onClick={() => save(() => resetToStandard(slug), 'Using Standard terms')}>Use Standard</Button>}
             <Button onClick={exportPack}><Download size={14} strokeWidth={1.7} />Export</Button>
             <Button variant="primary" onClick={() => setImportOpen(true)}><PackagePlus size={14} strokeWidth={1.7} />Import pack</Button>
           </div>

@@ -1,5 +1,5 @@
 import { and, asc, eq, inArray } from 'drizzle-orm'
-import { metricValues, metrics, scorecards, teams } from '@motion/db'
+import { metricValues, metrics, scorecards, teams, type ActorJson } from '@motion/db'
 import { recentPeriods, todayIn, type CalendarSettings } from '../calendar'
 import { requireRead, type Ctx } from '../ctx'
 import { MotionError } from '../errors'
@@ -10,7 +10,15 @@ import { metricStatus, type MetricStatus } from './status'
 export type ScorecardRow = typeof scorecards.$inferSelect
 export type MetricRow = typeof metrics.$inferSelect
 
-export type ScorecardCell = { periodStart: string; value: number | null; note: string | null; status: MetricStatus }
+export type ScorecardCell = {
+  periodStart: string
+  value: number | null
+  note: string | null
+  status: MetricStatus
+  /** Who recorded the value (null when there is no value row). */
+  enteredByActor: ActorJson | null
+  updatedAt: Date | null
+}
 export type ScorecardMetric = MetricRow & {
   cells: ScorecardCell[]
   /** Sum of the shown values, only for additive metrics (otherwise null). */
@@ -65,7 +73,7 @@ async function buildView(ctx: Ctx, org: CalendarSettings, sc: ScorecardRow & { t
     const cells = periods.map((p): ScorecardCell => {
       const v = byKey.get(`${m.id}|${p}`)
       const value = v?.value ?? null
-      return { periodStart: p, value, note: v?.note ?? null, status: metricStatus(m, value) }
+      return { periodStart: p, value, note: v?.note ?? null, status: metricStatus(m, value), enteredByActor: v?.enteredByActor ?? null, updatedAt: v?.updatedAt ?? null }
     })
     const present = cells.filter((c) => c.value !== null).map((c) => c.value as number)
     const sum = present.reduce((a, b) => a + b, 0)

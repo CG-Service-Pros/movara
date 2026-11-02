@@ -259,7 +259,7 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
               {live.status === 'scheduled' ? (
                 <ReadyToStart b={b} />
               ) : kind === 'checkin' ? (
-                <CheckInView b={b} meetingKey={meetingId} />
+                <CheckInView b={b} act={act} />
               ) : kind === 'scorecard' ? (
                 <ScorecardView b={b} act={act} />
               ) : kind === 'priorities' ? (

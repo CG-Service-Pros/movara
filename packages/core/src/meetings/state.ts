@@ -23,6 +23,7 @@ export function readState(raw: MeetingState | null | undefined, fallbackAgenda: 
     focusIssueIds: Array.isArray(s.focusIssueIds) ? s.focusIssueIds : [],
     idsState: {
       status: ids.status ?? 'idle',
+      step: ids.step ?? (ids.currentIssueId ? 'discuss' : 'identify'),
       currentIssueId: ids.currentIssueId ?? null,
       discussedIssueIds: ids.discussedIssueIds ?? [],
       solvedIssueIds: ids.solvedIssueIds ?? [],
@@ -32,6 +33,7 @@ export function readState(raw: MeetingState | null | undefined, fallbackAgenda: 
     newTodoIds: s.newTodoIds ?? [],
     newHeadlineIds: s.newHeadlineIds ?? [],
     reviewedHeadlineIds: s.reviewedHeadlineIds ?? [],
+    sharedIds: s.sharedIds ?? [],
     stats: s.stats,
   }
 }

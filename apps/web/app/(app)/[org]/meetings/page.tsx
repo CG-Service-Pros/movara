@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { CalendarClock, Users } from 'lucide-react'
 import { nextOccurrence, getOrg, listAgents, listMeetingHistory, listMeetingSeries, listMeetingTemplates, listMeetings, listPeople, listTeams, todayIn } from '@motion/core'
 import { Badge } from '@motion/ui/badge'
@@ -12,8 +13,11 @@ import { requireModule } from '@/lib/ctx'
 
 const SECTION_KEYS = ['check_in', 'metric_review', 'priority_review', 'headline_review', 'todo_review', 'issue_solving', 'wrap_up'] as const
 
-export default async function MeetingsPage({ params }: { params: Promise<{ org: string }> }) {
+export default async function MeetingsPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ id?: string; new?: string }> }) {
   const { org: slug } = await params
+  const sp = await searchParams
+  // Deep link: ?id=<meetingId> goes straight to that meeting.
+  if (sp.id) redirect(`/${slug}/meetings/${sp.id}`)
   const { ctx, terms } = await requireModule(slug, 'meetings')
   const [org, series, upcoming, history, teams, templates, people, agents] = await Promise.all([
     getOrg(ctx),
@@ -33,6 +37,7 @@ export default async function MeetingsPage({ params }: { params: Promise<{ org: 
 
   const dialog = teams.length > 0 && (
     <NewMeetingDialog
+      defaultOpen={sp.new === '1'}
       data={{
         slug,
         defaultTeamId: myTeam!.id,

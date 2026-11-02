@@ -66,6 +66,9 @@ importers:
       '@motion/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@motion/mcp':
+        specifier: workspace:*
+        version: link:../mcp
       '@motion/terminology':
         specifier: workspace:*
         version: link:../../packages/terminology

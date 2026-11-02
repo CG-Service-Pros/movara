@@ -4,7 +4,7 @@ import { milestones, people, priorities, teams } from '@motion/db'
 import { currentQuarter } from '../calendar'
 import { actingPersonId, type Ctx } from '../ctx'
 import { MotionError } from '../errors'
-import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
+import { assertVersion, base, changedFields, found, scoped, softDelete, touch } from '../helpers'
 import { getOrg } from '../org'
 import { defineCommand } from '../runner'
 
@@ -188,6 +188,13 @@ async function loadMilestone(ctx: Ctx, id: string) {
   return found(m, 'Milestone')
 }
 
+/** Audit diff for a milestone event: the changed fields plus the milestone's title and priority, so feeds can name it. */
+const mDiff = (m: { title: string; priorityId: string }, before: Record<string, unknown>, after: Record<string, unknown>) => ({
+  ...changedFields(before, after),
+  milestoneTitle: m.title,
+  priorityId: m.priorityId,
+})
+
 export const milestoneAdd = defineCommand({
   name: 'milestone.add',
   scope: 'write:priorities',
@@ -209,7 +216,7 @@ export const milestoneUpdate = defineCommand({
     assertVersion(before, h.expectedVersion)
     const { milestoneId, ...patch } = input
     const [after] = await ctx.db.update(milestones).set({ ...patch, ...touch(milestones, ctx) }).where(scoped(milestones, ctx, eq(milestones.id, milestoneId))).returning()
-    return { data: after!, entity: { type: 'milestone', id: milestoneId }, before: { title: before.title, dueDate: before.dueDate }, after: { title: after!.title, dueDate: after!.dueDate } }
+    return { data: after!, entity: { type: 'milestone', id: milestoneId }, diff: mDiff(after!, { title: before.title, dueDate: before.dueDate }, { title: after!.title, dueDate: after!.dueDate }) }
   },
 })
 
@@ -223,7 +230,7 @@ export const milestoneToggle = defineCommand({
     assertVersion(before, h.expectedVersion)
     const done = input.done ?? !before.doneAt
     const [after] = await ctx.db.update(milestones).set({ doneAt: done ? (before.doneAt ?? new Date()) : null, ...touch(milestones, ctx) }).where(scoped(milestones, ctx, eq(milestones.id, input.milestoneId))).returning()
-    return { data: after!, entity: { type: 'milestone', id: input.milestoneId }, before: { doneAt: before.doneAt }, after: { doneAt: after!.doneAt } }
+    return { data: after!, entity: { type: 'milestone', id: input.milestoneId }, diff: mDiff(before, { doneAt: before.doneAt }, { doneAt: after!.doneAt }) }
   },
 })
 
@@ -255,6 +262,6 @@ export const milestoneDelete = defineCommand({
     const before = await loadMilestone(ctx, input.milestoneId)
     assertVersion(before, h.expectedVersion)
     await ctx.db.update(milestones).set(softDelete(milestones, ctx)).where(scoped(milestones, ctx, eq(milestones.id, input.milestoneId)))
-    return { data: { id: input.milestoneId }, entity: { type: 'milestone', id: input.milestoneId }, before: { title: before.title }, after: null }
+    return { data: { id: input.milestoneId }, entity: { type: 'milestone', id: input.milestoneId }, diff: { ...mDiff(before, { title: before.title }, {}), after: null } }
   },
 })

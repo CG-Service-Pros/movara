@@ -1,6 +1,6 @@
 import { and, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { approvals, auditEvents, requestLog, type Db } from '@motion/db'
+import { approvals, auditEvents, requestLog, type ActorJson, type Db } from '@motion/db'
 import { hasRole, hasScope, requireScope, type Ctx, type Role, type Scope } from './ctx'
 import { MotionError } from './errors'
 import { changedFields, newId } from './helpers'
@@ -22,6 +22,8 @@ export type RunHelpers = {
   expectedVersion?: number
   /** Set when this execution was triggered by approving an approval. */
   approvalId?: string
+  /** Set together with `approvalId`: the person who approved it. */
+  approvedBy?: ActorJson
 }
 
 export type Command<I extends z.ZodType = z.ZodType, O = unknown> = {
@@ -60,6 +62,8 @@ export type ExecuteOptions = {
   skipApproval?: boolean
   /** INTERNAL: id of the approval being executed. */
   approvalId?: string
+  /** INTERNAL: the person who approved it (passed to `run` as `h.approvedBy`). */
+  approvedBy?: ActorJson
 }
 
 export type ExecuteResult<O> =
@@ -150,10 +154,10 @@ export async function execute<I extends z.ZodType, O>(
         })
         result = { ok: false, needsApproval: true, approvalId }
       } else {
-        const out = await cmd.run(tctx, input, { requestId: opts.requestId, expectedVersion: opts.expectedVersion, approvalId: opts.approvalId })
+        const out = await cmd.run(tctx, input, { requestId: opts.requestId, expectedVersion: opts.expectedVersion, approvalId: opts.approvalId, approvedBy: opts.approvedBy })
         let diff: Record<string, unknown> | null = out.diff ?? null
         if (!diff && (out.before || out.after)) diff = changedFields(out.before ?? {}, out.after ?? {})
-        if (opts.approvalId) diff = { ...(diff ?? {}), approvalId: opts.approvalId }
+        if (opts.approvalId) diff = { ...(diff ?? {}), approvalId: opts.approvalId, ...(opts.approvedBy ? { approvedBy: opts.approvedBy } : {}) }
         const auditId = newId()
         await tx.insert(auditEvents).values({
           id: auditId,

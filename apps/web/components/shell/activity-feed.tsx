@@ -62,7 +62,7 @@ function describeCore(e: AuditEventLike, c: DescribeContext): { verb: string; su
   const after = obj(e.diff?.after)
   const sl = c.statusLabel ?? ((v: string) => v.replace(/_/g, ' '))
   const w = { priority: 'priority', milestone: 'milestone', todo: 'to-do', metric: 'metric', issue: 'issue', headline: 'headline', ...c.words }
-  const title = str(after.title) ?? str(before.title) ?? c.entityTitle?.(e)
+  const title = str(after.title) ?? str(before.title) ?? str(e.diff?.milestoneTitle) ?? c.entityTitle?.(e)
   switch (e.command) {
     case 'priority.create':
       return c.includeEntity ? { verb: `created ${w.priority}`, subject: title } : { verb: `created this ${w.priority}` }
@@ -83,7 +83,7 @@ function describeCore(e: AuditEventLike, c: DescribeContext): { verb: string; su
     case 'milestone.add':
       return { verb: `added ${w.milestone}`, subject: title }
     case 'milestone.update':
-      return { verb: `renamed ${w.milestone} to`, subject: str(after.title) ?? title }
+      return after.title !== undefined ? { verb: `renamed ${w.milestone} to`, subject: str(after.title) } : { verb: `updated ${w.milestone}`, subject: title }
     case 'milestone.toggle':
       return title ? { verb: after.doneAt ? 'completed' : 'reopened', subject: title } : { verb: `${after.doneAt ? 'completed' : 'reopened'} a ${w.milestone}` }
     case 'milestone.delete':

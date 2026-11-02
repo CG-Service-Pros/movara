@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next'
 
 const config: NextConfig = {
-  transpilePackages: ['@motion/ui', '@motion/core', '@motion/db', '@motion/terminology'],
+  transpilePackages: ['@motion/ui', '@motion/core', '@motion/db', '@motion/terminology', '@motion/mcp'],
   // PGlite ships WASM + data files and postgres-js is node-only: keep them out of the bundle.
   serverExternalPackages: ['@electric-sql/pglite', 'postgres', 'nodemailer'],
   poweredByHeader: false,

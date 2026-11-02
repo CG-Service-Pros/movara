@@ -7,6 +7,7 @@ const paths = ['scorecard', 'issues']
 
 export type MetricInput = {
   title: string
+  description: string | null
   ownerIds: string[]
   comparison: 'gte' | 'lte' | 'gt' | 'lt' | 'eq' | 'between'
   goal: number

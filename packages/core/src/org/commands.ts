@@ -6,6 +6,7 @@ import type { Ctx } from '../ctx'
 import { MotionError } from '../errors'
 import { assertVersion, found, touch } from '../helpers'
 import { defineCommand } from '../runner'
+import { TERMINOLOGY_HISTORY_MAX, terminologyHistoryOf } from './queries'
 
 async function load(ctx: Ctx) {
   const [o] = await ctx.db.select().from(orgs).where(eq(orgs.id, ctx.orgId)).limit(1)
@@ -109,7 +110,11 @@ export const orgUpdateCalendar = defineCommand({
   },
 })
 
-/** Apply (or clear, with `pack: null`) the org's terminology pack. Validated with previewImport. Agents always need approval. */
+/**
+ * Apply a terminology pack (validated with previewImport), `revert` to the previously applied one, or reset to Standard
+ * (`pack: null`). Applying or resetting pushes the current pack on a history stack and revert pops it,
+ * so repeated reverts walk back through every applied pack. Agents always need approval.
+ */
 export const orgSetTerminologyPack = defineCommand({
   name: 'org.set_terminology_pack',
   scope: 'admin',
@@ -121,25 +126,36 @@ export const orgSetTerminologyPack = defineCommand({
     const before = await load(ctx)
     assertVersion(before, h.expectedVersion)
     let next: TerminologyPack | null
+    let history = terminologyHistoryOf(before)
     if (input.revert) {
-      next = before.terminologyPreviousPack ?? null
+      if (!history.length) throw new MotionError('conflict', 'There is no previous terminology pack to revert to')
+      next = history[history.length - 1] ?? null
+      history = history.slice(0, -1)
     } else if (input.pack === null) {
       next = null
+      if (before.terminologyPack) history = [...history, before.terminologyPack].slice(-TERMINOLOGY_HISTORY_MAX)
     } else {
       const preview = previewImport(input.pack, before.terminologyPack ?? undefined)
       if (!preview.ok) throw new MotionError('validation', 'Invalid terminology pack', { issues: preview.errors })
       next = preview.pack
+      const same = before.terminologyPack && before.terminologyPack.id === next.id && before.terminologyPack.version === next.version
+      if (!same) history = [...history, before.terminologyPack ?? null].slice(-TERMINOLOGY_HISTORY_MAX)
     }
     const [after] = await ctx.db
       .update(orgs)
-      .set({ terminologyPack: next, terminologyPreviousPack: before.terminologyPack ?? null, ...touch(orgs, ctx) })
+      .set({
+        terminologyPack: next,
+        terminologyPreviousPack: history[history.length - 1] ?? null,
+        settings: { ...before.settings, terminologyHistory: history },
+        ...touch(orgs, ctx),
+      })
       .where(eq(orgs.id, ctx.orgId))
       .returning()
     return {
       data: after!,
       entity: { type: 'org', id: ctx.orgId },
       before: { terminologyPack: before.terminologyPack ? { id: before.terminologyPack.id, version: before.terminologyPack.version } : null },
-      after: { terminologyPack: next ? { id: next.id, version: next.version } : null },
+      after: { terminologyPack: next ? { id: next.id, version: next.version } : null, historyDepth: history.length },
     }
   },
 })

@@ -4,7 +4,7 @@ import { todos } from '@motion/db'
 import type { Ctx } from '../ctx'
 import { assertVersion, found, scoped, softDelete, touch } from '../helpers'
 import { assertPeople, assertTeam, dateSchema, sourceSchema } from '../issues/internal'
-import { bumpLiveRev, findLiveMeetingIds } from '../meetings/live'
+import { addToLiveMeetings, bumpLiveRev, findLiveMeetingIds } from '../meetings/live'
 import { defineCommand } from '../runner'
 import { insertTodos } from './internal'
 
@@ -39,7 +39,7 @@ export const todoCreate = defineCommand({
   summary: (i) => `Create to-do "${i.title}"`,
   run: async (ctx, input) => {
     const rows = await insertTodos(ctx, input)
-    await bumpLiveRev(ctx, [input.teamId])
+    await addToLiveMeetings(ctx, input.teamId, { todoIds: rows.map((r) => r.id) })
     return { data: rows, entity: { type: 'todo', id: rows[0]!.id }, before: null, after: { title: input.title, ids: rows.map((r) => r.id), ownerIds: rows.map((r) => r.ownerId), dueDate: rows[0]!.dueDate, source: input.source ?? null } }
   },
 })

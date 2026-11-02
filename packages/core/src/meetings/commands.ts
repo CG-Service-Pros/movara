@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { agents, headlines, issues, meetings, metrics, people, priorities, todos } from '@motion/db'
+import { agents, headlines, issues, meetings, metrics, orgs, people, priorities, todos, type ActorJson } from '@motion/db'
 import { requireRole, requireScope, type Ctx } from '../ctx'
 import { MotionError } from '../errors'
 import { base, found, scoped, softDelete, touch } from '../helpers'
@@ -9,6 +9,8 @@ import { insertHeadlines } from '../headlines/internal'
 import { insertTodos } from '../todos/internal'
 import { defineCommand, execute, type ExecuteOptions, type ExecuteResult } from '../runner'
 import { getEmailSender, type EmailSender } from './email'
+import { renderRecapHtml } from './recap-html'
+import { createTerms } from '../terminology'
 import { findLiveMeetingIds } from './live'
 import { createNextOccurrence } from './series'
 import { loadMeeting, requireLive, saveState, startTimer, stopTimer, type Loaded } from './state'
@@ -23,14 +25,14 @@ const out = (l: Loaded, after: Record<string, unknown> | null = null) => ({
   after: after ?? { rev: l.state.rev },
 })
 
-async function presenceFor(ctx: Ctx, now: Date): Promise<PresenceEntry> {
+async function presenceFor(ctx: Ctx, now: Date, actor: ActorJson = ctx.actor): Promise<PresenceEntry> {
   const at = now.toISOString()
-  if (ctx.actor.type === 'agent') {
-    const [a] = await ctx.db.select({ name: agents.name }).from(agents).where(and(eq(agents.orgId, ctx.orgId), eq(agents.id, ctx.actor.id))).limit(1)
-    return { kind: 'agent', id: ctx.actor.id, name: a?.name ?? 'Agent', onBehalfOf: ctx.actor.onBehalfOf, joinedAt: at, lastSeen: at }
+  if (actor.type === 'agent') {
+    const [a] = await ctx.db.select({ name: agents.name, owner: agents.ownerPersonId }).from(agents).where(and(eq(agents.orgId, ctx.orgId), eq(agents.id, actor.id))).limit(1)
+    return { kind: 'agent', id: actor.id, name: a?.name ?? 'Agent', onBehalfOf: actor.onBehalfOf ?? a?.owner ?? undefined, joinedAt: at, lastSeen: at }
   }
-  const [p] = await ctx.db.select({ name: people.name }).from(people).where(scoped(people, ctx, eq(people.id, ctx.actor.id))).limit(1)
-  return { kind: 'person', id: ctx.actor.id, name: p?.name ?? 'Member', joinedAt: at, lastSeen: at }
+  const [p] = await ctx.db.select({ name: people.name }).from(people).where(scoped(people, ctx, eq(people.id, actor.id))).limit(1)
+  return { kind: 'person', id: actor.id, name: p?.name ?? 'Member', joinedAt: at, lastSeen: at }
 }
 
 // ---------------------------------------------------------------- start / presence
@@ -67,6 +69,9 @@ export const meetingStart = defineCommand({
     startTimer(s, 0, now)
     const me = await presenceFor(ctx, now)
     s.presence = { [me.id]: me }
+    // The series' scribe agent (note-taker) is part of the room from the start.
+    const scribe = l.series.scribeActor
+    if (scribe?.type === 'agent' && scribe.id !== me.id) s.presence[scribe.id] = await presenceFor(ctx, now, scribe)
     await saveState(ctx, l, { startedAt: now })
     return out(l)
   },
@@ -267,6 +272,7 @@ export const idsFocus = defineCommand({
     l.state.focusIssueIds = [...l.state.focusIssueIds.filter((i) => ids.discussedIssueIds.includes(i)), ...picks]
     if (ids.currentIssueId && !picks.includes(ids.currentIssueId)) ids.currentIssueId = null
     ids.status = ids.currentIssueId ? 'discussing' : picks.length ? 'prioritizing' : ids.discussedIssueIds.length ? 'complete' : 'idle'
+    if (!ids.currentIssueId) ids.step = 'identify'
     await saveState(ctx, l)
     return out(l, { focusIssueIds: l.state.focusIssueIds })
   },
@@ -285,6 +291,7 @@ export const idsStart = defineCommand({
     if (!issueId || !pending.includes(issueId)) throw new MotionError('conflict', 'Pick focus issues first (ids.focus), then start one that has not been discussed')
     ids.currentIssueId = issueId
     ids.status = 'discussing'
+    ids.step = 'discuss'
     await saveState(ctx, l)
     return out(l, { currentIssueId: issueId })
   },
@@ -322,8 +329,41 @@ export const idsResolve = defineCommand({
     const next = s.focusIssueIds.find((i) => !ids.discussedIssueIds.includes(i)) ?? null
     ids.currentIssueId = next
     ids.status = next ? 'discussing' : 'complete'
+    ids.step = next ? 'discuss' : 'identify'
     await saveState(ctx, l)
     return { data: { meeting: l.meeting, todoIds, nextIssueId: next }, entity: { type: 'issue', id: input.issueId }, before: { status: 'open' }, after: { status: input.solved ? 'solved' : 'open', meetingId: l.meeting.id, todoIds } }
+  },
+})
+
+/** Move the IDS stepper (Identify, Discuss, Solve). Identify is the only step available without a current issue. */
+export const idsSetStep = defineCommand({
+  name: 'ids.set_step',
+  scope: 'write:meetings',
+  input: z.object({ meetingId, step: z.enum(['identify', 'discuss', 'solve']) }),
+  run: async (ctx, input) => {
+    const l = await loadMeeting(ctx, input.meetingId, true)
+    requireLive(l.meeting)
+    if (input.step !== 'identify' && !l.state.idsState.currentIssueId) throw new MotionError('conflict', 'Start discussing an issue first (ids.start)')
+    l.state.idsState.step = input.step
+    await saveState(ctx, l)
+    return out(l, { step: input.step })
+  },
+})
+
+/** Check-in: mark an attendee as having shared (or undo). Stored in the live state so everyone sees it. */
+export const meetingSetShared = defineCommand({
+  name: 'meeting.set_shared',
+  scope: 'write:meetings',
+  input: z.object({ meetingId, personId: z.uuid(), shared: z.boolean() }),
+  run: async (ctx, input) => {
+    const l = await loadMeeting(ctx, input.meetingId, true)
+    requireLive(l.meeting)
+    const set = new Set(l.state.sharedIds)
+    if (input.shared) set.add(input.personId)
+    else set.delete(input.personId)
+    l.state.sharedIds = [...set]
+    await saveState(ctx, l)
+    return out(l, { sharedIds: l.state.sharedIds })
   },
 })
 
@@ -389,7 +429,7 @@ export const meetingCapture = defineCommand({
 
 // ---------------------------------------------------------------- end
 
-export type MeetingRecap = { to: string[]; subject: string; text: string }
+export type MeetingRecap = { to: string[]; subject: string; text: string; html?: string }
 export type EndMeetingData = {
   meeting: typeof meetings.$inferSelect
   stats: MeetingStats
@@ -397,6 +437,8 @@ export type EndMeetingData = {
   recap: MeetingRecap | null
   recapSent: boolean
   cleared: { todos: number; headlines: number }
+  /** The next occurrence scheduled for a recurring series (null for ad-hoc series). */
+  nextMeeting: { id: string; scheduledAt: string } | null
 }
 
 const fmtDay = (d: Date) => d.toISOString().slice(0, 10)
@@ -466,7 +508,30 @@ export const meetingEnd = defineCommand({
     let recap: MeetingRecap | null = null
     if (s.settings.sendRecap && l.series.attendeeIds.length) {
       const to = await ctx.db.select({ email: people.email }).from(people).where(scoped(people, ctx, inArray(people.id, l.series.attendeeIds)))
-      if (to.length) recap = { to: to.map((t) => t.email), subject: `${l.series.name} recap · ${fmtDay(startedAt)}`, text: summary }
+      if (to.length) {
+        const [org] = await ctx.db.select({ name: orgs.name, branding: orgs.branding, pack: orgs.terminologyPack, overrides: orgs.terminologyOverrides }).from(orgs).where(eq(orgs.id, ctx.orgId)).limit(1)
+        const T = createTerms(org?.pack, org?.overrides)
+        const html = renderRecapHtml({
+          orgName: org?.name ?? '',
+          wordmark: org?.branding?.wordmark,
+          accent: org?.branding?.accent,
+          seriesName: l.series.name,
+          date: fmtDay(startedAt),
+          stats,
+          solved: solved.map((i) => i.title),
+          newTodos: newTodos.map((t) => ({ title: t.title, owner: nameOf(t.ownerId), dueDate: t.dueDate })),
+          labels: {
+            issues: T.t('issue', 'plural'),
+            todos: T.t('todo', 'plural'),
+            newTodos: `New ${T.t('todo', 'plural').toLowerCase()}`,
+            solved: T.status('solved'),
+            rating: 'Rating',
+            duration: 'Duration',
+            attendance: 'Attendance',
+          },
+        })
+        recap = { to: to.map((t) => t.email), subject: `${l.series.name} recap · ${fmtDay(startedAt)}`, text: summary, html }
+      }
     }
 
     // 4. clear items
@@ -478,8 +543,18 @@ export const meetingEnd = defineCommand({
 
     s.stats = stats
     const meeting = await saveState(ctx, l, { endedAt: now, summary })
+    // Keep the cadence going: recurring series get their next occurrence (an already-upcoming one is reused).
+    let nextMeeting: EndMeetingData['nextMeeting'] = null
+    if (l.series.rrule) {
+      try {
+        const n = await createNextOccurrence(ctx, l.series)
+        nextMeeting = { id: n.meeting.id, scheduledAt: n.meeting.scheduledAt.toISOString() }
+      } catch (e) {
+        if (!(e instanceof MotionError)) throw e
+      }
+    }
     return {
-      data: { meeting, stats, summary, recap, recapSent: false, cleared },
+      data: { meeting, stats, summary, recap, recapSent: false, cleared, nextMeeting },
       entity: { type: 'meeting', id: meeting.id },
       before: { endedAt: null },
       after: { endedAt: now.toISOString(), stats, cleared },

@@ -4,7 +4,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { ResourceUpdatedNotificationSchema } from '@modelcontextprotocol/sdk/types.js'
 import {
-  execute, listTeams, meetingSeriesCreate, metricCreate, orgSetTerminologyPack, scorecardCreate, priorityCreate, issueCreate,
+  execute, getLiveState, listTeams, meetingSeriesCreate, metricCreate, orgSetTerminologyPack, scorecardCreate, priorityCreate, issueCreate,
   type Ctx, type Scope,
 } from '@motion/core'
 import { createTestDb, seedTestOrg } from '@motion/core/testing'
@@ -98,6 +98,48 @@ describe('writes', () => {
     expect(g.body.metrics[0].title).toBe('Qualified leads')
     const bad = await call(s.client, 'metric_record_values', { scorecardId: sc.data.id, values: [{ metricTitle: 'Nope', periodStart: '2026-11-02', value: 1 }] })
     expect(bad.body.error.code).toBe('not_found')
+  })
+
+  it('metric_create takes a description', async () => {
+    const s = await setup()
+    const sc = await execute(s.ctx, scorecardCreate, { teamId: s.team.id })
+    if (!sc.ok) throw new Error('approval')
+    const r = await call(s.client, 'metric_create', { scorecardId: sc.data.id, title: 'NPS', goal: 50, description: 'Quarterly survey score' })
+    expect(r.body.ok).toBe(true)
+    expect(r.body.entity.description).toBe('Quarterly survey score')
+    const g = await call(s.client, 'scorecard_get', { teamId: s.team.id })
+    expect(g.body.metrics[0].description).toBe('Quarterly survey score')
+  })
+
+  it('issues_list and todos_list accept one status or an array', async () => {
+    const s = await setup()
+    const made = await call(s.client, 'issue_create', { title: 'To solve' })
+    await call(s.client, 'issue_create', { title: 'Stays open' })
+    await call(s.client, 'issue_solve', { issueId: made.body.entity[0].id })
+    const titles = (r: any) => r.body.items.map((i: any) => i.title).sort()
+    expect(titles(await call(s.client, 'issues_list'))).toEqual(['Stays open'])
+    expect(titles(await call(s.client, 'issues_list', { status: 'solved' }))).toEqual(['To solve'])
+    expect(titles(await call(s.client, 'issues_list', { status: ['open', 'solved'] }))).toEqual(['Stays open', 'To solve'])
+
+    const t1 = await call(s.client, 'todo_create', { title: 'Open one' })
+    const t2 = await call(s.client, 'todo_create', { title: 'Done one' })
+    await call(s.client, 'todo_complete', { todoId: t2.body.entity[0].id })
+    expect(t1.body.ok).toBe(true)
+    expect(titles(await call(s.client, 'todos_list', { status: 'done' }))).toEqual(['Done one'])
+    expect(titles(await call(s.client, 'todos_list', { status: ['open', 'done'] }))).toEqual(['Done one', 'Open one'])
+  })
+
+  it('todo_create / issue_create for a team with a live meeting land in that meeting', async () => {
+    const s = await setup()
+    const series = await execute(s.ctx, meetingSeriesCreate, { teamId: s.team.id, name: 'Weekly', rrule: null, firstScheduledAt: new Date(Date.now() + 3600_000) })
+    if (!series.ok) throw new Error('approval')
+    const meetingId = series.data.firstMeeting!.id
+    expect((await call(s.client, 'meeting_start', { meetingId })).body.ok).toBe(true)
+    const todo = await call(s.client, 'todo_create', { title: 'From an agent', teamId: s.team.id })
+    const issue = await call(s.client, 'issue_create', { title: 'Agent issue', teamId: s.team.id })
+    const live = (await getLiveState(s.ctx, meetingId))!
+    expect(live.newTodoIds).toEqual([todo.body.entity[0].id])
+    expect(live.ids.addedIssueIds).toEqual([issue.body.entity[0].id])
   })
 
   it('todo_create fans out to owners', async () => {

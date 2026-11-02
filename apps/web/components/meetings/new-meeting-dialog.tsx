@@ -29,9 +29,9 @@ export type DialogData = {
 
 const DAY_LABEL: Record<string, string> = { MO: 'Mon', TU: 'Tue', WE: 'Wed', TH: 'Thu', FR: 'Fri', SA: 'Sat', SU: 'Sun' }
 
-export function NewMeetingDialog({ data }: { data: DialogData }) {
+export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogData; defaultOpen?: boolean }) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const first = data.templates[0]

@@ -68,6 +68,8 @@ export type PrioritiesViewProps = {
   tab: Tab
   teamId: string | null
   selectedId: string | null
+  /** Deep link `?new=1`: open the create dialog on load. */
+  openNew?: boolean
   items: PriorityItem[]
   detail: PriorityDetailData | null
   people: Option[]
@@ -85,7 +87,7 @@ export function PrioritiesView(props: PrioritiesViewProps) {
   const [, startTransition] = React.useTransition()
   const [navPending, startNav] = React.useTransition()
   const [sel, setSel] = React.useState<string | null>(props.selectedId)
-  const [creating, setCreating] = React.useState(false)
+  const [creating, setCreating] = React.useState(!!props.openNew)
 
   React.useEffect(() => setSel(props.selectedId), [props.selectedId])
 
