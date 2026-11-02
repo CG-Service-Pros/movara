@@ -3,13 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "bin": { "motion-mcp": "./src/index.ts" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./http-handler": "./src/http-handler.ts",
+    "./*": "./src/*.ts"
+  },
+  "bin": {
+    "motion-mcp": "./src/stdio.ts"
+  },
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/http.ts",
+    "start": "tsx src/http.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "start:http": "tsx src/http.ts",
+    "start:stdio": "tsx src/stdio.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

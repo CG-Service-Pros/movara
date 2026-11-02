@@ -1,9 +1,18 @@
-import { StubPage } from '@/components/shell/stub-page'
+import { getMeeting } from '@motion/core'
+import { loadBundle } from '@/components/meetings/bundle'
+import { LiveMeeting } from '@/components/meetings/live-meeting'
+import { MeetingSummary } from '@/components/meetings/summary'
 import { requireModule } from '@/lib/ctx'
 
-// STUB: meeting detail / live meeting mode. A feature agent replaces this page.
 export default async function Page({ params }: { params: Promise<{ org: string; id: string }> }) {
-  const { org, id } = await params
-  const { terms } = await requireModule(org, 'meetings')
-  return <StubPage title={terms.t('weekly_meeting', 'short')} meta={id.slice(0, 8)} icon="meeting" description={terms.term('weekly_meeting').description} />
+  const { org: slug, id } = await params
+  const { ctx } = await requireModule(slug, 'meetings')
+  const meeting = await getMeeting(ctx, id)
+  const bundle = await loadBundle(ctx, id)
+  if (meeting.status === 'ended') return <MeetingSummary slug={slug} b={bundle} />
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <LiveMeeting slug={slug} initial={bundle} />
+    </div>
+  )
 }

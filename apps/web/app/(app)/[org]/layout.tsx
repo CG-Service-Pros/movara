@@ -1,8 +1,8 @@
 import { Suspense, type ReactNode } from 'react'
 import { cookies } from 'next/headers'
-import { listMembershipsForUser } from '@motion/core'
+import { listApprovals, listMembershipsForUser } from '@motion/core'
 import { AppShell } from '@/components/shell/app-shell'
-import { buildNav, buildSettingsNav, paletteItemsFrom } from '@/components/shell/nav'
+import { buildNav, buildQuickActions, buildSettingsNav, paletteItemsFrom } from '@/components/shell/nav'
 import { getDb } from '@/lib/db'
 import { getMyTeams, getOrgContext } from '@/lib/ctx'
 import { getSession } from '@/lib/session'
@@ -10,13 +10,15 @@ import { getSession } from '@/lib/session'
 /** The app shell for every page under /{org}. Membership is enforced by getOrgContext -> getCtx. */
 export default async function OrgLayout({ children, params }: { children: ReactNode; params: Promise<{ org: string }> }) {
   const { org: slug } = await params
-  const { org, terms, modules } = await getOrgContext(slug)
+  const { ctx, org, terms, modules } = await getOrgContext(slug)
   const [teams, session, theme] = await Promise.all([getMyTeams(slug), getSession(), cookies()])
   const memberships = await listMembershipsForUser(await getDb(), session!.user.id)
+  const pendingApprovals = (await listApprovals(ctx, { status: 'pending', limit: 100 }).catch(() => ({ items: [] }))).items.length
 
-  const sections = buildNav({ org: slug, terms, teams, modules })
-  const settings = buildSettingsNav(slug, modules)
+  const sections = buildNav({ org: slug, terms, teams, modules, pendingApprovals })
+  const settings = buildSettingsNav(slug, modules, pendingApprovals)
   const palette = paletteItemsFrom(sections, [
+    ...buildQuickActions({ org: slug, terms, teams, modules }),
     ...settings.flatMap((s) => s.items.map((i) => ({ id: `settings:${i.key}`, label: i.label, href: i.href, group: 'Settings', icon: i.icon }))),
     ...(modules.headlines ? [{ id: 'headlines', label: terms.t('headline', 'plural'), href: `/${slug}/headlines`, group: 'Go to', icon: 'headlines' as const }] : []),
   ])

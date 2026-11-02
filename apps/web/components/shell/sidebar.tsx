@@ -20,18 +20,29 @@ function isActive(item: NavItem, pathname: string, team: string | null, firstTea
   return true
 }
 
-/** Sidebar on the canvas: switcher, search, and the terminology-driven nav. */
-export function Sidebar({ sections, switcher }: { sections: NavSection[]; switcher: OrgSwitcherProps }) {
+export function Badge2({ n }: { n: number }) {
+  return (
+    <span className="ml-auto grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-2xs font-semibold leading-none text-white" aria-label={`${n} pending`}>
+      {n > 99 ? '99+' : n}
+    </span>
+  )
+}
+
+/** Sidebar content: switcher, search, and the terminology-driven nav. `onNavigate` closes the mobile sheet. */
+export function SidebarNav({ sections, switcher, onNavigate, className }: { sections: NavSection[]; switcher: OrgSwitcherProps; onNavigate?: () => void; className?: string }) {
   const pathname = usePathname()
   const team = useSearchParams().get('team')
   const firstTeamId = sections.find((s) => s.key.startsWith('team:'))?.items[0]?.teamId
 
   return (
-    <nav aria-label="Main" className="flex h-full w-[204px] shrink-0 flex-col gap-[18px] overflow-y-auto px-2.5 pb-3 pt-2">
+    <nav aria-label="Main" className={cn('flex h-full w-[204px] shrink-0 flex-col gap-[18px] overflow-y-auto px-2.5 pb-3 pt-2', className)}>
       <OrgSwitcher {...switcher} />
       <button
         type="button"
-        onClick={() => openCommandPalette()}
+        onClick={() => {
+          onNavigate?.()
+          openCommandPalette()
+        }}
         className="flex h-[30px] items-center gap-2 rounded-md bg-surface pl-2.5 pr-2 text-sm text-faint shadow-[0_0_0_1px_var(--m-line)] outline-none hover:text-body focus-visible:ring-2 focus-visible:ring-accent"
       >
         <Search size={13} strokeWidth={1.8} />
@@ -47,6 +58,7 @@ export function Sidebar({ sections, switcher }: { sections: NavSection[]; switch
               <Link
                 key={i.key}
                 href={hrefOf(i)}
+                onClick={onNavigate}
                 data-active={active || undefined}
                 className={cn(
                   'flex h-7 items-center gap-[9px] rounded-[7px] px-2 text-base font-[500] text-nav outline-none transition-colors hover:bg-nav-active/60 focus-visible:ring-2 focus-visible:ring-accent',
@@ -56,6 +68,7 @@ export function Sidebar({ sections, switcher }: { sections: NavSection[]; switch
               >
                 <NavIcon name={i.icon} />
                 <span className="truncate">{i.label}</span>
+                {!!i.badge && <Badge2 n={i.badge} />}
               </Link>
             )
           })}
@@ -63,4 +76,9 @@ export function Sidebar({ sections, switcher }: { sections: NavSection[]; switch
       ))}
     </nav>
   )
+}
+
+/** Desktop sidebar (hidden on mobile, where the hamburger sheet takes over). */
+export function Sidebar(props: { sections: NavSection[]; switcher: OrgSwitcherProps }) {
+  return <SidebarNav {...props} className="max-md:hidden" />
 }

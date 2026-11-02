@@ -1,9 +1,24 @@
-import { StubPage } from '@/components/shell/stub-page'
+import { hasRole, listAgents, listApprovals, listPeople } from '@motion/core'
+import { Page } from '@/components/shell/page'
+import { ApprovalsPanel, type ApprovalItem } from '@/components/settings/approvals-panel'
+import { SettingsBody } from '@/components/settings/ui'
 import { getOrgContext } from '@/lib/ctx'
 
-// STUB: a feature agent replaces this page.
-export default async function Page({ params }: { params: Promise<{ org: string }> }) {
-  const { org } = await params
-  await getOrgContext(org)
-  return <StubPage title="Approvals" icon="approvals" description="Consequential changes proposed by agents wait here for a person." />
+export default async function ApprovalsPage({ params }: { params: Promise<{ org: string }> }) {
+  const { org: slug } = await params
+  const { ctx } = await getOrgContext(slug)
+  const [{ items }, agents, people] = await Promise.all([listApprovals(ctx, { limit: 100 }), listAgents(ctx, { includeRevoked: true }), listPeople(ctx)])
+  const names = Object.fromEntries([...people, ...agents].map((x) => [x.id, x.name]))
+  const rows: ApprovalItem[] = items.map((a) => ({
+    id: a.id, action: a.action, summary: a.summary, payload: a.payload, status: a.status, requestedBy: a.requestedByActor, decidedBy: a.decidedBy,
+    createdAt: a.createdAt.toISOString(), decidedAt: a.decidedAt?.toISOString() ?? null, note: a.decisionNote,
+    error: a.result && typeof a.result === 'object' && 'error' in (a.result as object) ? String((a.result as { error: unknown }).error) : null,
+  }))
+  return (
+    <Page title="Approvals" meta={`${rows.filter((r) => r.status === 'pending').length} pending`}>
+      <SettingsBody wide>
+        <ApprovalsPanel slug={slug} items={rows} names={names} canDecide={hasRole(ctx, 'member')} />
+      </SettingsBody>
+    </Page>
+  )
 }

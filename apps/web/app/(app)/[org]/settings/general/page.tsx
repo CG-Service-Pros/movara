@@ -1,9 +1,17 @@
-import { StubPage } from '@/components/shell/stub-page'
+import { hasRole } from '@motion/core'
+import { Page } from '@/components/shell/page'
+import { GeneralForm } from '@/components/settings/general-form'
+import { SettingsBody } from '@/components/settings/ui'
 import { getOrgContext } from '@/lib/ctx'
 
-// STUB: a feature agent replaces this page.
-export default async function Page({ params }: { params: Promise<{ org: string }> }) {
-  const { org } = await params
-  await getOrgContext(org)
-  return <StubPage title="General" icon="general" description="Organization name, URL and time zone." />
+export default async function GeneralPage({ params }: { params: Promise<{ org: string }> }) {
+  const { org: slug } = await params
+  const { ctx, org } = await getOrgContext(slug)
+  return (
+    <Page title="General" meta="Organization">
+      <SettingsBody>
+        <GeneralForm slug={slug} name={org.name} timezone={org.timezone} canEdit={hasRole(ctx, 'admin')} />
+      </SettingsBody>
+    </Page>
+  )
 }

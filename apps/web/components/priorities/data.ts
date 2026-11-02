@@ -1,0 +1,46 @@
+import 'server-only'
+import { getPriority, listAgents, listAudit, listPeople, type Ctx, type Terms } from '@motion/core'
+import { buildActivityItems, type ActivityItem, type AuditEventLike } from '@/components/shell/activity-feed'
+import type { PriorityDetailData, PLevel, PStatus } from './types'
+
+/** People and agents of the org as id -> name maps (for provenance lines). */
+export async function actorDirectory(ctx: Ctx) {
+  const [people, agents] = await Promise.all([listPeople(ctx), listAgents(ctx, { includeRevoked: true })])
+  return {
+    people: Object.fromEntries(people.map((p) => [p.id, p.name])),
+    agents: Object.fromEntries(agents.map((a) => [a.id, a.name])),
+  }
+}
+
+/** The priority, its milestones and a merged activity feed (the priority's and its milestones' audit events). */
+export async function loadPriorityDetail(ctx: Ctx, id: string, terms: Terms): Promise<PriorityDetailData> {
+  const p = await getPriority(ctx, id)
+  const [dir, own, ...ms] = await Promise.all([
+    actorDirectory(ctx),
+    listAudit(ctx, { entityType: 'priority', entityId: id, limit: 30 }),
+    ...p.milestones.map((m) => listAudit(ctx, { entityType: 'milestone', entityId: m.id, limit: 10 })),
+  ])
+  const titles = new Map(p.milestones.map((m) => [m.id, m.title]))
+  const events = [...own.items, ...ms.flatMap((r) => r.items)].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, 25)
+  const activity: ActivityItem[] = buildActivityItems(events as AuditEventLike[], dir, {
+    statusLabel: (v) => terms.status(v),
+    entityTitle: (e) => (e.entityId ? titles.get(e.entityId) : undefined),
+    words: { milestone: terms.t('milestone', 'singular').toLowerCase(), priority: terms.t('priority', 'singular').toLowerCase() },
+  })
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    status: p.status as PStatus,
+    level: p.level as PLevel,
+    ownerId: p.ownerId,
+    teamId: p.teamId,
+    dueDate: p.dueDate,
+    quarter: p.quarter,
+    version: p.version,
+    milestones: p.milestones.map((m) => ({ id: m.id, title: m.title, done: !!m.doneAt, dueDate: m.dueDate })),
+    parent: p.parent ? { id: p.parent.id, title: p.parent.title } : null,
+    children: p.children.map((c) => ({ id: c.id, title: c.title, teamId: c.teamId })),
+    activity,
+  }
+}

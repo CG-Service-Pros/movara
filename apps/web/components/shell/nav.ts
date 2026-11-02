@@ -17,6 +17,8 @@ export type NavItem = {
   teamId?: string
   /** Match only the exact path (Home). */
   exact?: boolean
+  /** Count shown as a pill (pending approvals). Hidden when 0. */
+  badge?: number
 }
 export type NavSection = { key: string; label?: string; items: NavItem[] }
 
@@ -27,7 +29,7 @@ export type NavTeam = { id: string; name: string; isLeadership: boolean }
  * omitted. Per-team items carry `?team=<teamId>`: feature pages read that search param
  * (default: the person's first team, the leadership team if they are on it).
  */
-export function buildNav(o: { org: string; terms: Terms; teams: NavTeam[]; modules: Record<ModuleKey, boolean> }): NavSection[] {
+export function buildNav(o: { org: string; terms: Terms; teams: NavTeam[]; modules: Record<ModuleKey, boolean>; pendingApprovals?: number }): NavSection[] {
   const { org, terms: T, teams, modules: m } = o
   const base = `/${org}`
   const sections: NavSection[] = []
@@ -53,15 +55,15 @@ export function buildNav(o: { org: string; terms: Terms; teams: NavTeam[]; modul
 
   const workspace: NavItem[] = []
   if (m.agents) workspace.push({ key: 'agents', label: 'Agents', href: `${base}/settings/agents`, icon: 'agents' })
-  workspace.push({ key: 'settings', label: 'Settings', href: `${base}/settings`, icon: 'settings' })
+  workspace.push({ key: 'settings', label: 'Settings', href: `${base}/settings`, icon: 'settings', badge: o.pendingApprovals })
   sections.push({ key: 'workspace', label: 'Workspace', items: workspace })
   return sections
 }
 
 /** Settings sub-navigation (used by the settings layout and the command palette). */
-export function buildSettingsNav(org: string, modules: Record<ModuleKey, boolean>): NavSection[] {
+export function buildSettingsNav(org: string, modules: Record<ModuleKey, boolean>, pendingApprovals = 0): NavSection[] {
   const b = `/${org}/settings`
-  const item = (key: string, label: string, icon: IconKey): NavItem => ({ key, label, href: `${b}/${key}`, icon })
+  const item = (key: string, label: string, icon: IconKey, badge?: number): NavItem => ({ key, label, href: `${b}/${key}`, icon, badge })
   return [
     { key: 'organization', label: 'Organization', items: [item('general', 'General', 'general'), item('brand', 'Brand', 'brand'), item('terminology', 'Terminology', 'terminology'), item('modules', 'Modules', 'modules'), item('calendar', 'Calendar', 'calendar'), item('members', 'Members', 'members')] },
     {
@@ -69,7 +71,7 @@ export function buildSettingsNav(org: string, modules: Record<ModuleKey, boolean
       label: 'Agents',
       items: [
         ...(modules.agents ? [item('agents', 'Connected agents', 'agents'), item('keys', 'MCP & API keys', 'keys')] : []),
-        item('approvals', 'Approvals', 'approvals'),
+        item('approvals', 'Approvals', 'approvals', pendingApprovals),
         item('audit', 'Audit log', 'audit'),
       ],
     },
@@ -78,7 +80,7 @@ export function buildSettingsNav(org: string, modules: Record<ModuleKey, boolean
 
 export const hrefOf = (i: NavItem) => (i.query ? `${i.href}?${i.query}` : i.href)
 
-export type PaletteItem = { id: string; label: string; href: string; group: string; icon: IconKey }
+export type PaletteItem = { id: string; label: string; href: string; group: string; icon: IconKey; hint?: string }
 
 /** Flatten nav sections into command-palette items (plus extra pages that are not in the sidebar). */
 export function paletteItemsFrom(sections: NavSection[], extra: PaletteItem[] = []): PaletteItem[] {
@@ -92,4 +94,16 @@ export function paletteItemsFrom(sections: NavSection[], extra: PaletteItem[] = 
     })),
   )
   return [...items, ...extra]
+}
+
+/** "New …" quick actions for the palette. Feature pages open their create form on `?new=1`. */
+export function buildQuickActions(o: { org: string; terms: Terms; teams: NavTeam[]; modules: Record<ModuleKey, boolean> }): PaletteItem[] {
+  const { org, terms: T, teams, modules: m } = o
+  const team = teams[0] ? `team=${teams[0].id}&` : ''
+  const out: PaletteItem[] = []
+  if (m.priorities) out.push({ id: 'new:priority', label: `New ${T.t('priority').toLowerCase()}`, href: `/${org}/priorities?${team}new=1`, group: 'Create', icon: 'priorities' })
+  if (m.issues) out.push({ id: 'new:issue', label: `New ${T.t('issue').toLowerCase()}`, href: `/${org}/issues?${team}new=1`, group: 'Create', icon: 'issues' })
+  if (m.todos) out.push({ id: 'new:todo', label: `New ${T.t('todo').toLowerCase()}`, href: `/${org}/todos?new=1`, group: 'Create', icon: 'todos' })
+  if (m.headlines) out.push({ id: 'new:headline', label: `New ${T.t('headline').toLowerCase()}`, href: `/${org}/headlines?new=1`, group: 'Create', icon: 'headlines' })
+  return out
 }

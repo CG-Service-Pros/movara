@@ -1,9 +1,29 @@
-import { StubPage } from '@/components/shell/stub-page'
+import { listAgents, listApiKeys, listPeople, hasRole } from '@motion/core'
+import { Page } from '@/components/shell/page'
+import { AgentsList } from '@/components/settings/agents-panel'
+import { SettingsBody } from '@/components/settings/ui'
 import { requireModule } from '@/lib/ctx'
 
-// STUB: a feature agent replaces this page.
-export default async function Page({ params }: { params: Promise<{ org: string }> }) {
-  const { org } = await params
-  await requireModule(org, 'agents')
-  return <StubPage title="Connected agents" icon="agents" description="Agents act in Motion with their own scopes. Everything they do is attributed and audited." />
+export default async function AgentsPage({ params }: { params: Promise<{ org: string }> }) {
+  const { org: slug } = await params
+  const { ctx } = await requireModule(slug, 'agents')
+  const [agents, keys, people] = await Promise.all([listAgents(ctx, { includeRevoked: true }), listApiKeys(ctx), listPeople(ctx)])
+  const names = new Map(people.map((p) => [p.id, p.name]))
+  const me = (ctx.actor.type === 'person' ? ctx.actor.id : ctx.actor.onBehalfOf)!
+  return (
+    <Page title="Connected agents" meta={`${agents.filter((a) => a.status !== 'revoked').length} active`}>
+      <SettingsBody>
+        <AgentsList
+          slug={slug}
+          meId={me}
+          canCreate={hasRole(ctx, 'member')}
+          people={hasRole(ctx, 'admin') ? people.map((p) => ({ id: p.id, name: p.name })) : people.filter((p) => p.id === me).map((p) => ({ id: p.id, name: p.name }))}
+          agents={agents.map((a) => ({
+            id: a.id, name: a.name, client: a.client, owner: names.get(a.ownerPersonId) ?? 'Unknown', status: a.status,
+            lastSeenAt: a.lastSeenAt?.toISOString() ?? null, scopeCount: a.scopes.length, keyCount: keys.filter((k) => k.agentId === a.id && !k.revokedAt).length,
+          }))}
+        />
+      </SettingsBody>
+    </Page>
+  )
 }
