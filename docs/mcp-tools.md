@@ -28,7 +28,7 @@ Auth: OAuth 2.1 (PKCE). Each agent gets its own client, owner and scopes.
 | | `search` | read | across all entities; returns typed hits |
 | | `my_week` | read | the acting person's priorities, metrics due, to-dos, next meeting |
 | Vision | `vision_get` | read | current published revision as structured sections |
-| | `vision_propose_change` | propose:vision | creates a draft revision plus an approval; never publishes |
+| | `vision_propose_change` | propose:vision | creates a pending approval; nothing changes until a person approves, then it is applied and published with provenance |
 | Chart | `chart_get` | read | seats, people, responsibilities |
 | | `chart_propose_change` | propose:chart | draft + approval |
 | Priorities | `priorities_list` | read | filters: quarter, team, owner, status |

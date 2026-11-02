@@ -288,3 +288,103 @@ Keys are `"METHOD /path/:param"`. Errors: `MotionError` -> `{ error: { code, mes
 - No RLS policies yet (isolation is enforced in core: every query uses `scoped`/`org_id`); realtime adapters, email sending, `MOTION_TERMINOLOGY_PACKS` preinstall and OAuth are not implemented (tables exist).
 - `approvals.decide` can only re-execute commands registered in `@motion/core`; the seeded pending approval (`vision.propose_change`) becomes approvable once the vision area defines that command.
 - Org slug rename, org deletion and invitation emails are not implemented.
+
+## Areas: priorities, scorecard, vision, chart
+
+Queries need `read` (agents). Commands: name / scope / role. Persons always pass scope checks. REST routes are in `apps/web/src/api/handlers/{priorities,scorecard,vision,chart}.ts`.
+
+### priorities (`write:priorities`, role member)
+- `listPriorities(ctx, {quarter?, teamId?, ownerId?, status?, level?}) -> (Priority & {milestonesTotal, milestonesDone})[]`: default quarter = org current quarter; ordered by `sort`.
+- `getPriority(ctx, id) -> Priority & {milestones, parent, children}`: one priority with ordered milestones and cascade links.
+- `prioritiesSummary(ctx, {quarter?, teamId?, asOf?}) -> {quarter, week: {week, of:13} | null, total, byStatus, milestonesTotal, milestonesDone}`: counts by status and week N of 13 (week is null for non-current quarters).
+- `priorityCreate` (`priority.create`) `{title, description?, ownerId? (default: acting person), teamId?, quarter? (default current), dueDate?, level?, status?, parentPriorityId?, milestones?[{title,dueDate?}]}`: create with optional milestones; parent link is cycle-checked.
+- `priorityUpdate` (`priority.update`) `{priorityId, title?, description?, ownerId?, teamId?, quarter?, dueDate?, level?, parentPriorityId?}`.
+- `prioritySetStatus` (`priority.set_status`) `{priorityId, status: on_track|off_track|done|not_done|dropped}`.
+- `priorityDelete` (`priority.delete`) `{priorityId}`: soft delete incl. milestones; **agents need approval**.
+- `priorityReorder` (`priority.reorder`) `{quarter, priorityIds[]}`: set `sort` in the given order.
+- `priorityCascade` (`priority.cascade`) `{priorityId, teamId, ownerId?, title?}`: child team-level priority with `parentPriorityId`.
+- `milestoneAdd` `{priorityId, title, dueDate?}`, `milestoneUpdate` `{milestoneId, title?, dueDate?}`, `milestoneToggle` `{milestoneId, done?}` (flips when `done` omitted), `milestoneReorder` `{priorityId, milestoneIds[]}` (must list all), `milestoneDelete` `{milestoneId}` (names `milestone.add|update|toggle|reorder|delete`).
+
+### scorecard (`write:metrics`; scorecard settings need role admin)
+- `listScorecards(ctx) -> (Scorecard & {teamName, metricCount})[]`; `getMetric(ctx, id)`.
+- `getScorecard(ctx, {scorecardId | teamId, periods?, asOf?}) -> {scorecard, periods[] (oldest first, last = current), metrics: (Metric & {cells: {periodStart, value, note, status: on|off|missing}[], total (additive only), average, latestStatus})[], latestPeriod, onTrackCount, offTrackCount, missingCount}`.
+- `offTrackMetrics(ctx, {asOf?}) -> {scorecardId, teamId, teamName, metric, period, value, status}[]`: org-wide, off track in the current period (missing values are not listed).
+- `metricStatus({comparison, goal, goalUpper}, value) -> 'on'|'off'|'missing'`: pure; gte/lte/gt/lt/eq, `between` inclusive; no value = missing; no goal = on.
+- `scorecardCreate` (`scorecard.create`) `{teamId, interval?, weekStartDay? (0=Sun, default org), periodsShown?}`: one per team (conflict otherwise). `scorecardUpdateSettings` (`scorecard.update_settings`) `{scorecardId, interval?, weekStartDay?, periodsShown?}`.
+- `metricCreate` (`metric.create`) `{scorecardId, title, goal, comparison?, goalUpper? (required for between), ownerIds?, unit?, scale?, decimals?, additive?, source?}`; `metricUpdate` (`metric.update`) `{metricId, ...}` partial; `metricReorder` `{scorecardId, metricIds[]}`; `metricArchive` (`metric.archive`) `{metricId}` soft delete, **agents need approval**.
+- `metricRecordValues` (`metric.record_values`) `{scorecardId?, teamId?, values: [{metricId | metricTitle (exact, needs scorecardId/teamId), periodStart, value|null, note?}]}`: atomic batch upsert by (metric, period); any date is normalized to the scorecard interval start (using the scorecard's `weekStartDay`); duplicates in a batch: last wins; omitted note keeps the old one. Returns `{count, items}`.
+
+### vision (`propose:vision`; sections live in `content.sections`)
+- Types: `VisionSectionsSchema` (zod) with `coreValues[]`, `coreFocus{purpose,niche}`, `longRangeTarget{text,date}`, `marketing{targetMarket,uniques[],provenProcess,guarantee}`, `threeYear|oneYear{date,revenue,profit,measurables[{name,value}],goals[{text, provenance?}]}`, `quarterly{quarter,revenue,profit,priorityIds[]}`, `longTermIssueIds[]`. `sectionsOf(revision)` returns the typed sections. `Provenance = {proposedBy, approvalId?, approvedBy?, source?, at?}`.
+- `getVision(ctx, {teamId?}) -> {plan, published, draft}` (company plan unless `teamId`; `approvedBy` on goals is filled from the approval); `getVisionRevision(ctx, id)`; `listVisionRevisions(ctx, {teamId?})` newest first.
+- `visionCreateDraft` (`vision.create_draft`) `{teamId?}`: draft copied from the published revision (returns the existing draft with `created:false`). `visionUpdateDraft` (`vision.update_draft`) `{revisionId, sections}`: each given section replaces the stored one. `visionDiscardDraft` `{revisionId}`.
+- `visionPublish` (`vision.publish`) `{revisionId}`: role admin; **agents need approval**; archives the previous published revision.
+- `visionProposeChange` (`vision.propose_change`) `{section, op: add_goal|add_core_value|add_long_term_issue|set, text?, issueId?, value?, source?, teamId?, publish?}`: `section` accepts canonical keys or legacy keys (`one_year_plan`, ...; the seeded approval uses these). **Agents get an approval**; on approval the change is applied to a new copy of the published content and published (goals get provenance). Called by a person it goes into the draft; `publish: true` (admin) publishes.
+
+### chart (`propose:chart`)
+- `getChart(ctx) -> {chart, published, draft}` where each is `{revision, seats: SeatNode[] (tree), seatCount}`; `SeatNode = Seat & {people[{id,name}], assistingAgents[{id,name}], children[]}`. `getChartRevision(ctx, id)`, `listChartRevisions(ctx)`, `seatTree(ctx, revisionId)`. `STANDARD_SEATS` = names of the five-seat template (Leader + Sales & marketing, Operations, Finance & admin, People & culture; the Standard pack has no seat names).
+- `chartCreateDraft` (`chart.create_draft`) `{from?: published|blank|template}`; `chartDiscardDraft` `{revisionId}`.
+- `chartPublish` (`chart.publish`) `{revisionId}`: role admin, **agents need approval**; needs exactly one top seat.
+- Seat edits (drafts only; published revisions are immutable): `chartAddSeat` `{revisionId, title, parentSeatId?, responsibilities?, personIds?, assistingAgentIds?, teamId?, linkedPriorityId?}`, `chartUpdateSeat` `{seatId, title?, responsibilities?, teamId?, linkedPriorityId?}`, `chartMoveSeat` `{seatId, parentSeatId|null, sort?}` (cycle-safe), `chartReorderSeats` `{revisionId, parentSeatId|null, seatIds[]}`, `chartDeleteSeat` `{seatId}` (children move up), `chartAssignPeople` `{seatId, personIds[]}`, `chartSetAssistingAgents` `{seatId, agentIds[]}`.
+- `chartProposeChange` (`chart.propose_change`) `{ops: [{op: add_seat|update_seat|move_seat|delete_seat|assign_people|set_assisting_agents, seat: id-or-exact-title, ...}], reason?, publish?}`: **agents get an approval**; on approval applied to a fresh copy of the published chart and published; by a person it goes to the draft (`publish: true` + admin publishes). Seats may be referenced by published id, draft id or exact title.
+
+## Areas: issues, todos, headlines, meetings, search
+
+All commands are used with `execute(ctx, cmd, input, { requestId, expectedVersion })`; queries are `(ctx, input?) => Promise<…>` and need `read` for agents. Update/state commands honour `expectedVersion`. Every command that fans out takes `ownerIds[]` (default: the acting person) and returns an **array** in `data`. While a team's meeting is live, any change to that team's issues, to-dos or headlines also bumps the meeting's `rev`.
+
+### Issues (`scope write:issues`)
+- `issueCreate {title, description?, ownerIds?, teamId?, horizon?: 'short'|'long', source?: {type,id}}` -> `IssueRow[]` (one per owner, ranked at the bottom of the destination list).
+- `issueUpdate {issueId, title?, description?, ownerId?}`; `issueSetRank {issueId, rank}` (1 = top; re-numbers the siblings); `issueSolve {issueId}`; `issueReopen {issueId}` (back to the bottom of the list); `issueDrop {issueId}`; `issueMove {issueId, teamId?, horizon?}` (another team and/or long-term).
+- `listIssues(ctx, {teamId?, horizon?, status?: 'open'|'solved'|'dropped'|'all' (default open), ownerId?, limit?})` (open = by rank), `getIssue(ctx, id)`.
+
+### To-dos (`scope write:todos`)
+- `todoCreate {title, description?, ownerIds?, teamId? (null = personal), dueDate? (default today+7 in org tz), source?}` -> `TodoRow[]`.
+- `todoUpdate {todoId, title?, description?, ownerId?, teamId?, dueDate?}`; `todoDelete {todoId}` (soft).
+- `todoComplete {todoId}`: status `pending` if the to-do's team has a LIVE meeting, else `done` (+`doneAt`); `todoUncomplete {todoId}` -> `open`.
+- `listTodos(ctx, {ownerId?, teamId?, personal?, status?: one|array, overdue?, limit?})` (due date ascending), `getTodo(ctx, id)`.
+
+### Headlines (`scope write:headlines`)
+- `headlinePost {text, kind?: 'customer'|'employee'|'general', ownerIds?, teamId}` -> `HeadlineRow[]`; `headlineUpdate {headlineId, text?, kind?, ownerId?}`; `headlineMarkReviewed {headlineId, reviewed?=true}`; `headlineDelete {headlineId}`.
+- `headlineCascade {headlineId, teamIds[]}` -> copies (`cascadedFromId` = original; teams that already hold a copy are skipped).
+- `listHeadlines(ctx, {teamId?, ownerId?, reviewed?, limit?})`, `getHeadline(ctx, id)`.
+
+### Meetings (`scope write:meetings`)
+Series / scheduling (admin role): `meetingSeriesCreate {teamId, name, templateKey?='weekly', agenda?: [{term,minutes}], rrule? ('FREQ=WEEKLY;BYDAY=MO,WE' or null = ad-hoc), startTime? 'HH:MM' (org tz), durationMinutes?, attendeeIds? (default team members), facilitatorId?, scribeActor?, firstScheduledAt?}` -> `{series, firstMeeting|null}`; templates come from the org's pack `meetingTemplates`, then Standard (`listMeetingTemplates(ctx)`). `meetingSeriesUpdate {seriesId, name?, agenda?, rrule?, startTime?, durationMinutes?, attendeeIds?, facilitatorId?, scribeActor?}`. `meetingScheduleNext {seriesId, scheduledAt?}` -> `{meeting, created}` (reuses an already-upcoming occurrence; ad-hoc series need `scheduledAt`).
+Reads: `listMeetingSeries(ctx, {teamId?})`, `getMeetingSeries(ctx, id)` (+`upcoming`), `listMeetings(ctx, {seriesId?, teamId?, status?: 'upcoming'|'live'|'past', limit?})`, `getMeeting(ctx, id)` (series, team, attendees, agenda), `listMeetingHistory(ctx, {seriesId?, teamId?, limit?})` -> `MeetingStats & {meetingId, seriesName, endedAt, hasSummary, summary…}[]` (stats: `durationMinutes, ratingAvg, ratingCount, issuesSolved, issuesTotal, todosDone, todosTotal, attendeeCount, invitedCount, newTodoCount`), `prepareMeeting(ctx, {meetingId?|seriesId?|teamId?})` -> `{offTrackMetrics, offTrackPriorities, openIssues (ranked), overdueTodos, headlinesToReview}` (metric status computed from the latest recorded value; scorecard tables are read directly).
+
+Live commands (all take `meetingId`; need the meeting to be live except start):
+- `meetingStart {meetingId | seriesId}` (seriesId: picks the nearest scheduled occurrence or creates one; one live meeting per team), `meetingJoin` / `meetingLeave` (presence of people and agents), `meetingPause` / `meetingResume`, `meetingNextSection`, `meetingSetSection {index}` (per-section timers accumulate; pause/resume safe).
+- `meetingDropToIssue {from: {type: 'metric'|'priority'|'headline'|'todo', id}, title?, ownerIds?}` -> `IssueRow[]` with `source = from` (an existing open issue for the same item is reused); `meetingReviewHeadline {headlineId}`.
+- IDS: `idsFocus {issueIds}` (up to `settings.focusIssueCount`, default 3; replaces undiscussed picks), `idsStart {issueId?}`, `idsResolve {issueId, solved, todos?: [{title, ownerId, dueDate?}]}` (creates to-dos with `source {type:'issue', id}`, solves the issue when `solved`, auto-advances to the next focus issue; status goes `prioritizing -> discussing -> complete`).
+- `meetingRate {score: 1-10}`: people only (agents get `forbidden`); `meetingSetSettings {sendRecap?, clearItems?, focusIssueCount?}`; `meetingCapture {todos?, issues?, headlines?, source?}` (notes agent; items tagged `source {type:'meeting', id}`).
+- `meetingEnd {meetingId}`: pending to-dos -> done; stats + summary stored; if `clearItems` the team's done to-dos and reviewed headlines are soft-deleted (archived); returns `{meeting, stats, summary, recap, recapSent, cleared}`. **Call `endMeeting(ctx, {meetingId}, {requestId?, emailSender?})` instead** to also send the recap after commit through an `EmailSender` (`{ send(msg: {to, subject, text}): Promise<void> }`; process default via `setEmailSender(s)`, built-ins `noopEmailSender` (default) and `consoleEmailSender`), then `recapSentAt` is set. To-do completion rate = done / (to-dos created before the meeting that were open, or done since the previous meeting ended).
+- `meetingHeartbeat(ctx, meetingId): Promise<boolean>`: presence ping (no audit row, no rev bump).
+
+`getLiveState(ctx, meetingId, { sinceRev? }): Promise<LiveState | null>`; `null` when `sinceRev === state.rev`. Poll every 1-2 s with the last `rev`; use `serverTime` to correct clock skew: a running section's elapsed = `elapsedMs + (now - serverTime)`. Presence heartbeats do not bump `rev`, so refetch occasionally (or on join/leave events) for `online`.
+```ts
+type LiveState = {
+  rev: number; serverTime: string /*ISO*/; meetingId: string; seriesId: string; teamId: string; name: string
+  status: 'scheduled' | 'live' | 'paused' | 'ended'
+  scheduledAt: string; startedAt: string | null; endedAt: string | null
+  sectionIndex: number; paused: boolean; facilitatorId: string | null
+  agenda: { index: number; term: string; minutes: number; elapsedMs: number; running: boolean }[]
+  presence: { kind: 'person' | 'agent'; id: string; name: string; onBehalfOf?: string; joinedAt: string; lastSeen: string; online: boolean }[]
+  attendees: { id: string; name: string; present: boolean; rated: boolean }[]          // series attendees
+  settings: { sendRecap: boolean; clearItems: boolean; focusIssueCount: number }
+  ids: { status: 'idle' | 'prioritizing' | 'discussing' | 'complete'; currentIssueId: string | null; focusIssueIds: string[]
+         focusIssues: { id; title; ownerId; rank; status; discussed: boolean; solved: boolean }[]
+         discussedIssueIds: string[]; solvedIssueIds: string[]; addedIssueIds: string[] }
+  ratings: { count: number; mine: number | null; average: number | null; all: Record<personId, number> | null /*only after end*/ }
+  counts: { openTodos; pendingTodos; doneTodos; newTodos; headlinesToReview; headlinesReviewed; openIssues }
+  reviewedHeadlineIds: string[]; newTodoIds: string[]
+  stats: MeetingStats | null; summary: string | null                                      // set after end
+}
+```
+`meetings.state` (stored, `StoredMeetingState`): `{rev, sectionIndex, agenda (snapshot), timers: {[index]: {elapsedMs, runningSince}}, paused, presence, settings, focusIssueIds, idsState {status, currentIssueId, discussedIssueIds, solvedIssueIds, addedIssueIds, resolutions}, newTodoIds, newHeadlineIds, reviewedHeadlineIds, stats?}`; readers must go through `readState` (tolerates sparse/seed shapes).
+
+### Search (`read`)
+- `search(ctx, q, {types?: ('priority'|'metric'|'issue'|'todo'|'headline'|'person'|'meeting')[], limit?=20 (max 100)}) -> SearchHit[]` (`{type, id, title, subtitle?, status?, teamId?, ownerId?}`; ILIKE, `%`/`_` escaped, prefix matches first; `SEARCH_TYPES`).
+- `myWeek(ctx) -> {personId, today, quarter, week, priorities, metricsDue, todos, nextMeeting}` for the acting person (an agent sees its owner's week).
+
+### REST (`/api/v1`)
+`GET/POST /issues`, `GET/PATCH /issues/:id`, `POST /issues/:id/{rank,solve,reopen,drop,move}`; `GET/POST /todos`, `GET/PATCH/DELETE /todos/:id`, `POST /todos/:id/{complete,uncomplete}`; `GET/POST /headlines`, `GET/PATCH/DELETE /headlines/:id`, `POST /headlines/:id/{review,cascade}`; `GET /meetings`, `/meetings/{templates,series,history,prepare}`, `POST /meetings/series`, `GET/PATCH /meetings/series/:id`, `POST /meetings/series/:id/schedule`, `POST /meetings/start`, `GET /meetings/:id`, `GET /meetings/:id/live?sinceRev=N` (204 when unchanged), `POST /meetings/:id/{heartbeat,join,leave,pause,resume,next-section,section,drop-to-issue,review-headline,ids/focus,ids/start,ids/resolve,rate,settings,capture,end}`; `GET /search?q=&types=a,b&limit=`, `GET /my-week`.

@@ -221,17 +221,30 @@ export async function seedDemo(db: Db): Promise<{ created: boolean; orgId: strin
     await tx.insert(s.visionPlans).values({ ...c, id: VP, scope: 'company' })
     const content = {
       sections: {
-        core_values: { items: ['Own the outcome', 'Clients first', 'Leave it better'] },
-        core_focus: { purpose: 'Help growing companies run with clarity', niche: 'Operating rhythm for 20–250 person firms' },
-        long_range_target: { date: '2036-12-31', text: '1,000 companies running on our rhythm' },
-        marketing_strategy: { target: 'Founder-led firms with 20–250 people', uniques: ['Agent-first', 'Fits your own vocabulary', 'Open source'], process: 'Consult, pilot, roll out' },
-        three_year_picture: { date: '2029-12-31', figures: { Revenue: '$12M', Profit: '20%', Clients: '240' }, bullets: [] },
-        one_year_plan: {
+        coreValues: ['Own the outcome', 'Clients first', 'Leave it better'],
+        coreFocus: { purpose: 'Help growing companies run with clarity', niche: 'Operating rhythm for 20–250 person firms' },
+        longRangeTarget: { date: '2036-12-31', text: '1,000 companies running on our rhythm' },
+        marketing: {
+          targetMarket: 'Founder-led firms with 20–250 people',
+          uniques: ['Agent-first', 'Fits your own vocabulary', 'Open source'],
+          provenProcess: 'Consult, pilot, roll out',
+          guarantee: '',
+        },
+        threeYear: {
+          date: '2029-12-31',
+          revenue: '$12M',
+          profit: '20%',
+          measurables: [{ name: 'Clients', value: '240' }],
+          goals: [],
+        },
+        oneYear: {
           date: '2027-12-31',
-          figures: { Revenue: '$4.2M', Profit: '14%' },
+          revenue: '$4.2M',
+          profit: '14%',
+          measurables: [],
           goals: [{ text: 'Launch Motion Cloud for 50 paying teams' }, { text: 'Two certified implementation partners' }, { text: 'Net revenue retention above 110%' }],
         },
-        long_term_issues: { items: ['Enter the UK market in 2028 or 2029?', 'Build or partner for payroll features'] },
+        longTermIssueIds: issueRows.filter((i) => i.horizon === 'long').map((i) => i.id),
       },
     }
     const vr = (number: number, status: 'archived' | 'published', publishedAt: string) => ({ ...c, id: newId(), planId: VP, number, status, content, publishedAt: at(publishedAt), publishedBy: oscarActor })
