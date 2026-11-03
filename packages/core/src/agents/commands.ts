@@ -1,17 +1,26 @@
 import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { agents, apiKeys, API_KEY_PREFIX, generateApiKey, hashApiKey, people, type Db } from '@movara/db'
-import { actingPersonId, ctxForAgent, hasRole, SCOPES, type Ctx } from '../ctx'
+import { actingPersonId, ctxForAgent, hasRole, presetScopes, SCOPES, SCOPE_PRESET_KEYS, type Ctx, type Scope, type ScopePreset } from '../ctx'
 import { MovaraError } from '../errors'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
 import { revokeAgentOAuthTokens } from './oauth'
 import { defineCommand, execute, type ExecuteOptions } from '../runner'
 
 const scopesSchema = z.array(z.enum(SCOPES)).max(SCOPES.length)
+const presetSchema = z.enum(SCOPE_PRESET_KEYS as [ScopePreset, ...ScopePreset[]])
+
+/** The preset name to store: only when the final scopes equal that preset exactly. */
+function presetFor(preset: ScopePreset | null | undefined, scopes: Scope[]): ScopePreset | null {
+  if (!preset) return null
+  const want = presetScopes(preset)
+  return want.length === scopes.length && want.every((s) => scopes.includes(s)) ? preset : null
+}
 
 async function ownedAgent(ctx: Ctx, agentId: string) {
   const [a] = await ctx.db.select().from(agents).where(scoped(agents, ctx, eq(agents.id, agentId))).limit(1)
   const agent = found(a, 'Agent')
+  if (agent.kind === 'builtin_coach') throw new MovaraError('forbidden', 'The built-in Coach is managed by Movara and cannot be changed or revoked here')
   if (!hasRole(ctx, 'admin') && agent.ownerPersonId !== actingPersonId(ctx)) throw new MovaraError('forbidden', 'Only an admin or the agent\'s owner can do this')
   return agent
 }
@@ -25,7 +34,9 @@ export const agentsCreate = defineCommand({
     name: z.string().trim().min(1).max(60),
     client: z.string().trim().max(80).optional(),
     ownerPersonId: z.uuid().optional(),
-    scopes: scopesSchema.default(['read']),
+    /** Explicit scopes, or give a `preset` (see SCOPE_PRESETS). Default: read-only. */
+    scopes: scopesSchema.optional(),
+    preset: presetSchema.optional(),
   }),
   summary: (i) => `Create agent "${i.name}"`,
   run: async (ctx, input) => {
@@ -33,8 +44,10 @@ export const agentsCreate = defineCommand({
     if (ownerId !== actingPersonId(ctx) && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', 'Only an admin can create an agent for someone else')
     const [owner] = await ctx.db.select({ id: people.id }).from(people).where(scoped(people, ctx, eq(people.id, ownerId))).limit(1)
     found(owner, 'Owner')
-    const [row] = await ctx.db.insert(agents).values({ ...base(ctx), name: input.name, client: input.client ?? null, ownerPersonId: ownerId, scopes: [...new Set(input.scopes)] }).returning()
-    return { data: row!, entity: { type: 'agent', id: row!.id }, before: null, after: { name: row!.name, ownerPersonId: ownerId, scopes: row!.scopes } }
+    const scopes = [...new Set(input.scopes ?? (input.preset ? presetScopes(input.preset) : (['read'] as Scope[])))]
+    const preset = presetFor(input.preset, scopes)
+    const [row] = await ctx.db.insert(agents).values({ ...base(ctx), name: input.name, client: input.client ?? null, ownerPersonId: ownerId, scopes, preset }).returning()
+    return { data: row!, entity: { type: 'agent', id: row!.id }, before: null, after: { name: row!.name, ownerPersonId: ownerId, scopes: row!.scopes, preset } }
   },
 })
 
@@ -57,17 +70,18 @@ export const agentsUpdateScopes = defineCommand({
   name: 'agents.update_scopes',
   scope: 'admin',
   minRole: 'member',
-  input: z.object({ agentId: z.uuid(), scopes: scopesSchema }),
-  summary: (i) => `Set scopes of agent ${i.agentId} to ${i.scopes.join(', ')}`,
+  input: z.object({ agentId: z.uuid(), scopes: scopesSchema.optional(), preset: presetSchema.optional() }).refine((i) => i.scopes || i.preset, 'Give scopes or a preset'),
+  summary: (i) => `Set scopes of agent ${i.agentId} to ${i.scopes ? i.scopes.join(', ') : `preset ${i.preset}`}`,
   run: async (ctx, input, h) => {
     const before = await ownedAgent(ctx, input.agentId)
     assertVersion(before, h.expectedVersion)
     if (before.status === 'revoked') throw new MovaraError('conflict', 'Agent is revoked')
-    const scopes = [...new Set(input.scopes)]
+    const scopes = [...new Set(input.scopes ?? presetScopes(input.preset!))]
+    const preset = presetFor(input.preset, scopes)
     // Members can only grant scopes that are not 'admin'.
     if (scopes.includes('admin') && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', "Only an admin can grant the 'admin' scope")
-    const [after] = await ctx.db.update(agents).set({ scopes, ...touch(agents, ctx) }).where(scoped(agents, ctx, eq(agents.id, input.agentId))).returning()
-    return { data: after!, entity: { type: 'agent', id: input.agentId }, before: { scopes: before.scopes }, after: { scopes } }
+    const [after] = await ctx.db.update(agents).set({ scopes, preset, ...touch(agents, ctx) }).where(scoped(agents, ctx, eq(agents.id, input.agentId))).returning()
+    return { data: after!, entity: { type: 'agent', id: input.agentId }, before: { scopes: before.scopes }, after: { scopes, preset } }
   },
 })
 

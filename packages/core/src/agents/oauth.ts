@@ -1,7 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { and, eq, isNull } from 'drizzle-orm'
 import { agents, newId, oauthClients, oauthCodes, oauthTokens, hashApiKey, type Db } from '@movara/db'
-import { ctxForAgent, hasRole, SCOPES, type Ctx, type Scope } from '../ctx'
+import { ctxForAgent, hasRole, isScopePreset, SCOPES, type Ctx, type Scope, type ScopePreset } from '../ctx'
 import { MovaraError } from '../errors'
 import { execute } from '../runner'
 import { agentsCreate, agentsUpdateScopes } from './commands'
@@ -114,7 +114,7 @@ async function authenticateClient(db: Db, clientId: string, secret: string | nul
 // ---------------------------------------------------------------- consent -> authorization code
 
 /** The agent that represents (client, person, org). Created on first consent, reused (and re-scoped) afterwards. */
-async function agentForConsent(ctx: Ctx, client: OAuthClientRow, scopes: Scope[]) {
+async function agentForConsent(ctx: Ctx, client: OAuthClientRow, scopes: Scope[], preset?: ScopePreset) {
   const personId = ctx.actor.id
   const [existing] = await ctx.db
     .select()
@@ -124,11 +124,11 @@ async function agentForConsent(ctx: Ctx, client: OAuthClientRow, scopes: Scope[]
   const live = existing && existing.status !== 'revoked' ? existing : null
   if (live) {
     const same = live.scopes.length === scopes.length && scopes.every((s) => live.scopes.includes(s))
-    if (!same) await execute(ctx, agentsUpdateScopes, { agentId: live.id, scopes })
+    if (!same) await execute(ctx, agentsUpdateScopes, { agentId: live.id, scopes, preset })
     if (live.status === 'paused') throw new MovaraError('conflict', 'This connection is paused in Settings -> Agents; resume it first')
     return live.id
   }
-  const created = await execute(ctx, agentsCreate, { name: client.name, client: `${client.name} · OAuth`, scopes })
+  const created = await execute(ctx, agentsCreate, { name: client.name, client: `${client.name} · OAuth`, scopes, preset })
   if (!created.ok) throw new MovaraError('needs_approval', 'Creating this agent needs approval')
   await ctx.db.update(agents).set({ oauthClientId: client.clientId }).where(eq(agents.id, created.data.id))
   return created.data.id
@@ -140,7 +140,7 @@ async function agentForConsent(ctx: Ctx, client: OAuthClientRow, scopes: Scope[]
  */
 export async function approveAuthorization(
   ctx: Ctx,
-  input: { clientId: string; redirectUri: string; codeChallenge: string; scopes: string[] },
+  input: { clientId: string; redirectUri: string; codeChallenge: string; scopes: string[]; /** Consent-screen preset the scopes came from (stored on the agent). */ preset?: string },
 ): Promise<string> {
   if (ctx.actor.type !== 'person') throw new MovaraError('forbidden', 'Only a person can approve a connection')
   const client = await getOAuthClient(ctx.db, input.clientId)
@@ -149,7 +149,7 @@ export async function approveAuthorization(
   if (!/^[A-Za-z0-9_-]{43,128}$/.test(input.codeChallenge)) throw new MovaraError('validation', 'Invalid PKCE code_challenge')
   const scopes = parseScopes(input.scopes)
   if (scopes.includes('admin') && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', "Only an admin can grant the 'admin' scope")
-  const agentId = await agentForConsent(ctx, client, scopes)
+  const agentId = await agentForConsent(ctx, client, scopes, isScopePreset(input.preset) ? input.preset : undefined)
   const code = newSecret('mo_ac_')
   await ctx.db.insert(oauthCodes).values({
     id: newId(),

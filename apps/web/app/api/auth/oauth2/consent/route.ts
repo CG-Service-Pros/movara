@@ -1,4 +1,4 @@
-import { approveAuthorization, ctxForUser, getOAuthClient, isMovaraError, parseScopes } from '@movara/core'
+import { approveAuthorization, ctxForUser, getOAuthClient, isMovaraError, isScopePreset, parseScopes, presetScopes } from '@movara/core'
 import { getDb } from '@/lib/db'
 import { appUrl } from '@/lib/oauth'
 import { getSession } from '@/lib/session'
@@ -34,12 +34,16 @@ export async function POST(req: Request) {
 
   const ctx = await ctxForUser(db, { id: s('org') }, session.user.id)
   if (!ctx) return fail(403, 'You are not a member of that organization')
+  // A named preset is mapped to scopes on the server (the checkboxes only apply to Custom).
+  const presetField = s('preset')
+  const preset = isScopePreset(presetField) ? presetField : undefined
   try {
     const code = await approveAuthorization(ctx, {
       clientId: client.clientId,
       redirectUri,
       codeChallenge: s('code_challenge'),
-      scopes: parseScopes(f.getAll('scope').map(String)),
+      scopes: preset ? presetScopes(preset) : parseScopes(f.getAll('scope').map(String)),
+      preset,
     })
     return back(redirectUri, { code, state })
   } catch (e) {

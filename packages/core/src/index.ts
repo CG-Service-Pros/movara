@@ -21,3 +21,7 @@ export * from './meetings'
 export * from './vision'
 export * from './chart'
 export * from './search'
+// Coach + meeting-notes capture
+export * from './ai'
+export * from './coach'
+export * from './capture'

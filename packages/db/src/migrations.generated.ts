@@ -187,5 +187,44 @@ export const MIGRATIONS: { tag: string; folderMillis: number; hash: string; sql:
       "\nALTER TABLE \"people\" ADD COLUMN \"invite_expires_at\" timestamp with time zone;",
       "\nCREATE UNIQUE INDEX \"people_invite_hash_uq\" ON \"people\" USING btree (\"invite_token_hash\");"
     ]
+  },
+  {
+    "tag": "0004_coach_capture",
+    "folderMillis": 1793669359947,
+    "hash": "5bb7b5754f6e3477408ce3a2b51ce099f720df111ab2a5db1cb433127116a2b6",
+    "sql": [
+      "CREATE TYPE \"public\".\"capture_kind\" AS ENUM('todo', 'issue', 'headline', 'decision');",
+      "\nCREATE TYPE \"public\".\"capture_status\" AS ENUM('proposed', 'accepted', 'rejected', 'edited');",
+      "\nCREATE TYPE \"public\".\"ai_feature\" AS ENUM('coach', 'extract');",
+      "\nCREATE TYPE \"public\".\"coach_role\" AS ENUM('user', 'assistant', 'tool');",
+      "\nCREATE TABLE \"capture_items\" (\n\t\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,\n\t\"created_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"created_by_actor\" jsonb,\n\t\"updated_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"updated_by_actor\" jsonb,\n\t\"version\" integer DEFAULT 1 NOT NULL,\n\t\"deleted_at\" timestamp with time zone,\n\t\"org_id\" uuid NOT NULL,\n\t\"meeting_id\" uuid NOT NULL,\n\t\"notes_id\" uuid NOT NULL,\n\t\"kind\" \"capture_kind\" NOT NULL,\n\t\"payload\" jsonb NOT NULL,\n\t\"status\" \"capture_status\" DEFAULT 'proposed' NOT NULL,\n\t\"created_entity_id\" uuid,\n\t\"decided_by\" jsonb,\n\t\"decided_at\" timestamp with time zone\n);\n",
+      "\nCREATE TABLE \"meeting_notes\" (\n\t\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,\n\t\"created_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"created_by_actor\" jsonb,\n\t\"updated_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"updated_by_actor\" jsonb,\n\t\"version\" integer DEFAULT 1 NOT NULL,\n\t\"deleted_at\" timestamp with time zone,\n\t\"org_id\" uuid NOT NULL,\n\t\"meeting_id\" uuid NOT NULL,\n\t\"source_app\" text DEFAULT 'manual' NOT NULL,\n\t\"source_url\" text,\n\t\"title\" text,\n\t\"notes_markdown\" text DEFAULT '' NOT NULL,\n\t\"transcript\" text,\n\t\"captured_by_actor\" jsonb\n);\n",
+      "\nCREATE TABLE \"ai_usage\" (\n\t\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,\n\t\"org_id\" uuid NOT NULL,\n\t\"person_id\" uuid,\n\t\"feature\" \"ai_feature\" NOT NULL,\n\t\"model\" text NOT NULL,\n\t\"input_tokens\" integer DEFAULT 0 NOT NULL,\n\t\"output_tokens\" integer DEFAULT 0 NOT NULL,\n\t\"cost_estimate_usd\" numeric(12, 6),\n\t\"at\" timestamp with time zone DEFAULT now() NOT NULL\n);\n",
+      "\nCREATE TABLE \"coach_messages\" (\n\t\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,\n\t\"org_id\" uuid NOT NULL,\n\t\"thread_id\" uuid NOT NULL,\n\t\"role\" \"coach_role\" NOT NULL,\n\t\"content\" jsonb,\n\t\"tool_calls\" jsonb,\n\t\"usage\" jsonb,\n\t\"created_at\" timestamp with time zone DEFAULT now() NOT NULL\n);\n",
+      "\nCREATE TABLE \"coach_threads\" (\n\t\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,\n\t\"created_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"created_by_actor\" jsonb,\n\t\"updated_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"updated_by_actor\" jsonb,\n\t\"version\" integer DEFAULT 1 NOT NULL,\n\t\"deleted_at\" timestamp with time zone,\n\t\"org_id\" uuid NOT NULL,\n\t\"person_id\" uuid NOT NULL,\n\t\"title\" text DEFAULT 'New conversation' NOT NULL,\n\t\"context\" jsonb DEFAULT '{}'::jsonb NOT NULL\n);\n",
+      "\nCREATE TABLE \"org_ai_settings\" (\n\t\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,\n\t\"created_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"created_by_actor\" jsonb,\n\t\"updated_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"updated_by_actor\" jsonb,\n\t\"version\" integer DEFAULT 1 NOT NULL,\n\t\"deleted_at\" timestamp with time zone,\n\t\"org_id\" uuid NOT NULL,\n\t\"enabled\" boolean DEFAULT false NOT NULL,\n\t\"provider\" text DEFAULT 'openai' NOT NULL,\n\t\"base_url\" text,\n\t\"api_key_ciphertext\" text,\n\t\"api_key_iv\" text,\n\t\"api_key_tag\" text,\n\t\"api_key_last4\" text,\n\t\"model\" text DEFAULT 'gpt-5.6-luna' NOT NULL,\n\t\"reasoning_effort\" text DEFAULT 'low' NOT NULL,\n\t\"monthly_token_limit\" integer,\n\t\"coach_name\" text DEFAULT 'Coach' NOT NULL,\n\t\"coach_personality\" text DEFAULT 'Warm, direct and practical. Coaches on accountability and clarity.' NOT NULL,\n\t\"updated_by\" jsonb\n);\n",
+      "\nALTER TABLE \"agents\" ADD COLUMN \"kind\" text DEFAULT 'standard' NOT NULL;",
+      "\nALTER TABLE \"agents\" ADD COLUMN \"preset\" text;",
+      "\nALTER TABLE \"capture_items\" ADD CONSTRAINT \"capture_items_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"capture_items\" ADD CONSTRAINT \"capture_items_meeting_id_meetings_id_fk\" FOREIGN KEY (\"meeting_id\") REFERENCES \"public\".\"meetings\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"capture_items\" ADD CONSTRAINT \"capture_items_notes_id_meeting_notes_id_fk\" FOREIGN KEY (\"notes_id\") REFERENCES \"public\".\"meeting_notes\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"meeting_notes\" ADD CONSTRAINT \"meeting_notes_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"meeting_notes\" ADD CONSTRAINT \"meeting_notes_meeting_id_meetings_id_fk\" FOREIGN KEY (\"meeting_id\") REFERENCES \"public\".\"meetings\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"ai_usage\" ADD CONSTRAINT \"ai_usage_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"ai_usage\" ADD CONSTRAINT \"ai_usage_person_id_people_id_fk\" FOREIGN KEY (\"person_id\") REFERENCES \"public\".\"people\"(\"id\") ON DELETE set null ON UPDATE no action;",
+      "\nALTER TABLE \"coach_messages\" ADD CONSTRAINT \"coach_messages_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"coach_messages\" ADD CONSTRAINT \"coach_messages_thread_id_coach_threads_id_fk\" FOREIGN KEY (\"thread_id\") REFERENCES \"public\".\"coach_threads\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"coach_threads\" ADD CONSTRAINT \"coach_threads_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"coach_threads\" ADD CONSTRAINT \"coach_threads_person_id_people_id_fk\" FOREIGN KEY (\"person_id\") REFERENCES \"public\".\"people\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"org_ai_settings\" ADD CONSTRAINT \"org_ai_settings_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nCREATE INDEX \"capture_items_org_status_idx\" ON \"capture_items\" USING btree (\"org_id\",\"status\");",
+      "\nCREATE INDEX \"capture_items_meeting_idx\" ON \"capture_items\" USING btree (\"org_id\",\"meeting_id\");",
+      "\nCREATE INDEX \"meeting_notes_org_meeting_idx\" ON \"meeting_notes\" USING btree (\"org_id\",\"meeting_id\",\"created_at\");",
+      "\nCREATE INDEX \"ai_usage_org_at_idx\" ON \"ai_usage\" USING btree (\"org_id\",\"at\");",
+      "\nCREATE INDEX \"coach_messages_thread_idx\" ON \"coach_messages\" USING btree (\"thread_id\",\"created_at\");",
+      "\nCREATE INDEX \"coach_threads_org_person_idx\" ON \"coach_threads\" USING btree (\"org_id\",\"person_id\",\"updated_at\");",
+      "\nCREATE UNIQUE INDEX \"org_ai_settings_org_uq\" ON \"org_ai_settings\" USING btree (\"org_id\");",
+      "\nCREATE UNIQUE INDEX \"agents_one_coach_uq\" ON \"agents\" USING btree (\"org_id\") WHERE \"agents\".\"kind\" = 'builtin_coach';"
+    ]
   }
 ]

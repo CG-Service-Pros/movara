@@ -1,3 +1,4 @@
 export { createMovaraMcpServer, MCP_SERVER_NAME, MCP_SERVER_VERSION, type MovaraMcpOptions } from './server'
 export { createMcpHttpHandler, sharedMcpHttpHandler, bearerOf } from './http-handler'
 export { buildTools, type ToolDef } from './tools'
+export { getToolRegistry, type RegistryTool } from './registry'

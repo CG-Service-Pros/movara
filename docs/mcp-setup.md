@@ -27,7 +27,9 @@ Movara **agent** with scopes, approvals, audit and idempotency. Demo key (seeded
   `packages/core/src/agents/oauth.ts`). Discovery: `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource`
   (a request to `/mcp` without credentials answers `401` with a `WWW-Authenticate: Bearer resource_metadata=…` header).
 - Clients register themselves (dynamic client registration, `POST /api/auth/oauth2/register`), then run authorization code + PKCE (S256 only)
-  at `/oauth/authorize`. You sign in to Movara, **pick the organization** and **tick the scopes** the client gets, and press Allow.
+  at `/oauth/authorize`. You sign in to Movara, **pick the organization** and **choose a preset** (or Custom scopes) for the client, and press Allow.
+  Presets: **Personal assistant** (default: read, manage only your own to-dos, add meeting notes), **Notes integration** (read + add meeting
+  notes), **Team operator** (broad writes), **Read only**, **Custom**. The preset is shown on the agent in Settings.
 - The first consent creates an **agent** in that org (name = the client's name, owner = you, client = "`<client> · OAuth`"). It shows up in
   Settings -> Agents like any other agent; later consents from the same client reuse it. You can lower its scopes there at any time.
 - **Revoking the agent in Settings immediately revokes its OAuth tokens** (access and refresh). Pausing it blocks them until resumed.
@@ -91,7 +93,7 @@ In n8n use the MCP Client Tool node (endpoint URL, header auth `Authorization: B
 ## 3. Behaviour agents can rely on
 
 - **Scopes.** The tool list only contains tools the agent may call (`read`, `write:todos`, `write:issues`, `write:headlines`,
-  `write:metrics`, `write:priorities`, `write:meetings`, `propose:vision`, `propose:chart`, `admin`). `admin` is its own scope (packs,
+  `write:metrics`, `write:priorities`, `write:meetings`, `write:own_todos`, `capture:meetings`, `propose:vision`, `propose:chart`, `admin`). `admin` is its own scope (packs,
   members, agents) and always needs approval. A read-only agent sees only `*_get`/`*_list`/`search`/…
 - **Terminology.** Tool names are canonical (`priority_set_status`); descriptions, prompts and returned labels use the org's words
   ("Set the status of a Rock (90-day priority)…"), rendered when the session starts. Reconnect after changing the pack.
@@ -104,7 +106,29 @@ In n8n use the MCP Client Tool node (endpoint URL, header auth `Authorization: B
 - **Prompts:** `weekly-meeting-prep`, `issue-triage`, `quarterly-planning`, `write-a-good-priority`, `metric-from-hubspot`.
 - Every request updates the agent's `last_seen`.
 
-## 4. Limits
+## 4. Connect Granola / Plaud / your notes agent
+
+Movara does not read Plaud or Granola itself. Your company's agent (Claude, ChatGPT, n8n, ...) that already has access to those notes pushes the
+organized notes and action items into the **existing Movara meeting** over MCP.
+
+1. Connect the agent to Movara (section 2) with the **Notes integration** preset (items wait for review) or **Personal assistant**
+   (same, plus it may manage your own to-dos). Both can call `meetings_find`, `meeting_capture_notes` and `capture_pending_list`.
+2. Give the agent a standing instruction, for example:
+
+   > After each meeting, push the Granola notes and action items to the matching Movara meeting with `meeting_capture_notes`; assign to-dos to me unless someone else is named.
+
+   Longer version (Plaud works the same way):
+
+   > When a Granola/Plaud note is ready: call `meetings_find` with the meeting title and date (use `near: "latest"` if unsure) to get the Movara meeting id.
+   > Then call `meeting_capture_notes` with `sourceApp` ("granola" or "plaud"), `sourceUrl` (link to the note), `notesMarkdown` (the clean summary), and `items`
+   > (to-dos, issues, headlines, decisions). Set each `owner` to the person's full name or e-mail, or "me" for my own items. Use the note's id as `requestId`
+   > so a retry never duplicates. Do not set `autoAccept`; my team reviews the proposals in Movara.
+
+3. The team reviews proposals from the capture inbox (accept, edit the owner/due date, or reject). Nothing is created until then, unless an
+   admin allowed auto-accept for agents (`settings.capture.autoAcceptFromAgents`, off by default) and the agent asked for it with `autoAccept: true`.
+4. No agent handy? `POST /api/v1/meetings/:id/notes` (API key, `Idempotency-Key` header) takes the same body.
+
+## 5. Limits
 
 - Dynamic client registration is open (any client can register, but gets nothing until a signed-in person consents). Put the app behind your
   usual rate limiting if it is exposed publicly.

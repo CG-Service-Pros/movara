@@ -10,11 +10,29 @@ export const SCOPES = [
   'write:metrics',
   'write:priorities',
   'write:meetings',
+  'write:own_todos',
+  'capture:meetings',
   'propose:vision',
   'propose:chart',
   'admin',
 ] as const
 export type Scope = (typeof SCOPES)[number]
+
+/**
+ * Ready-made scope bundles for agents. `write:own_todos` lets an agent create/complete only to-dos owned by the agent's
+ * owner; `capture:meetings` lets it store meeting notes and propose to-dos/issues/headlines for the team to review.
+ */
+export const SCOPE_PRESETS = {
+  personal_assistant: ['read', 'write:own_todos', 'capture:meetings'],
+  notes_integration: ['read', 'capture:meetings'],
+  team_operator: ['read', 'write:todos', 'write:issues', 'write:headlines', 'write:metrics', 'write:priorities', 'write:meetings', 'capture:meetings', 'propose:vision', 'propose:chart'],
+  read_only: ['read'],
+} as const satisfies Record<string, readonly Scope[]>
+export type ScopePreset = keyof typeof SCOPE_PRESETS
+export const SCOPE_PRESET_KEYS = Object.keys(SCOPE_PRESETS) as ScopePreset[]
+export const isScopePreset = (v: unknown): v is ScopePreset => typeof v === 'string' && v in SCOPE_PRESETS
+/** The scopes of a preset as a mutable array. */
+export const presetScopes = (p: ScopePreset): Scope[] => [...SCOPE_PRESETS[p]]
 
 export type Actor = ActorJson
 export type { Role }

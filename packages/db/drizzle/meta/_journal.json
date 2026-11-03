@@ -29,6 +29,13 @@
       "when": 1793664581056,
       "tag": "0003_exotic_korg",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793669359947,
+      "tag": "0004_coach_capture",
+      "breakpoints": true
     }
   ]
 }

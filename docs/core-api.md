@@ -46,6 +46,8 @@ type Ctx = { db: Db; orgId: string; actor: Actor; scopes: Scope[] | 'all'; role:
   `ctxForUser(db, { slug } | { id }, betterAuthUserId): Promise<Ctx | null>` (null = not a member).
 - `hasScope(ctx, s)`, `hasRole(ctx, min)`, `requireScope(ctx, s)`, `requireRole(ctx, min)`,
   `requireRead(ctx)` (call at the top of EVERY query: agents need `read`), `actingPersonId(ctx)` (the person, or the agent's owner).
+- `SCOPE_PRESETS` (`personal_assistant`, `notes_integration`, `team_operator`, `read_only`), `SCOPE_PRESET_KEYS`, `isScopePreset(v)`, `presetScopes(p)`. `agentsCreate` / `agentsUpdateScopes` accept `preset` (stored on `agents.preset` only when the final scopes equal the preset).
+- `write:own_todos`: `todo.create` / `todo.complete` accept it as an alternative to `write:todos`; an agent holding only it can create/complete to-dos only where the owner is `actingPersonId(ctx)` (else `forbidden_scope`).
 - `scope: 'admin'` is NOT a superset of other scopes; it is its own scope for packs, members, agents.
 
 ## 3. Errors (`errors.ts`)
@@ -129,6 +131,26 @@ command `approvalsDecide {approvalId, decision: 'approve'|'decline', note?}` (pe
 `weekOfQuarter(date, cal) -> { week: 1..13, of: 13, quarter }`, `periodStart(date, 'day'|'week'|'month'|'quarter', cal)`, `shiftPeriod(start, interval, n)`, `recentPeriods(date, interval, count, cal)` (oldest first), `weekStart(date, weekStartDay)`, `addDays(date, n)`, `todayIn(cal, now?)`.
 Fiscal-year naming = the year the fiscal year starts.
 
+**ai** (`ai/`) — per-org AI provider settings, usage, and the extractor hook (the Coach engine builds on this).
+- `getAiSettings(ctx): AiSettingsView` (admin/owner) -> `{ enabled, provider: 'openai'|'openai_compatible', baseUrl, model (default 'gpt-5.6-luna'), reasoningEffort (default 'low'), monthlyTokenLimit, coachName, coachPersonality, hasKey, keyLast4, updatedAt, updatedBy }`. **The key is never returned.**
+- `updateAiSettings(ctx, { enabled?, provider?, baseUrl?, apiKey? (string sets, null removes, omitted keeps), model?, reasoningEffort?, monthlyTokenLimit?, coachName?, coachPersonality? })` (command `ai.update_settings`; people only, admin/owner; audit diff and request log hold no key). The key is stored AES-256-GCM (`api_key_ciphertext/iv/tag`) with a key derived by HKDF-SHA256 from `MOVARA_ENCRYPTION_KEY`, else `BETTER_AUTH_SECRET` (a dev fallback outside production; production without either throws). Changing the secret makes stored keys undecryptable ("enter the key again").
+- `getCoachProfile(ctx)` (any member) -> `{ enabled, ready, coachName, coachPersonality }`.
+- `getAiClientConfig(ctx, { checkLimit? = true }): AiClientConfig` **server-only**; decrypted `{ provider, baseUrl, apiKey, model, reasoningEffort, monthlyTokenLimit, coachName, coachPersonality }`. Callable by members and the built-in Coach; throws `validation` when AI is off / no key / compatible provider without base URL, `forbidden` over the limit.
+- `recordUsage(ctx, { feature: 'coach'|'extract', model, inputTokens, outputTokens, costEstimateUsd?, personId? })`; `getUsageSummary(ctx, { month?: 'YYYY-MM' })` (admin) -> totals, `byFeature`, `limit`, `remaining`, `overLimit` (UTC months); `assertWithinTokenLimit(ctx)` (throws `forbidden`: "Your organization has used its monthly AI limit ...").
+- `NotesExtractor = (input: { notes, transcript?, people: {id,name,email}[], meeting: { title, date, team } }) => Promise<{ todos[], issues[], headlines[], decisions[] }>`; `setNotesExtractor(fn | null)` / `getNotesExtractor()`. Item shapes = `CaptureItemsInput`. The app registers one when AI is configured; with none, capture stores the notes only (`extracted: false`). `encryptSecret/decryptSecret` are exported for tests.
+
+**coach** (`coach/`) — built-in Coach identity and chat storage.
+- `ensureCoachAgent(ctx): AgentRow` (person ctx; lazy, one per org via a partial unique index; `agents.kind = 'builtin_coach'`; hidden from `listAgents` unless `{ includeBuiltin: true }`; `agents.*` commands refuse it, so it cannot be revoked, re-scoped or given keys).
+- `coachCtxFor(personCtx): Ctx` -> `{ actor: { type: 'agent', id: coachAgentId, onBehalfOf: personId }, scopes: COACH_SCOPES, role: person's role }`: use this ctx for every Coach read/write/tool call, so permissions never exceed the person's role and the audit log shows "Coach on behalf of X".
+- Threads (private to the person): `createCoachThread(ctx, { title?, context? })`, `listCoachThreads(ctx)`, `getCoachThread(ctx, id)` (with messages), `appendCoachMessage(ctx, threadId, { role: 'user'|'assistant'|'tool', content?, toolCalls?, usage? })`, `renameCoachThread`, `deleteCoachThread`.
+
+**capture** (`capture/`) — meeting notes pushed by Plaud/Granola agents (or people, or Coach) into an existing meeting, with reviewable proposals.
+- `meetingsFind(ctx, { teamId?, title?, date?, near?: 'latest'|'today'|'upcoming', windowDays? = 7, limit? }): MeetingMatch[]` (`{ id, title, teamId, teamName, scheduledAt, startedAt, endedAt, status, titleMatch, score }`; past and ended meetings included).
+- `captureMeetingNotes(ctx, { meetingId, sourceApp?, sourceUrl?, title?, notesMarkdown?, transcript?, items?, autoAccept?, requestId? })` -> `{ notes, items, accepted, proposed, created: { todoIds, issueIds, headlineIds }, extracted, itemsSource: 'provided'|'extracted'|'none', extractionError?, autoAcceptSkipped?, replayed? }`. Scope `capture:meetings`. Runs the registered `NotesExtractor` (outside the DB transaction, skipped on idempotent replay) when `items` is absent. Owners (`owner` text) resolve via `resolveOwnerRef(people, ref, selfId)`: me/myself/I -> acting person (agent: its owner), e-mail, full name, first/last name, unique prefix; ambiguity or no match -> `resolvedOwnerId: null`, raw text kept. Items are `capture_items` with status `proposed`.
+- Auto-accept: a person always may; an agent only if `settings.capture.autoAcceptFromAgents` (default false; `captureSettingsUpdate { autoAcceptFromAgents }` / `getCaptureSettings(ctx)`) and per kind its scope (`write:todos`, or `write:own_todos` for its owner's to-dos; `write:issues`; `write:headlines`; decisions need nothing). Items it cannot create stay `proposed`.
+- Commands: `captureAcceptItems { itemIds, edits?: { [itemId]: { title?, ownerId?, dueDate?, description?, teamId?, longTerm?, headlineKind? } } }` -> `{ results: [{ id, status: 'accepted'|'edited', createdEntityId?, error? }] }` (creates through `todoCreate` / `issueCreate` / `headlinePost` with `source = { type: 'meeting_notes', id: notesId }` and the meeting's team; unowned items go to the accepting person; to-do due date defaults to +7 days); `captureRejectItems { itemIds }`. Agents may only decide when auto-accept is allowed for the org. Everything is audited (`capture.meeting_notes`, `capture.accept_items`, `capture.reject_items` plus the created records' own events).
+- Queries: `listMeetingCaptures(ctx, meetingId, { includeTranscript? }) -> { notes, items }`, `listPendingCaptures(ctx, { limit?, meetingId? }) -> { count, items }` (items carry `meeting` and `notes` info), `countPendingCaptures(ctx)` (inbox badge).
+
 **Placeholders** (empty `index.ts`, already re-exported from the core root): `priorities scorecard issues todos headlines meetings vision chart search`.
 
 ## 6. Database (`packages/db/src/schema/*.ts`)
@@ -142,7 +164,7 @@ Dates: `date` columns are strings (`mode: 'string'`), events are `timestamptz` (
 | auth.ts | `user`, `session`, `account`, `verification` (Better Auth; text ids) |
 | people.ts | `people` (`person_role`) |
 | teams.ts | `teams`, `team_members` (`team_member_role`: lead/member) |
-| agents.ts | `agents` (`agent_status`), `api_keys`, `oauth_clients`, `oauth_codes`, `oauth_tokens` |
+| agents.ts | `agents` (`agent_status`; `kind` standard/builtin_coach, `preset`), `api_keys`, `oauth_clients`, `oauth_codes`, `oauth_tokens` |
 | vision.ts | `vision_plans` (`vision_scope`), `vision_revisions` (`revision_status`: draft/published/archived; `content jsonb { sections }`) |
 | chart.ts | `charts`, `chart_revisions`, `seats` (`linked_priority_id` for open seats) |
 | priorities.ts | `priorities` (`priority_level`, `priority_status`), `milestones` |
@@ -153,6 +175,8 @@ Dates: `date` columns are strings (`mode: 'string'`), events are `timestamptz` (
 | meetings.ts | `meeting_series` (agenda jsonb, rrule, attendee_ids, facilitator_id, scribe_actor), `meetings` (state, ratings, summary, recap_sent_at) |
 | approvals.ts | `approvals` (`approval_status`) |
 | audit.ts | `audit_events` |
+| ai.ts | `org_ai_settings` (encrypted key), `coach_threads`, `coach_messages` (`coach_role`), `ai_usage` (`ai_feature`) |
+| capture.ts | `meeting_notes`, `capture_items` (`capture_kind`: todo/issue/headline/decision, `capture_status`: proposed/accepted/rejected/edited; `payload` = `CapturePayload`) |
 | system.ts | `request_log` (unique org+request_id) |
 
 All table objects and enums are exported from `@movara/db`. JSON shapes (`Branding`, `Modules`, `MeetingState`, `Source`, `VisionContent`, …) are in `packages/db/src/types.ts`.

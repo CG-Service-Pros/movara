@@ -6,7 +6,7 @@ import { allowed } from './scopes'
 import { json, text, toolError } from './format'
 import { orgOverview, quarterView, teamScorecard } from './overview'
 import { registerPrompts } from './prompts'
-import { buildTools } from './tools'
+import { getToolRegistry } from './registry'
 
 export const MCP_SERVER_NAME = 'movara'
 export const MCP_SERVER_VERSION = '0.1.0'
@@ -42,18 +42,17 @@ export async function createMovaraMcpServer(opts: MovaraMcpOptions): Promise<Mcp
   )
 
   // ---- tools (filtered by scope)
-  for (const t of buildTools(terms)) {
-    if (!allowed(ctx, t.scope)) continue
+  for (const t of getToolRegistry(ctx, terms)) {
     server.registerTool(
       t.name,
       {
         description: t.description,
-        inputSchema: t.shape,
-        annotations: { readOnlyHint: !!t.readOnly, openWorldHint: false, ...(t.readOnly ? {} : { destructiveHint: false }) },
+        inputSchema: t.inputSchema.shape,
+        annotations: { readOnlyHint: t.annotations.readOnly, openWorldHint: false, ...(t.annotations.readOnly ? {} : { destructiveHint: false }) },
       },
       (async (args: unknown) => {
         try {
-          return text(await t.run(ctx, args ?? {}))
+          return text(await t.run(args ?? {}))
         } catch (e) {
           return toolError(e)
         }

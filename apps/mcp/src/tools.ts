@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import {
-  SEARCH_TYPES, chartProposeChange, endMeeting, execute, getApproval, getChart, getIssue, getMeeting, getPriority,
+  SEARCH_TYPES, captureItemsSchema, captureMeetingNotes, listPendingCaptures, meetingsFind, chartProposeChange, endMeeting, execute, getApproval, getChart, getIssue, getMeeting, getPriority,
   getVision, headlineCascade, headlinePost, idsFocus, idsResolve, idsStart, issueCreate, issueMove, issueReopen, issueSolve, listApprovals,
   listIssues, listMeetings, listPriorities, listScorecards, listTodos, meetingCapture, meetingEndDay, meetingNextSection, meetingStartDay, meetingRate, meetingStart,
   metricCreate, metricRecordValues, milestoneAdd, milestoneToggle, myWeek, orgSetTerminologyPack, prepareMeeting, priorityCreate,
@@ -137,8 +137,8 @@ export function buildTools(terms: Terms): ToolDef[] {
     const { limit, cursor, ...f } = a
     return compact(paginate(await listTodos(ctx, f), limit, cursor), ['description'])
   })
-  write('todo_create', todoCreate, `Create a ${T}. \`ownerIds[]\` fans out one ${T} per owner. Due date defaults to 7 days from today.`)
-  write('todo_complete', todoComplete, `Complete a ${T}. While the team's ${WM} is live it goes to \`pending\` and is confirmed when the meeting ends.`)
+  write('todo_create', todoCreate, `Create a ${T}. \`ownerIds[]\` fans out one ${T} per owner. Due date defaults to 7 days from today. With only the write:own_todos scope (personal assistant) the owner must be the person you work for (the default).`)
+  write('todo_complete', todoComplete, `Complete a ${T}. While the team's ${WM} is live it goes to \`pending\` and is confirmed when the meeting ends. With only the write:own_todos scope you can only complete ${Ts} owned by the person you work for.`)
 
   // ------------------------------------------------------------------ Headlines
   write('headline_post', headlinePost, `Post a ${H} (customer, employee or general news) for a team.`)
@@ -148,6 +148,17 @@ export function buildTools(terms: Terms): ToolDef[] {
   read('meetings_list', `List ${many('weekly_meeting')} (upcoming, live or past) to find meeting ids.`, {
     seriesId: z.uuid().optional(), teamId: z.uuid().optional(), status: z.enum(['upcoming', 'live', 'past']).optional(), limit: z.number().int().min(1).max(100).default(20),
   }, async (ctx, a) => compact(await listMeetings(ctx, a)))
+  read('meetings_find', `Find the ${WM} that notes belong to. Includes past and ended meetings (within 7 days of \`date\`, default now). Pass the calendar event \`title\` and/or \`teamId\`/\`date\`, or \`near\`: latest | today | upcoming. Returns the best matches first, with ids to give to meeting_capture_notes.`, {
+    teamId: z.uuid().optional().describe('Only meetings of this team'),
+    title: z.string().max(200).optional().describe('Meeting title as shown in the notes app or calendar; matched loosely'),
+    date: z.string().max(40).optional().describe('YYYY-MM-DD or ISO timestamp of the meeting (default: now)'),
+    near: z.enum(['latest', 'today', 'upcoming']).optional().describe('latest = most recent meeting that has happened; today; upcoming = next scheduled'),
+    windowDays: z.number().int().min(1).max(60).default(7).describe('Search window either side of the date'),
+    limit: z.number().int().min(1).max(25).default(10),
+  }, async (ctx, a) => compact({ meetings: await meetingsFind(ctx, a) }))
+  read('capture_pending_list', `${Ts}, ${Is} and ${Hs} captured from meeting notes that are still waiting for the team to review (accept or reject). Optionally for one meeting.`, {
+    meetingId: z.uuid().optional(), limit: z.number().int().min(1).max(200).default(50),
+  }, async (ctx, a) => compact(await listPendingCaptures(ctx, a)))
   read('meeting_get', `A ${WM}: agenda, state, attendees (and live state when it is running).`, { meetingId: id('Meeting') }, async (ctx, a) => compact(await getMeeting(ctx, a.meetingId)))
   read('meeting_prepare', `Pre-read for a ${WM}: off-track ${Ms} and ${Ps}, open ${Is} ranked, overdue ${Ts}, ${Hs} to review. Give meetingId, seriesId or teamId.`, {
     meetingId: z.uuid().optional(), seriesId: z.uuid().optional(), teamId: z.uuid().optional(),
@@ -173,6 +184,26 @@ export function buildTools(terms: Terms): ToolDef[] {
     return out
   }
   write('ids_resolve', idsResolve, `Resolve the ${I} being discussed in the live ${WM}: { issueId, solved, todos?: [{ title, ownerId, dueDate? }] } creates the ${Ts}, solves the ${I} when \`solved\`, and moves on to the next focus ${I}.`)
+  tools.push({
+    name: 'meeting_capture_notes', scope: 'capture:meetings',
+    description: `Use this AFTER a meeting to push organized notes from a transcript/notes app (Plaud, Granola, Otter, Fireflies, ...) and its action items into the matching Movara ${WM}. Find the meeting first with meetings_find (past meetings work). Put the cleaned-up summary in notesMarkdown and list action items under items (${Ts}, ${Is}, ${Hs}, decisions). Set each owner to a person's full name, first name or email, or "me" for the person you work for; leave it out if nobody was named. Items become PROPOSALS the team reviews in Movara (see capture_pending_list), unless autoAccept is true AND the organization allows agents to auto-accept and you hold the write scopes. Always pass a requestId (e.g. the note id from the source app) so a retry does not duplicate. If you send no items and Movara AI is configured, it extracts them from the notes.`,
+    shape: {
+      meetingId: id('Meeting'),
+      sourceApp: z.string().trim().min(1).max(40).default('agent').describe("Where the notes came from: 'granola', 'plaud', 'otter', ..."),
+      sourceUrl: z.string().max(2000).optional().describe('Link back to the note in the source app (http/https)'),
+      title: z.string().max(300).optional().describe('Title of the note in the source app'),
+      notesMarkdown: z.string().max(400_000).default('').describe('The organized meeting notes in Markdown'),
+      transcript: z.string().max(900_000).optional().describe('Full transcript, optional'),
+      items: captureItemsSchema.optional().describe('Action items: todos [{title, owner?, dueDate? YYYY-MM-DD, description?}], issues [{title, owner?, description?, longTerm?}], headlines [{title, owner?, kind?}], decisions [{text}]'),
+      autoAccept: z.boolean().default(false).describe('Create the records right away instead of proposing them. Only works if the organization allows it for agents.'),
+      requestId: common.requestId,
+    },
+    run: async (ctx, a) => {
+      const { expectedVersion: _v, ...input } = a
+      const r = await captureMeetingNotes(ctx, input)
+      return { ok: true, ...(compact(r) as object) }
+    },
+  })
   write('meeting_capture', meetingCapture, `Notes agent: add ${Ts}, ${Is} and ${Hs} tied to the live ${WM}.`)
   tools.push({
     name: 'meeting_end', scope: 'write:meetings',

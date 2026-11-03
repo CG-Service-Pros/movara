@@ -14,9 +14,10 @@ import { handlers as meetings } from './meetings'
 import { handlers as vision } from './vision'
 import { handlers as chart } from './chart'
 import { handlers as search } from './search'
+import { handlers as capture } from './capture'
 
 /** Every area's handlers merged. Feature agents only edit their own area file, never this registry. */
 export const handlers: HandlerMap = {
   ...org, ...people, ...teams, ...agents, ...approvals, ...audit,
-  ...priorities, ...scorecard, ...issues, ...todos, ...headlines, ...meetings, ...vision, ...chart, ...search,
+  ...priorities, ...scorecard, ...issues, ...todos, ...headlines, ...meetings, ...vision, ...chart, ...search, ...capture,
 }

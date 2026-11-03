@@ -2,6 +2,7 @@ import {
   endMeeting, execute, getLiveState, getMeeting, getMeetingSeries, idsFocus, idsResolve, idsStart, listMeetingHistory, listMeetings, listMeetingSeries, listMeetingTemplates,
   meetingCapture, meetingDropToIssue, meetingEndDay, meetingSetQuarterGrade, meetingSetTeamHealth, meetingStartDay, meetingHeartbeat, meetingJoin, meetingLeave, meetingNextSection, meetingPause, meetingRate, meetingResume, meetingReviewHeadline,
   meetingScheduleNext, meetingSeriesCreate, meetingSeriesUpdate, meetingSetSection, meetingSetSettings, meetingStart, prepareMeeting,
+  captureMeetingNotes, listMeetingCaptures, meetingsFind,
   type Command, type Ctx,
 } from '@movara/core'
 import { fromExecute, json } from '../respond'
@@ -18,6 +19,17 @@ const live = (cmd: Command<any, any>) => async (req: ApiRequest) =>
 /** REST handlers for the meetings area. Static paths are listed before parameterized ones. */
 export const handlers: HandlerMap = {
   // series + templates + history + prep
+  /** GET /meetings/find?title=&teamId=&date=&near=latest|today|upcoming&windowDays=: meetings (past included) that notes may belong to. */
+  'GET /meetings/find': async ({ ctx, query }) => {
+    const near = query.get('near')
+    return {
+      meetings: await meetingsFind(ctx, {
+        teamId: query.get('teamId') ?? undefined, title: query.get('title') ?? undefined, date: query.get('date') ?? undefined,
+        near: near === 'latest' || near === 'today' || near === 'upcoming' ? near : undefined,
+        windowDays: num(query.get('windowDays')), limit: num(query.get('limit')),
+      }),
+    }
+  },
   'GET /meetings/templates': async ({ ctx }) => listMeetingTemplates(ctx),
   'GET /meetings/series': async ({ ctx, query }) => listMeetingSeries(ctx, { teamId: query.get('teamId') ?? undefined }),
   'POST /meetings/series': async (req) => fromExecute(await execute(req.ctx, meetingSeriesCreate, (await body(req)) as never, opts(req)), 201),
@@ -43,6 +55,13 @@ export const handlers: HandlerMap = {
   'GET /meetings/:id/live': async ({ ctx, params, query }) => {
     const state = await getLiveState(ctx, params.id!, { sinceRev: num(query.get('sinceRev')) })
     return state === null ? new Response(null, { status: 204 }) : json({ data: state })
+  },
+  /** Notes + captured items of a meeting. */
+  'GET /meetings/:id/notes': async ({ ctx, params, query }) => listMeetingCaptures(ctx, params.id!, { includeTranscript: query.get('transcript') === '1' }),
+  /** Mirrors the meeting_capture_notes MCP tool. Idempotency-Key header = requestId. 201 on first write, 200 on replay. */
+  'POST /meetings/:id/notes': async (req) => {
+    const r = await captureMeetingNotes(req.ctx, { ...(await body(req)), meetingId: req.params.id!, requestId: req.requestId } as never)
+    return json({ ok: true, data: r }, r.replayed ? 200 : 201)
   },
   'POST /meetings/:id/heartbeat': async ({ ctx, params }) => ({ present: await meetingHeartbeat(ctx, params.id!) }),
   'POST /meetings/:id/join': live(meetingJoin),

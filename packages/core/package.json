@@ -17,6 +17,7 @@
     "@movara/terminology": "workspace:*",
     "date-fns": "^4.4.0",
     "drizzle-orm": "^0.45.4",
+    "openai": "^7.47.0",
     "uuid": "^14.0.3",
     "zod": "^4.6.7"
   },

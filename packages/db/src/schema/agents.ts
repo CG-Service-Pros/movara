@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import { index, jsonb, pgEnum, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 import { commonCols, ts } from './_common'
 import { orgs } from './org'
@@ -17,10 +18,18 @@ export const agents = pgTable(
     /** Set when the agent authenticates through OAuth (MCP clients). */
     oauthClientId: text('oauth_client_id'),
     scopes: text('scopes').array().notNull().default([]),
+    /** 'standard' (connected by a person) | 'builtin_coach' (the org's built-in Coach; not revocable). */
+    kind: text('kind').notNull().default('standard'),
+    /** Scope preset the agent was created from (see SCOPE_PRESETS in core); null = custom. */
+    preset: text('preset'),
     status: agentStatus('status').notNull().default('active'),
     lastSeenAt: ts('last_seen_at'),
   },
-  (t) => [index('agents_org_idx').on(t.orgId, t.status), index('agents_org_owner_idx').on(t.orgId, t.ownerPersonId)],
+  (t) => [
+    index('agents_org_idx').on(t.orgId, t.status),
+    index('agents_org_owner_idx').on(t.orgId, t.ownerPersonId),
+    uniqueIndex('agents_one_coach_uq').on(t.orgId).where(sql`${t.kind} = 'builtin_coach'`),
+  ],
 )
 
 /** Static API keys for server-to-server agents. Only the sha256 hash is stored. */

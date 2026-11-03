@@ -6,7 +6,9 @@ import { assertVersion, found, scoped, softDelete, touch } from '../helpers'
 import { assertPeople, assertTeam, dateSchema, sourceSchema } from '../issues/internal'
 import { addToLiveMeetings, bumpLiveRev, findLiveMeetingIds } from '../meetings/live'
 import { defineCommand } from '../runner'
-import { insertTodos } from './internal'
+import { actingPersonId } from '../ctx'
+import { MovaraError } from '../errors'
+import { assertOwnTodoOwners, insertTodos, ownTodosOnly } from './internal'
 
 type TodoRow = typeof todos.$inferSelect
 const snap = (r: TodoRow) => ({ title: r.title, description: r.description, ownerId: r.ownerId, teamId: r.teamId, dueDate: r.dueDate, status: r.status })
@@ -24,7 +26,7 @@ async function save(ctx: Ctx, before: TodoRow, patch: Partial<typeof todos.$infe
 
 export const todoCreate = defineCommand({
   name: 'todo.create',
-  scope: 'write:todos',
+  scope: ['write:todos', 'write:own_todos'],
   input: z.object({
     title: z.string().trim().min(1).max(300),
     description: z.string().max(10_000).nullable().optional(),
@@ -38,6 +40,7 @@ export const todoCreate = defineCommand({
   }),
   summary: (i) => `Create to-do "${i.title}"`,
   run: async (ctx, input) => {
+    assertOwnTodoOwners(ctx, input.ownerIds?.length ? input.ownerIds : [actingPersonId(ctx)])
     const rows = await insertTodos(ctx, input)
     await addToLiveMeetings(ctx, input.teamId, { todoIds: rows.map((r) => r.id) })
     return { data: rows, entity: { type: 'todo', id: rows[0]!.id }, before: null, after: { title: input.title, ids: rows.map((r) => r.id), ownerIds: rows.map((r) => r.ownerId), dueDate: rows[0]!.dueDate, source: input.source ?? null } }
@@ -71,10 +74,13 @@ export const todoUpdate = defineCommand({
  */
 export const todoComplete = defineCommand({
   name: 'todo.complete',
-  scope: 'write:todos',
+  scope: ['write:todos', 'write:own_todos'],
   input: z.object({ todoId: z.uuid() }),
   run: async (ctx, input, h) => {
     const before = await load(ctx, input.todoId)
+    if (ownTodosOnly(ctx) && before.ownerId !== actingPersonId(ctx)) {
+      throw new MovaraError('forbidden_scope', 'This agent may only complete to-dos owned by its own owner (scope write:own_todos)', { scope: 'write:todos' })
+    }
     assertVersion(before, h.expectedVersion)
     if (before.status !== 'open') return { data: before, entity: { type: 'todo', id: before.id } }
     const live = before.teamId ? (await findLiveMeetingIds(ctx, [before.teamId])).length > 0 : false

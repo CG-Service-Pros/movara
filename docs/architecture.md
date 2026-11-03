@@ -76,6 +76,10 @@ Common columns on every table: `id uuid`, `org_id`, `created_at`, `created_by_ac
 | `approvals` | requested_by_actor, action (command name), payload jsonb, status (pending/approved/declined), decided_by, decided_at |
 | `audit_events` | actor jsonb, on_behalf_of, command, entity_type, entity_id, diff jsonb, request_id, at |
 | `api_keys` / `oauth_*` | hashed secrets, scopes, expiry |
+| `org_ai_settings` | enabled, provider (openai / openai_compatible), base_url, api_key ciphertext+iv+tag (AES-256-GCM), model, reasoning_effort, monthly_token_limit, coach_name, coach_personality |
+| `coach_threads` / `coach_messages` / `ai_usage` | per-person chats (messages: role, content, tool_calls, usage) · token usage per feature (coach / extract) |
+| `meeting_notes` | meeting_id, source_app (granola, plaud, manual, coach), source_url, title, notes_markdown, transcript, captured_by_actor |
+| `capture_items` | meeting_id, notes_id, kind (todo/issue/headline/decision), payload jsonb, status (proposed/accepted/rejected/edited), created_entity_id, decided_by/at |
 
 Domain rules worth encoding in `core` (from the research):
 - Ticking a to-do during a meeting sets `pending`; it becomes `done` when the meeting ends.
@@ -87,6 +91,27 @@ Domain rules worth encoding in `core` (from the research):
 - Quarter math (current quarter, week N of 13) comes from the org's calendar settings.
 - Commands that need approval (publish vision, delete, change permissions, apply a pack)
   create an `approvals` row instead of executing when the actor is an agent.
+
+## Coach (built-in AI assistant)
+
+Coach is an in-app assistant that uses the **same tools as MCP agents**. `getToolRegistry(ctx, terms)` (apps/mcp) returns the tool list
+(name, description, zod schema, `readOnly`/`consequential`, `run`) with no transport; the MCP server is built from it and the AI engine feeds the
+same list to the model. Identity: every org lazily gets one `builtin_coach` agent record (`ensureCoachAgent`, hidden and irrevocable). When a
+person chats, Coach acts through `coachCtxFor(personCtx)`: actor = Coach `onBehalfOf` the person, role = the person's role, so it can never do more
+than that person and the audit log shows who asked. Provider configuration lives in `org_ai_settings` (OpenAI or any OpenAI-compatible endpoint;
+the API key is encrypted at rest with a key derived from `MOVARA_ENCRYPTION_KEY` or `BETTER_AUTH_SECRET` and never returned); token usage is
+recorded in `ai_usage` and a monthly limit is enforced before each call. The engine and UI live in the web app on top of `@movara/core`'s `ai` and `coach` areas.
+
+## Meeting-notes capture
+
+Companies record meetings with services such as Plaud or Granola. Their agents push the organized notes and action items into an **existing
+meeting** via MCP/REST (`meeting_capture_notes`, `POST /api/v1/meetings/:id/notes`; find the meeting with `meetings_find`). Notes land in
+`meeting_notes`; action items become `capture_items` with status `proposed`, with owners resolved from free text (e-mail, name, first name, "me").
+People review them (accept, edit, reject); accepting creates real to-dos/issues/headlines through the normal commands, with
+`source = { type: 'meeting_notes', id }`. Agents can auto-accept only if an admin enabled `settings.capture.autoAcceptFromAgents` and the agent holds
+the write scopes. If a call has no items and an AI extractor is registered (`setNotesExtractor`), items are extracted from the notes. Scope presets
+(`personal_assistant`, `notes_integration`, `team_operator`, `read_only`) and the `write:own_todos` / `capture:meetings` scopes make "my agent may
+manage my own to-dos and file meeting notes, nothing else" a one-click choice at OAuth consent.
 
 ## Realtime (live meetings)
 
