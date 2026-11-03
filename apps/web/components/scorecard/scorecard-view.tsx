@@ -148,12 +148,12 @@ export function ScorecardView({
       {metrics.length === 0 ? (
         <EmptyState icon={<BarChart3 />} title={`No ${labels.metrics.toLowerCase()} yet`} description={`Add the few numbers ${scorecard.teamName} reviews every ${INTERVAL_WORD[scorecard.interval]}. Each one gets an owner and a goal.`} action={<Button variant="primary" onClick={() => setDialog({ metric: null })}><Plus size={14} strokeWidth={2} />Add {labels.metric.toLowerCase()}</Button>} />
       ) : (
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto px-4 pb-6">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto pb-6">
           <table className="border-separate border-spacing-0 text-base" style={colTemplate}>
             <thead>
               <tr className="text-xs font-[550] text-faint">
-                <th className="sticky left-0 top-0 z-20 w-60 min-w-60 border-b border-line bg-surface py-2 pr-2 text-left">{labels.metric}</th>
-                <th className="sticky left-60 top-0 z-20 w-24 min-w-24 border-b border-line bg-surface px-1 py-2 text-left">Goal</th>
+                <th className="sticky left-0 top-0 z-20 w-40 min-w-40 max-w-40 border-b border-line bg-surface py-2 pl-4 pr-2 text-left sm:w-72 sm:min-w-72 sm:max-w-72">{labels.metric}</th>
+                <th className="sticky left-40 top-0 z-20 w-16 min-w-16 border-b border-line bg-surface px-1 py-2 text-left shadow-[1px_0_0_var(--m-line)] sm:left-72 sm:w-24 sm:min-w-24">Goal</th>
                 {shown.map((p) => (
                   <th key={p} data-now={p === current || undefined} className={cn('sticky top-0 z-10 w-[76px] min-w-[76px] border-b border-line bg-surface px-1 py-2 text-right tabular-nums', p === current && 'text-ink')}>
                     <span className="pr-2.5">{periodLabel(p, scorecard.interval)}</span>
@@ -161,7 +161,7 @@ export function ScorecardView({
                   </th>
                 ))}
                 <th className="sticky top-0 z-10 w-20 min-w-20 border-b border-l border-line bg-surface px-1 py-2 text-right"><span className="pr-2.5">Total</span></th>
-                <th className="sticky top-0 z-10 w-20 min-w-20 border-b border-line bg-surface px-1 py-2 text-right"><span className="pr-2.5">Avg</span></th>
+                <th className="sticky top-0 z-10 w-20 min-w-20 border-b border-line bg-surface py-2 pl-1 pr-4 text-right"><span className="pr-2.5">Avg</span></th>
               </tr>
             </thead>
             <tbody>
@@ -172,8 +172,8 @@ export function ScorecardView({
                 const owner = m.ownerIds[0] ? personName(m.ownerIds[0]) : undefined
                 return (
                   <tr key={m.id} data-metric-id={m.id} data-highlight={m.id === highlightId || undefined} className={cn('group', m.id === highlightId && '[&>td]:bg-accent-soft')}>
-                    <td className="sticky left-0 z-10 h-12 border-b border-line-faint bg-surface pr-2">
-                      <div className="flex items-center gap-2.5">
+                    <td className="sticky left-0 z-10 h-12 w-40 min-w-40 max-w-40 border-b border-line-faint bg-surface pl-4 pr-2 sm:w-72 sm:min-w-72 sm:max-w-72">
+                      <div className="flex min-w-0 items-center gap-2.5">
                         {owner ? <Avatar name={owner.name} size={22} /> : <span className="size-[22px] rounded-full bg-canvas" />}
                         <span className="min-w-0 flex-1 truncate font-[500] text-ink" title={m.description ? `${m.title}: ${m.description}` : m.title}>{m.title}</span>
                         <DropdownMenu>
@@ -191,7 +191,7 @@ export function ScorecardView({
                         </DropdownMenu>
                       </div>
                     </td>
-                    <td className="sticky left-60 z-10 border-b border-line-faint bg-surface px-1 text-sm text-body tabular-nums whitespace-nowrap">{formatGoal(m)}</td>
+                    <td className="sticky left-40 z-10 w-16 min-w-16 max-w-16 overflow-hidden text-ellipsis border-b border-line-faint bg-surface px-1 text-sm text-body tabular-nums whitespace-nowrap shadow-[1px_0_0_var(--m-line)] sm:left-72 sm:w-24 sm:min-w-24 sm:max-w-24" title={formatGoal(m)}>{formatGoal(m)}</td>
                     {shown.map((p) => {
                       const k = key(m.id, p)
                       const value = valueOf(m, p)
@@ -215,7 +215,7 @@ export function ScorecardView({
                       )
                     })}
                     <td className="border-b border-l border-line-faint px-1 text-right text-sm font-[500] tabular-nums text-body"><span className="pr-2.5">{m.additive && vals.length ? formatValue(sum, m) : <span className="text-faint">—</span>}</span></td>
-                    <td className="border-b border-line-faint px-1 text-right text-sm tabular-nums text-body"><span className="pr-2.5">{avg !== null ? formatValue(avg, { ...m, decimals: Math.max(m.decimals, m.unit === 'currency' || m.scale > 1 ? 0 : 1) }) : <span className="text-faint">—</span>}</span></td>
+                    <td className="border-b border-line-faint pl-1 pr-4 text-right text-sm tabular-nums text-body"><span className="pr-2.5">{avg !== null ? formatValue(avg, { ...m, decimals: Math.max(m.decimals, m.unit === 'currency' || m.scale > 1 ? 0 : 1) }) : <span className="text-faint">—</span>}</span></td>
                   </tr>
                 )
               })}

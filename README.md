@@ -55,7 +55,7 @@ pnpm install
 pnpm dev
 ```
 
-Open <http://localhost:3000>. With `DATABASE_URL` unset, Movara uses an embedded PGlite database in `.data/pglite`, applies migrations and seeds a demo organization on first run:
+Open <http://localhost:3000>. With `DATABASE_URL` unset, Movara uses an embedded PGlite database in `.data/pglite`, applies migrations and, in development, seeds a demo organization on first run (production never auto-seeds; set `MOVARA_SEED_DEMO=1` to opt in):
 
 - Sign in: `demo@movara.local` / `movara-demo`
 - Organization: `/vindex`

@@ -35,7 +35,7 @@ Optional demo data (demo org `vindex`, login `demo@movara.local` / `movara-demo`
 DATABASE_URL='...' pnpm db:seed
 ```
 
-Do not seed a production database. Without `MOVARA_SEED_DEMO`, the app only auto-seeds embedded PGlite, never Postgres.
+Do not seed a production database. Without `MOVARA_SEED_DEMO`, the app only auto-seeds embedded PGlite in development, never Postgres and never a production server.
 
 ## 3. Create the Vercel project
 

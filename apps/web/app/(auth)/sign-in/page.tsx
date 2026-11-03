@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { safeNext } from '@/lib/safe-next'
+import { showDemoLoginHint } from '@/lib/demo'
 import { AuthCard } from '@/components/shell/auth-card'
 import { SignInForm } from './sign-in-form'
 
@@ -20,7 +21,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
         </>
       }
     >
-      <SignInForm next={next} />
+      <SignInForm next={next} demoHint={showDemoLoginHint(process.env)} />
     </AuthCard>
   )
 }
