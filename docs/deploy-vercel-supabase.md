@@ -60,7 +60,7 @@ Set them for Production (and Preview if you use previews; use a separate databas
 
 ### First sign-in
 
-Open the URL, **Create an account**, and complete onboarding to create your organization. (Only the seeded demo has the demo login.)
+Open the URL, **Create an account**, and complete onboarding to create your organization. (Only the seeded demo has the demo login.) After that first account, sign-up is invite-only: invite people from **Settings → Members**, or set `MOVARA_ALLOW_SIGNUP=1` for open sign-up.
 
 ## 4. MCP for agents
 

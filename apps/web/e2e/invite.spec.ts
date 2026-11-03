@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('invites are claimed only through the single-use token link; next param cannot leave the origin', async ({ browser, page, baseURL }) => {
+test('sign-up is invite-only; invites are claimed only through the single-use token link; next param cannot leave the origin', async ({ browser, page, baseURL }) => {
   const stamp = Date.now().toString(36)
   const email = `invitee-${stamp}@example.com`
 
@@ -18,19 +18,27 @@ test('invites are claimed only through the single-use token link; next param can
   expect(link).toMatch(/\/invite\/[A-Za-z0-9_-]{30,}$/)
   const path = new URL(link).pathname
 
-  // Plain sign-up with the invited address gets no org access.
+  // Sign-up is invite-only once a workspace exists: no self-service form, and the API refuses it too.
   const ctx = await browser.newContext({ baseURL })
   const p = await ctx.newPage()
   await p.goto('/sign-up')
-  await p.getByLabel('Name').fill('Ivy Squatter')
+  await expect(p.getByText('Invitation required')).toBeVisible()
+  await expect(p.getByRole('button', { name: 'Create account' })).toHaveCount(0)
+  const direct = await p.request.post('/api/auth/sign-up/email', {
+    headers: { origin: new URL(baseURL!).origin },
+    data: { name: 'Ivy Squatter', email, password: 'correct-horse-battery' },
+  })
+  expect(direct.status()).toBe(403)
+
+  // The invite link lets the invitee create an account; joining is still an explicit, single-use step.
+  await p.goto(path)
+  await p.getByRole('link', { name: 'Create an account' }).click()
+  await p.waitForURL('**/sign-up**')
+  await p.getByLabel('Name').fill('Ivy Invitee')
   await p.getByLabel('Work email').fill(email)
   await p.getByLabel('Password').fill('correct-horse-battery')
   await p.getByRole('button', { name: 'Create account' }).click()
-  await p.waitForURL('**/onboarding**')
-  await p.goto('/vindex')
-  await expect(p).not.toHaveURL(/\/vindex$/)
-  // The token redeems it (single use).
-  await p.goto(path)
+  await p.waitForURL((u) => u.pathname === path)
   await p.getByRole('button', { name: /^Join / }).click()
   await p.waitForURL('**/vindex**')
   await expect(p.getByText('My week').first()).toBeVisible()
