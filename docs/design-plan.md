@@ -35,7 +35,7 @@ Mockups: `design/stageshow/examples/movara-*` (React + the Stageshow kit). Still
 |---|---|---|
 | Font | Inter (system fallback) | `cv11`, `ss01`; tabular numbers for all figures |
 | Type scale | 11.5 / 12.5 / 13 / 17 / 18 / 30 | 13px body; one weight step for hierarchy |
-| Neutrals | zinc-like cool grays (`#15181d` → `#f6f7f9`) | canvas `#f6f7f9`, surface `#fff`, line `#e6e8ec` |
+| Neutrals | zinc-like cool grays (`#15181d` → `#f6f7f9`) | canvas `#f6f7f9`, surface `#fff`, line `#e6e8ec`; faint text `#6b727d` (light) / `#808792` (dark), the lightest grays that meet WCAG AA 4.5:1 |
 | Accent | `#2f5bea` default | **replaced per installation** (brand setting) |
 | Status | success `#18a058`, danger `#e5484d`, warning `#e8a317` | status only; always paired with a shape (ring, gapped ring, check) for color-blind safety |
 | Radius | 6 / 8 / 10 / 12 | controls 8, cards 10–12, pills full |

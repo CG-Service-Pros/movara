@@ -18,6 +18,7 @@ import { Tip } from '@movara/ui/tooltip'
 import { cn } from '@movara/ui/cn'
 import { addDaysStr, daysBetween, OwnerPicker, PersonChip, shortDate, SourceChip, useAct, type PersonLite, type SourceInfo, type TeamLite } from '../issues/common'
 import { createTodosAction, deleteTodoAction, setTodoDoneAction, updateTodoAction } from '@/app/(app)/[org]/todos/actions'
+import { useCanWrite } from '@/components/shell/shell-context'
 
 export type TodoItem = {
   id: string
@@ -54,6 +55,7 @@ export function TodosView({
   const [view, setView] = React.useState<View>(initialView)
   const [selectedId, setSelectedId] = React.useState<string | null>(initialSelectedId)
   const [creating, setCreating] = React.useState(openNew)
+  const canWrite = useCanWrite()
   const person = (id: string | null) => people.find((p) => p.id === id) ?? null
   const teamName = (id: string | null) => (id ? (teams.find((t) => t.id === id)?.name ?? null) : null)
 
@@ -75,7 +77,7 @@ export function TodosView({
     return (
       <li key={t.id} className="group border-b border-line-faint last:border-0">
         <div className="flex min-h-[46px] items-center gap-3 rounded-md px-2 py-1.5 hover:bg-canvas">
-          <Checkbox checked={t.status !== 'open'} aria-label={t.status === 'open' ? 'Mark done' : 'Mark not done'} onCheckedChange={() => toggle(t)} className={t.status === 'pending' ? 'data-[state=checked]:bg-warning' : undefined} />
+          <Checkbox checked={t.status !== 'open'} disabled={!canWrite} aria-label={`${t.status === 'open' ? 'Mark done' : 'Mark not done'}: ${t.title}`} onCheckedChange={() => toggle(t)} className={t.status === 'pending' ? 'data-[state=checked]:bg-warning' : undefined} />
           <button type="button" onClick={() => setSelectedId(t.id)} className="flex min-w-0 flex-1 flex-col gap-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-accent/50">
             <span className="flex items-center gap-1.5">
               <span className={cn('truncate text-base font-[500]', t.status === 'done' ? 'text-faint line-through' : 'text-ink')}>{t.title}</span>
@@ -111,11 +113,11 @@ export function TodosView({
           </TabsList>
         </Tabs>
         {overdueCount > 0 && <Badge tone="danger">{overdueCount} overdue</Badge>}
-        <Button variant="primary" className="ml-auto" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.todo.toLowerCase()}</Button>
+        {canWrite && <Button variant="primary" className="ml-auto" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.todo.toLowerCase()}</Button>}
       </div>
 
       {openRows.length === 0 && doneRows.length === 0 ? (
-        <EmptyState icon={<CheckSquare />} title={`No ${labels.todos.toLowerCase()} here`} description={view === 'my' ? 'Nothing assigned to you. Enjoy the quiet or add one.' : 'Nothing to track yet.'} action={<Button variant="primary" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.todo.toLowerCase()}</Button>} />
+        <EmptyState icon={<CheckSquare />} title={`No ${labels.todos.toLowerCase()} here`} description={view === 'my' ? 'Nothing assigned to you. Enjoy the quiet or add one.' : 'Nothing to track yet.'} action={canWrite ? <Button variant="primary" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.todo.toLowerCase()}</Button> : undefined} />
       ) : (
         <>
           {openRows.length === 0 ? <p className="px-2 py-6 text-center text-base text-body">All caught up.</p> : <ul className="flex flex-col">{openRows.map(row)}</ul>}
@@ -136,6 +138,7 @@ export function TodosView({
 
 function TodoSheet({ orgSlug, todo, people, teams, onClose, labels }: { orgSlug: string; todo: TodoItem | null; people: PersonLite[]; teams: TeamLite[]; onClose: () => void; labels: { todo: string } }) {
   const { act, pending } = useAct()
+  const canWrite = useCanWrite()
   const [title, setTitle] = React.useState(todo?.title ?? '')
   const [description, setDescription] = React.useState(todo?.description ?? '')
   const [ownerId, setOwnerId] = React.useState<string | null>(todo?.ownerId ?? null)
@@ -146,7 +149,7 @@ function TodoSheet({ orgSlug, todo, people, teams, onClose, labels }: { orgSlug:
     <Sheet open={!!todo} onOpenChange={(o) => { if (!o) onClose() }}>
       <SheetContent>
         {todo && (
-          <>
+          <fieldset disabled={!canWrite} className="contents">
             <SheetHeader>
               <SheetTitle>{labels.todo}</SheetTitle>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -173,7 +176,7 @@ function TodoSheet({ orgSlug, todo, people, teams, onClose, labels }: { orgSlug:
               <Button variant="ghost" className="text-danger-text" onClick={() => act(() => deleteTodoAction(orgSlug, todo.id), { success: 'Deleted', onDone: onClose })}><Trash2 size={14} strokeWidth={1.8} />Delete</Button>
               <Button variant="primary" disabled={!dirty || !title.trim()} loading={pending} onClick={() => act(() => updateTodoAction(orgSlug, { todoId: todo.id, title: title.trim(), description: description.trim() || null, ownerId, teamId: teamId === 'none' ? null : teamId, dueDate: due || null }), { success: 'Saved', onDone: onClose })}>Save changes</Button>
             </SheetFooter>
-          </>
+          </fieldset>
         )}
       </SheetContent>
     </Sheet>

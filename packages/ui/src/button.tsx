@@ -13,9 +13,10 @@ const variants: Record<ButtonVariant, string> = {
   danger: 'bg-danger text-white hover:brightness-110',
 }
 const sizes: Record<ButtonSize, string> = {
-  sm: 'h-6 px-2 text-xs gap-1.5 rounded-md',
-  md: 'h-7 px-3 text-sm gap-1.5 rounded-md',
-  icon: 'h-7 w-7 rounded-md',
+  // Phones (< 640px) get larger touch targets: sm 32px, md and icon 36px.
+  sm: 'h-6 px-2 text-xs gap-1.5 rounded-md max-sm:h-8 max-sm:px-2.5',
+  md: 'h-7 px-3 text-sm gap-1.5 rounded-md max-sm:h-9 max-sm:px-3.5',
+  icon: 'h-7 w-7 rounded-md max-sm:h-9 max-sm:w-9',
 }
 
 /** Build button classes, for styling links or other elements like a button. */

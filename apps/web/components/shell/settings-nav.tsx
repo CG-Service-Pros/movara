@@ -22,7 +22,7 @@ export function SettingsNav({ sections }: { sections: NavSection[] }) {
                 key={i.key}
                 href={i.href}
                 className={cn(
-                  'flex h-7 items-center gap-[9px] whitespace-nowrap rounded-[7px] px-2 text-base font-[500] text-nav outline-none hover:bg-nav-active/60 focus-visible:ring-2 focus-visible:ring-accent [&_svg]:text-icon',
+                  'flex h-7 items-center gap-[9px] whitespace-nowrap rounded-[7px] px-2 text-base max-sm:h-9 font-[500] text-nav outline-none hover:bg-nav-active/60 focus-visible:ring-2 focus-visible:ring-accent [&_svg]:text-icon',
                   active && 'bg-nav-active text-ink [&_svg]:text-ink',
                 )}
               >

@@ -18,6 +18,7 @@ import { cn } from '@movara/ui/cn'
 import { AgentMark } from '@movara/ui/agent-mark'
 import { ageLabel, OwnerPicker, PersonChip, SourceChip, useAct, type PersonLite, type SourceInfo, type TeamLite } from './common'
 import { createIssuesAction, issueStateAction, moveIssueAction, setIssueRankAction, updateIssueAction } from '@/app/(app)/[org]/issues/actions'
+import { useCanWrite } from '@/components/shell/shell-context'
 
 export type IssueItem = {
   id: string
@@ -57,6 +58,7 @@ export function IssuesView({
   const [tab, setTab] = React.useState<Tab>(initialTab)
   const [selectedId, setSelectedId] = React.useState<string | null>(initialSelectedId)
   const [creating, setCreating] = React.useState(openNew)
+  const canWrite = useCanWrite()
   const personOf = (id: string | null) => people.find((p) => p.id === id) ?? null
 
   const short = issues.filter((i) => i.horizon === 'short')
@@ -90,7 +92,7 @@ export function IssuesView({
               {teams.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="primary" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.issue.toLowerCase()}</Button>
+          {canWrite && <Button variant="primary" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.issue.toLowerCase()}</Button>}
         </div>
       </div>
 
@@ -99,7 +101,7 @@ export function IssuesView({
           icon={<ListChecks />}
           title={tab === 'solved' ? `No solved ${labels.issues.toLowerCase()} yet` : `No ${tab === 'short' ? 'short-term' : 'long-term'} ${labels.issues.toLowerCase()}`}
           description={tab === 'long' ? 'Park the bigger questions here until the right time.' : tab === 'solved' ? 'Solved items show up here.' : `Raise what is in the way. Your team ranks and solves ${labels.issues.toLowerCase()} together.`}
-          action={tab !== 'solved' ? <Button variant="primary" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.issue.toLowerCase()}</Button> : undefined}
+          action={tab !== 'solved' && canWrite ? <Button variant="primary" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.issue.toLowerCase()}</Button> : undefined}
         />
       ) : (
         <ol className="flex flex-col">
@@ -128,7 +130,7 @@ export function IssuesView({
                 </span>
               </div>
               {canRank && (
-                <div className="absolute right-14 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md bg-raised p-0.5 shadow-pop group-focus-within:flex group-hover:flex">
+                <div className={cn("absolute right-14 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md bg-raised p-0.5 shadow-pop", canWrite && "group-focus-within:flex group-hover:flex")}>
                   <Button size="icon" variant="ghost" className="size-6" aria-label="Move up" disabled={idx === 0} onClick={() => move(idx, -1)}><ArrowUp size={14} strokeWidth={1.8} /></Button>
                   <Button size="icon" variant="ghost" className="size-6" aria-label="Move down" disabled={idx === list.length - 1} onClick={() => move(idx, 1)}><ArrowDown size={14} strokeWidth={1.8} /></Button>
                 </div>
@@ -146,6 +148,7 @@ export function IssuesView({
 
 function IssueSheet({ orgSlug, issue, people, teams, labels, source, onClose }: { orgSlug: string; issue: IssueItem | null; people: PersonLite[]; teams: TeamLite[]; labels: { issue: string; solve: string }; source: SourceInfo | null; onClose: () => void }) {
   const { act, pending } = useAct()
+  const canWrite = useCanWrite()
   const [title, setTitle] = React.useState(issue?.title ?? '')
   const [description, setDescription] = React.useState(issue?.description ?? '')
   const [ownerId, setOwnerId] = React.useState<string | null>(issue?.ownerId ?? null)
@@ -155,7 +158,7 @@ function IssueSheet({ orgSlug, issue, people, teams, labels, source, onClose }: 
     <Sheet open={!!issue} onOpenChange={(o) => { if (!o) onClose() }}>
       <SheetContent>
         {issue && (
-          <>
+          <fieldset disabled={!canWrite} className="contents">
             <SheetHeader>
               <SheetTitle>{labels.issue}</SheetTitle>
               <SheetDescription className="flex flex-wrap items-center gap-1.5">
@@ -194,7 +197,7 @@ function IssueSheet({ orgSlug, issue, people, teams, labels, source, onClose }: 
               </div>
               <Button variant="secondary" disabled={!dirty || !title.trim()} loading={pending} onClick={() => act(() => updateIssueAction(orgSlug, { issueId: issue.id, title: title.trim(), description: description.trim() || null, ownerId }), { success: 'Saved' })}>Save changes</Button>
             </SheetFooter>
-          </>
+          </fieldset>
         )}
       </SheetContent>
     </Sheet>

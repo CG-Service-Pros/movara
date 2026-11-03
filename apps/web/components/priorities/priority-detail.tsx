@@ -16,6 +16,7 @@ import { ActivityFeed } from '@/components/shell/activity-feed'
 import { fmtDate } from './format'
 import { meterTone, PriorityGlyph, PriorityPill } from './status'
 import { STATUS_ORDER, type Labels, type Option, type PriorityDetailData, type PStatus } from './types'
+import { useCanWrite } from '@/components/shell/shell-context'
 
 export type DetailApi = {
   setStatus: (s: PStatus) => void
@@ -65,6 +66,7 @@ export function PriorityDetail({
   const owner = people.find((p) => p.id === d.ownerId)
   const [confirm, setConfirm] = React.useState(false)
   const [deleting, setDeleting] = React.useState(false)
+  const canWrite = useCanWrite()
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-auto px-5 pb-8 pt-4">
@@ -72,6 +74,8 @@ export function PriorityDetail({
         <ArrowLeft size={14} strokeWidth={1.7} /> {labels.priority.plural}
       </button>
 
+      {/* Viewers read; every control below is disabled for them (the server enforces roles too). */}
+      <fieldset disabled={!canWrite} className="contents">
       <div className="flex items-center justify-between gap-3">
         <DropdownMenu>
           <DropdownMenuTrigger className="group inline-flex items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent/50" aria-label="Change status">
@@ -140,7 +144,7 @@ export function PriorityDetail({
           onChange={(e) => {
             if (e.target.value !== (d.dueDate ?? '')) api.update({ dueDate: e.target.value || null })
           }}
-          className="h-7 w-full max-w-[160px] rounded-md bg-transparent px-1.5 text-sm text-ink outline-none hover:bg-canvas focus-visible:ring-2 focus-visible:ring-accent/50 [color-scheme:light] dark:[color-scheme:dark]"
+          className="h-7 w-full max-w-[160px] rounded-md bg-transparent px-1.5 text-sm text-ink max-sm:text-[16px] outline-none hover:bg-canvas focus-visible:ring-2 focus-visible:ring-accent/50 [color-scheme:light] dark:[color-scheme:dark]"
         />
       </div>
 
@@ -153,7 +157,8 @@ export function PriorityDetail({
           {done} of {total}
         </span>
       </div>
-      <Milestones d={d} labels={labels} api={api} />
+      <Milestones d={d} labels={labels} api={api} canWrite={canWrite} />
+      </fieldset>
 
       {d.children.length > 0 && (
         <>
@@ -173,11 +178,13 @@ export function PriorityDetail({
       <div className={label}>Activity</div>
       <ActivityFeed items={d.activity} />
 
-      <div className="mt-6 border-t border-line-faint pt-4">
-        <Button variant="ghost" size="sm" className="text-danger-text hover:text-danger-text" onClick={() => setConfirm(true)}>
-          <Trash2 size={14} strokeWidth={1.7} /> Delete {labels.priority.singular.toLowerCase()}
-        </Button>
-      </div>
+      {canWrite && (
+        <div className="mt-6 border-t border-line-faint pt-4">
+          <Button variant="ghost" size="sm" className="text-danger-text hover:text-danger-text" onClick={() => setConfirm(true)}>
+            <Trash2 size={14} strokeWidth={1.7} /> Delete {labels.priority.singular.toLowerCase()}
+          </Button>
+        </div>
+      )}
       <Dialog open={confirm} onOpenChange={setConfirm}>
         <DialogContent>
           <DialogHeader>
@@ -259,7 +266,7 @@ function EditableDescription({ value, onSave }: { value: string; onSave: (v: str
   )
 }
 
-function Milestones({ d, labels, api }: { d: PriorityDetailData; labels: Labels; api: DetailApi }) {
+function Milestones({ d, labels, api, canWrite = true }: { d: PriorityDetailData; labels: Labels; api: DetailApi; canWrite?: boolean }) {
   const [editing, setEditing] = React.useState<string | null>(null)
   const [draft, setDraft] = React.useState('')
   const last = d.milestones.length - 1
@@ -310,7 +317,7 @@ function Milestones({ d, labels, api }: { d: PriorityDetailData; labels: Labels;
           </span>
         </div>
       ))}
-      <form
+      {canWrite && <form
         className="-mx-1.5 mt-0.5 flex h-8 items-center gap-2.5 rounded-md px-1.5 focus-within:bg-canvas"
         onSubmit={(e) => {
           e.preventDefault()
@@ -326,9 +333,9 @@ function Milestones({ d, labels, api }: { d: PriorityDetailData; labels: Labels;
           onChange={(e) => setDraft(e.target.value)}
           placeholder={`Add a ${labels.milestone.singular.toLowerCase()}`}
           aria-label={`Add a ${labels.milestone.singular.toLowerCase()}`}
-          className="h-7 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-faint"
+          className="h-7 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-faint max-sm:h-9 max-sm:text-[16px]"
         />
-      </form>
+      </form>}
     </div>
   )
 }

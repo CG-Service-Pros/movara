@@ -10,7 +10,7 @@ export function Checkbox({ className, ...props }: React.ComponentProps<typeof C.
   return (
     <C.Root
       className={cn(
-        'peer inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-surface text-white shadow-[inset_0_0_0_1.5px_var(--m-icon-faint)] outline-none transition-colors hover:shadow-[inset_0_0_0_1.5px_var(--m-icon)] focus-visible:ring-2 focus-visible:ring-accent/50 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-success data-[state=checked]:shadow-none data-[state=indeterminate]:bg-icon data-[state=indeterminate]:shadow-none',
+        'peer relative inline-flex size-4 shrink-0 items-center justify-center rounded-full max-sm:after:absolute max-sm:after:-inset-3 max-sm:after:content-[""] bg-surface text-white shadow-[inset_0_0_0_1.5px_var(--m-icon-faint)] outline-none transition-colors hover:shadow-[inset_0_0_0_1.5px_var(--m-icon)] focus-visible:ring-2 focus-visible:ring-accent/50 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-success data-[state=checked]:shadow-none data-[state=indeterminate]:bg-icon data-[state=indeterminate]:shadow-none',
         className,
       )}
       {...props}

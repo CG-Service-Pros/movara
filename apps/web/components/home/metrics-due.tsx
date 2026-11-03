@@ -75,7 +75,7 @@ function MetricRow({ slug, m }: { slug: string; m: DueMetric }) {
               placeholder="Enter value"
               disabled={busy}
               className={cn(
-                'h-8 w-[118px] rounded-lg bg-surface text-right text-sm font-[500] tabular-nums text-ink shadow-[0_0_0_1px_var(--m-line)] outline-none placeholder:text-faint focus:shadow-[0_0_0_1.5px_var(--color-accent),0_0_0_4px_var(--color-accent-soft)]',
+                'h-8 w-[118px] rounded-lg bg-surface text-right text-sm font-[500] max-sm:h-9 max-sm:text-[16px] tabular-nums text-ink shadow-[0_0_0_1px_var(--m-line)] outline-none placeholder:text-faint focus:shadow-[0_0_0_1.5px_var(--color-accent),0_0_0_4px_var(--color-accent-soft)]',
                 pre ? 'pl-6 pr-2.5' : 'px-2.5',
                 post && 'pr-6',
               )}

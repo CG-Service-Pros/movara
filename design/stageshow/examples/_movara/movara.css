@@ -15,7 +15,7 @@
   --ss-line-faint: #eff1f4;
   --ss-text: #646b76;
   --ss-text-strong: #15181d;
-  --ss-text-faint: #9aa1ab;
+  --ss-text-faint: #6b727d; /* WCAG AA on surface and canvas (was #9aa1ab, 2.6:1) */
   --ss-icon: #6f7681;
   --ss-icon-faint: #b3b9c2;
   --ss-accent: #2f5bea;
@@ -23,7 +23,7 @@
   --ss-accent-text: #2449c4;
   --ss-success: #18a058;
   --ss-success-soft: rgba(24, 160, 88, 0.12);
-  --ss-success-text: #12804a;
+  --ss-success-text: #117b47;
   --ss-danger: #e5484d;
   --ss-danger-soft: rgba(229, 72, 77, 0.11);
   --ss-danger-text: #c6343a;
@@ -115,7 +115,7 @@
   --ss-line-faint: #1f2126;
   --ss-text: #9aa1ab;
   --ss-text-strong: #eef0f3;
-  --ss-text-faint: #646b76;
+  --ss-text-faint: #808792; /* WCAG AA on dark surfaces (was #646b76, 3.3:1) */
   --ss-icon: #8b929c;
   --ss-icon-faint: #4a5059;
   --ss-accent: #5b7cff;

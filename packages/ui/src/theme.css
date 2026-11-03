@@ -20,17 +20,17 @@
   --m-body: #646b76;
   --m-ink: #15181d;
   --m-nav-text: #3d434c;
-  --m-faint: #9aa1ab;
+  --m-faint: #6b727d; /* text-faint: lightest gray that meets WCAG AA (4.5:1) on surface and canvas */
   --m-icon: #6f7681;
   --m-icon-faint: #b3b9c2;
   --m-accent-default: #2f5bea;
   --m-accent-text-default: #2449c4;
   --m-success: #18a058;
-  --m-success-text: #12804a;
+  --m-success-text: #117b47; /* AA on white and on success-soft badges */
   --m-danger: #e5484d;
   --m-danger-text: #c6343a;
   --m-warning: #e8a317;
-  --m-warning-text: #a86f00;
+  --m-warning-text: #946200; /* AA on white and on warning-soft badges */
   --m-nav-active: #e9ecf0;
   --m-agent: #15181d;
   --m-agent-text: #ffffff;
@@ -49,7 +49,7 @@
   --m-body: #9aa1ab;
   --m-ink: #eef0f3;
   --m-nav-text: #c4c9d0;
-  --m-faint: #646b76;
+  --m-faint: #808792; /* WCAG AA on surface, canvas and raised */
   --m-icon: #8b929c;
   --m-icon-faint: #4a5059;
   --m-accent-default: #5b7cff;

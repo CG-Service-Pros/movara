@@ -12,8 +12,8 @@ export function Section({ title, description, actions, children }: { title?: Rea
   return (
     <section className="flex flex-col gap-3">
       {(title || actions) && (
-        <div className="flex items-end justify-between gap-3">
-          <div className="min-w-0">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-[14rem] flex-1">
             {title && <h2 className="text-lg font-semibold tracking-tight text-ink">{title}</h2>}
             {description && <p className="mt-0.5 text-base text-body">{description}</p>}
           </div>
@@ -32,7 +32,7 @@ export function Panel({ className, ...props }: ComponentProps<'div'>) {
 
 /** Native select styled like the other controls. */
 export function NativeSelect({ className, ...props }: ComponentProps<'select'>) {
-  return <select className={cn(controlClasses, 'h-7 px-2', className)} {...props} />
+  return <select className={cn(controlClasses, 'h-7 px-2 max-sm:h-9', className)} {...props} />
 }
 
 export function Mono({ className, ...props }: ComponentProps<'code'>) {

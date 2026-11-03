@@ -85,7 +85,8 @@ export type MyWeek = {
   /** Metrics I own that have no value yet for the current period. */
   metricsDue: { id: string; title: string; teamId: string; interval: string; periodStart: string }[]
   todos: { id: string; title: string; status: string; dueDate: string | null; teamId: string | null; overdue: boolean }[]
-  nextMeeting: { id: string; seriesId: string; name: string; teamId: string; scheduledAt: Date; live: boolean } | null
+  /** The earliest meeting that has not ended. `missed`: it was due more than 12 hours ago and never started. */
+  nextMeeting: { id: string; seriesId: string; name: string; teamId: string; scheduledAt: Date; live: boolean; missed: boolean } | null
 }
 
 /** The acting person's week: current-quarter priorities, metrics awaiting a value, open to-dos, next meeting. */
@@ -127,7 +128,8 @@ export async function myWeek(ctx: Ctx): Promise<MyWeek> {
     .select({ m: meetings, s: meetingSeries })
     .from(meetings)
     .innerJoin(meetingSeries, and(eq(meetingSeries.id, meetings.seriesId), isNull(meetingSeries.deletedAt)))
-    .where(scoped(meetings, ctx, isNull(meetings.endedAt), gte(meetings.scheduledAt, new Date(Date.now() - 12 * 3600_000)), sql`${me}::uuid = ANY(${meetingSeries.attendeeIds})` as SQL))
+    // No lower bound: a missed (never started) meeting stays visible instead of hiding the series until someone starts it.
+    .where(scoped(meetings, ctx, isNull(meetings.endedAt), sql`${me}::uuid = ANY(${meetingSeries.attendeeIds})` as SQL))
     .orderBy(asc(meetings.scheduledAt))
     .limit(1)
 
@@ -139,6 +141,6 @@ export async function myWeek(ctx: Ctx): Promise<MyWeek> {
     priorities: ps.map((p) => ({ id: p.id, title: p.title, status: p.status, dueDate: p.dueDate, teamId: p.teamId, milestonesDone: ms.filter((m) => m.priorityId === p.id && m.doneAt).length, milestonesTotal: ms.filter((m) => m.priorityId === p.id).length })),
     metricsDue: due.filter((d) => !have.some((h) => h.metricId === d.m.id && h.periodStart === d.period)).map((d) => ({ id: d.m.id, title: d.m.title, teamId: d.teamId, interval: d.interval, periodStart: d.period })),
     todos: myTodos.map((t) => ({ id: t.id, title: t.title, status: t.status, dueDate: t.dueDate, teamId: t.teamId, overdue: !!t.dueDate && t.dueDate < today && t.status === 'open' })),
-    nextMeeting: next ? { id: next.m.id, seriesId: next.s.id, name: next.s.name, teamId: next.s.teamId, scheduledAt: next.m.scheduledAt, live: !!next.m.startedAt } : null,
+    nextMeeting: next ? { id: next.m.id, seriesId: next.s.id, name: next.s.name, teamId: next.s.teamId, scheduledAt: next.m.scheduledAt, live: !!next.m.startedAt, missed: !next.m.startedAt && next.m.scheduledAt.getTime() < Date.now() - 12 * 3600_000 } : null,
   }
 }

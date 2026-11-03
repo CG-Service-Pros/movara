@@ -34,6 +34,7 @@ export default async function OrgLayout({ children, params }: { children: ReactN
         accent={org.branding.accent}
         sections={sections}
         palette={palette}
+        canWrite={hasRole(ctx, 'member')}
         coach={{
           coachName: profile.coachName,
           ready: profile.ready || isMockMode(),

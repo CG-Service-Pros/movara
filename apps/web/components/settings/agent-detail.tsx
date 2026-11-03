@@ -106,9 +106,10 @@ export function AgentDetail({ slug, agent, mcpUrl, canManage, presetScopes }: { 
 
   return (
     <div className="flex flex-col gap-7">
-      <div className="flex items-center gap-3 rounded-xl bg-surface p-4 shadow-panel">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl bg-surface p-4 shadow-panel">
         <AgentMark size={36} />
-        <div className="min-w-0 flex-1">
+        {/* min width keeps the name readable; badges and actions wrap below on narrow screens */}
+        <div className="min-w-[12rem] flex-1">
           <div className="text-lg font-semibold tracking-tight text-ink">{agent.name}</div>
           <div className="text-sm text-body">{agent.client ?? 'No client set'} · owned by {agent.owner} · last seen {ago(agent.lastSeenAt)}</div>
         </div>

@@ -17,7 +17,7 @@ export const SelectValue = S.Value
 export function SelectTrigger({ className, children, ...props }: React.ComponentProps<typeof S.Trigger>) {
   return (
     <S.Trigger
-      className={cn(controlClasses, 'flex h-7 items-center justify-between gap-2 px-2.5 text-left data-[placeholder]:text-faint [&>span]:truncate', className)}
+      className={cn(controlClasses, 'flex h-7 items-center justify-between gap-2 px-2.5 text-left max-sm:h-9 data-[placeholder]:text-faint [&>span]:truncate', className)}
       {...props}
     >
       {children}
@@ -49,7 +49,7 @@ export function SelectItem({ className, children, ...props }: React.ComponentPro
   return (
     <S.Item
       className={cn(
-        'relative flex h-7 cursor-default select-none items-center rounded-md pl-7 pr-2 text-sm font-[500] text-ink outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-nav-active',
+        'relative flex h-7 cursor-default select-none items-center rounded-md pl-7 pr-2 text-sm max-sm:h-10 max-sm:text-[15px] font-[500] text-ink outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-nav-active',
         className,
       )}
       {...props}

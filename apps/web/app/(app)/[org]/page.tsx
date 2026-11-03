@@ -69,13 +69,13 @@ export default async function HomePage({ params }: { params: Promise<{ org: stri
                   {next ? (
                     <div className="flex items-center justify-between gap-3 p-4">
                       <div className="min-w-0">
-                        <div className="text-sm opacity-80">{next.live ? 'Happening now' : 'Next meeting'}</div>
+                        <div className="text-sm opacity-95">{next.live ? 'Happening now' : next.missed ? 'Not held yet' : 'Next meeting'}</div>
                         <div className="mt-0.5 truncate text-lg font-semibold">{next.name}</div>
-                        <div className="mt-0.5 text-sm opacity-80">{when}</div>
+                        <div className="mt-0.5 text-sm opacity-95">{when}</div>
                       </div>
                       <Link
                         href={`${base}/meetings/${next.id}`}
-                        className={cn(buttonClasses('secondary', 'md'), 'h-8 rounded-full bg-white/20 px-4 text-sm text-white shadow-none hover:bg-white/30')}
+                        className={cn(buttonClasses('secondary', 'md'), 'h-8 rounded-full bg-black/10 px-4 text-sm text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.35)] hover:bg-black/20')}
                       >
                         {next.live ? 'Join now' : 'Join'}
                       </Link>

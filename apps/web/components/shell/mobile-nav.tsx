@@ -1,5 +1,7 @@
 'use client'
 
+import { useShellFocus } from './shell-context'
+
 import { Bot, Menu, Search } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@movara/ui/button'
@@ -14,6 +16,7 @@ import { SidebarNav } from './sidebar'
 export function MobileNav({ sections, switcher }: { sections: NavSection[]; switcher: OrgSwitcherProps }) {
   const [open, setOpen] = useState(false)
   const coach = useCoach()
+  if (useShellFocus()) return null // meeting focus mode: the meeting header's back button is the way out
   return (
     <div className="flex h-11 shrink-0 items-center gap-2 px-2 md:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
