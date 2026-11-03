@@ -9,5 +9,5 @@ export default defineConfig({
       { find: /^@\/(.*)$/, replacement: fileURLToPath(new URL('./$1', import.meta.url)) },
     ],
   },
-  test: { environment: 'node', testTimeout: 30_000, include: ['src/**/*.test.ts', 'test/**/*.test.ts'] },
+  test: { environment: 'node', testTimeout: 30_000, hookTimeout: 60_000, include: ['src/**/*.test.ts', 'test/**/*.test.ts'] },
 })

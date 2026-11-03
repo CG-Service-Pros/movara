@@ -8,7 +8,7 @@ import { Input } from '@movara/ui/input'
 import { authClient } from '@/lib/auth-client'
 import { safeNext } from '@/lib/safe-next'
 
-export function SignInForm({ next }: { next?: string }) {
+export function SignInForm({ next, demoHint = false }: { next?: string; demoHint?: boolean }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -34,7 +34,7 @@ export function SignInForm({ next }: { next?: string }) {
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </Field>
       <Button variant="primary" type="submit" loading={pending} className="mt-1 w-full justify-center">Sign in</Button>
-      <p className="text-center text-xs text-faint">Demo: demo@movara.local / movara-demo</p>
+      {demoHint && <p className="text-center text-xs text-faint">Demo: demo@movara.local / movara-demo</p>}
     </form>
   )
 }
