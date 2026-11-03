@@ -7,6 +7,7 @@ import { buildNav, buildQuickActions, buildSettingsNav, paletteItemsFrom } from 
 import { getDb } from '@/lib/db'
 import { getMyTeams, getOrgContext } from '@/lib/ctx'
 import { getSession } from '@/lib/session'
+import { orgCreationAllowed } from '@/lib/signup'
 
 /** The app shell for every page under /{org}. Membership is enforced by getOrgContext -> getCtx. */
 export default async function OrgLayout({ children, params }: { children: ReactNode; params: Promise<{ org: string }> }) {
@@ -14,6 +15,7 @@ export default async function OrgLayout({ children, params }: { children: ReactN
   const { ctx, org, terms, modules } = await getOrgContext(slug)
   const [teams, session, theme] = await Promise.all([getMyTeams(slug), getSession(), cookies()])
   const memberships = await listMembershipsForUser(await getDb(), session!.user.id)
+  const canCreateOrg = await orgCreationAllowed(await getDb(), session!.user.id)
   const pendingApprovals = (await listApprovals(ctx, { status: 'pending', limit: 100 }).catch(() => ({ items: [] }))).items.length
 
   const pendingCaptures = await countPendingCaptures(ctx).catch(() => 0)
@@ -52,6 +54,7 @@ export default async function OrgLayout({ children, params }: { children: ReactN
           orgs: memberships.map((m) => ({ slug: m.slug, name: m.name })),
           user: { name: session!.user.name, email: session!.user.email },
           initialTheme: theme.get('movara-theme')?.value === 'dark' ? 'dark' : 'light',
+          canCreateOrg,
         }}
       >
         {children}

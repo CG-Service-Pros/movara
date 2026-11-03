@@ -14,10 +14,12 @@ export type OrgSwitcherProps = {
   orgs: { slug: string; name: string }[]
   user: { name: string; email: string }
   initialTheme: 'light' | 'dark'
+  /** Org creation is limited to owners after the first workspace (see signup-policy.ts). */
+  canCreateOrg: boolean
 }
 
 /** The org wordmark (or logo) with the switcher menu: orgs, settings, theme, sign out. */
-export function OrgSwitcher({ orgSlug, wordmark, logoLight, logoDark, orgs, user, initialTheme }: OrgSwitcherProps) {
+export function OrgSwitcher({ orgSlug, wordmark, logoLight, logoDark, orgs, user, initialTheme, canCreateOrg }: OrgSwitcherProps) {
   const router = useRouter()
   const [theme, setTheme] = useState(initialTheme)
 
@@ -50,9 +52,11 @@ export function OrgSwitcher({ orgSlug, wordmark, logoLight, logoDark, orgs, user
             {o.name}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuItem onSelect={() => router.push('/onboarding')} icon={<Plus />}>
-          New organization
-        </DropdownMenuItem>
+        {canCreateOrg && (
+          <DropdownMenuItem onSelect={() => router.push('/onboarding')} icon={<Plus />}>
+            New organization
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => router.push(`/${orgSlug}/settings/general`)} icon={<Settings />}>
           Settings
