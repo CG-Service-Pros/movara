@@ -58,6 +58,7 @@ services:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
       APP_URL: ${APP_URL:-http://localhost:3000}
       MOVARA_TERMINOLOGY_PACKS: ${MOVARA_TERMINOLOGY_PACKS:-}
+      MOVARA_ALLOW_SIGNUP: ${MOVARA_ALLOW_SIGNUP:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}

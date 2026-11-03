@@ -20,7 +20,7 @@ cp docker/.env.example docker/.env
 docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
 ```
 
-Open <http://localhost:3000>, click **Create an account** and complete onboarding. For a trial run with demo data, set `MOVARA_SEED_DEMO=1` before the first `up` (login `demo@movara.local` / `movara-demo`, org `/vindex`). Never seed demo data into a real install.
+Open <http://localhost:3000>, click **Create an account** and complete onboarding. That first account creates the workspace; after that, sign-up is invite-only (admins invite people from **Settings → Members**; set `MOVARA_ALLOW_SIGNUP=1` to allow open sign-up). For a trial run with demo data, set `MOVARA_SEED_DEMO=1` before the first `up` (login `demo@movara.local` / `movara-demo`, org `/vindex`). Never seed demo data into a real install.
 
 Check status: `docker compose -f docker/docker-compose.yml ps` and `... logs -f web`.
 

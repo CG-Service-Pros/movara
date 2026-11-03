@@ -63,6 +63,8 @@ Open <http://localhost:3000>. With `DATABASE_URL` unset, Movara uses an embedded
 
 To use a real Postgres, copy [`.env.example`](.env.example) to `.env` and set `DATABASE_URL=postgres://user:pass@host:5432/movara`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and `APP_URL`. Then `pnpm db:migrate` (and optionally `pnpm db:seed`).
 
+Sign-up is invite-only: the first account on a fresh install creates the workspace, then admins invite people from **Settings → Members** (single-use links). Set `MOVARA_ALLOW_SIGNUP=1` for open self-service sign-up.
+
 Useful scripts: `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm --filter @movara/web e2e` (Playwright smoke test against a throwaway PGlite database).
 
 ## Connect an agent (MCP)

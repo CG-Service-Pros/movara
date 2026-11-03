@@ -7,6 +7,7 @@ import { Field } from '@movara/ui/field'
 import { Input } from '@movara/ui/input'
 import { authClient } from '@/lib/auth-client'
 import { safeNext } from '@/lib/safe-next'
+import { INVITE_HEADER, inviteTokenFromNext } from '@/lib/signup-policy'
 
 export function SignUpForm({ next }: { next?: string }) {
   const router = useRouter()
@@ -18,7 +19,11 @@ export function SignUpForm({ next }: { next?: string }) {
     const f = new FormData(e.currentTarget)
     setError(null)
     start(async () => {
-      const { error } = await authClient.signUp.email({ name: String(f.get('name')), email: String(f.get('email')), password: String(f.get('password')) })
+      const invite = inviteTokenFromNext(next)
+      const { error } = await authClient.signUp.email(
+        { name: String(f.get('name')), email: String(f.get('email')), password: String(f.get('password')) },
+        invite ? { headers: { [INVITE_HEADER]: invite } } : undefined,
+      )
       if (error) return setError(error.message ?? 'Could not create the account')
       router.replace(safeNext(next))
       router.refresh()
