@@ -19,6 +19,7 @@ import { AgentMark } from '@movara/ui/agent-mark'
 import { ageLabel, OwnerPicker, PersonChip, SourceChip, useAct, type PersonLite, type SourceInfo, type TeamLite } from './common'
 import { createIssuesAction, issueStateAction, moveIssueAction, setIssueRankAction, updateIssueAction } from '@/app/(app)/[org]/issues/actions'
 import { useCanWrite } from '@/components/shell/shell-context'
+import { useOnChange } from '@/lib/use-on-change'
 
 export type IssueItem = {
   id: string
@@ -223,7 +224,7 @@ export function NewIssueDialog({
   const [owners, setOwners] = React.useState<string[]>(initialOwnerIds ?? [])
   const [team, setTeam] = React.useState<string>(defaultTeamId ?? teams[0]?.id ?? '')
   const [horizon, setHorizon] = React.useState<'short' | 'long'>(defaultHorizon)
-  React.useEffect(() => { if (open) { setTitle(initialTitle ?? ''); setHorizon(defaultHorizon); setTeam(defaultTeamId ?? teams[0]?.id ?? ''); setOwners(initialOwnerIds ?? []) } }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  useOnChange(open, (o) => { if (o) { setTitle(initialTitle ?? ''); setHorizon(defaultHorizon); setTeam(defaultTeamId ?? teams[0]?.id ?? ''); setOwners(initialOwnerIds ?? []) } })
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return

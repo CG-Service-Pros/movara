@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@movara/ui/textarea'
 import { toast } from '@movara/ui/toaster'
 import type { Labels, Option, PLevel } from './types'
+import { useOnChange } from '@/lib/use-on-change'
 
 export type NewPriorityInput = { title: string; ownerId: string | null; teamId: string | null; level: PLevel; dueDate: string | null; milestones: string[] }
 
@@ -40,8 +41,9 @@ export function NewPriorityDialog({
   const [error, setError] = React.useState<string | null>(null)
   const [busy, setBusy] = React.useState(false)
 
-  React.useEffect(() => {
-    if (open) {
+  // Each time the dialog opens it starts from the defaults.
+  useOnChange(open, (o) => {
+    if (o) {
       setTitle('')
       setOwnerId(defaults.ownerId)
       setTeamId(defaults.teamId ?? NONE)
@@ -50,8 +52,7 @@ export function NewPriorityDialog({
       setMs('')
       setError(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  })
 
   const p = labels.priority.singular.toLowerCase()
 

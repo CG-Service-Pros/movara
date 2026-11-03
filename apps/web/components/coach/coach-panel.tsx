@@ -14,6 +14,7 @@ import { useCoach } from './coach-provider'
 import { ConfirmCard } from './confirm-card'
 import { Markdown } from './markdown'
 import { useCoachChat, type ThreadSummary } from './use-coach-chat'
+import { useOnChange } from '@/lib/use-on-change'
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 const MODE_LABEL: Record<CoachMode, string> = { chat: '', meeting: 'Meeting', vision: 'Vision interview', planning: 'Planning' }
@@ -62,7 +63,7 @@ export function CoachPanel() {
   )
 
   // Leaving the page ends a special mode (the conversation itself stays).
-  useEffect(() => setModeOverride(null), [pathname])
+  useOnChange(pathname, () => setModeOverride(null))
 
   // Requests from elsewhere in the app ("Build with Coach", meeting strips).
   useEffect(() => {
@@ -79,9 +80,8 @@ export function CoachPanel() {
     if (open && view === 'chat') requestAnimationFrame(() => input.current?.focus())
   }, [open, view])
 
-  useEffect(() => {
-    if (chat.error?.code === 'not_configured') setNotConfigured(true)
-  }, [chat.error])
+  // Sticky once the server says no model is configured.
+  if (chat.error?.code === 'not_configured' && !notConfigured) setNotConfigured(true)
 
   useEffect(() => {
     const el = scroller.current
