@@ -4,7 +4,7 @@ import { controlClasses } from '@movara/ui/input'
 
 /** Centered, scrolling column used by every settings page. */
 export function SettingsBody({ children, wide }: { children: ReactNode; wide?: boolean }) {
-  return <div className={cn('mx-auto flex w-full flex-col gap-7 px-6 py-6', wide ? 'max-w-[920px]' : 'max-w-[720px]')}>{children}</div>
+  return <div className={cn('flex w-full flex-col gap-7 px-6 py-6 lg:px-8', wide ? 'max-w-[1240px]' : 'max-w-[820px]')}>{children}</div>
 }
 
 /** Titled group with an optional description and right-side actions. */

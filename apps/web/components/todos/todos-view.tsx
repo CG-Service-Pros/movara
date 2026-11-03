@@ -101,7 +101,7 @@ export function TodosView({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-4">
+    <div className="flex w-full flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2">
         <Tabs value={view} onValueChange={(v) => setView(v as View)}>
           <TabsList>

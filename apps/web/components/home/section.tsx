@@ -4,9 +4,9 @@ import { ArrowRight } from 'lucide-react'
 import { Card, CardBody, CardHeader, CardTitle } from '@movara/ui/card'
 
 /** A titled Home card with an optional count and "view all" link. */
-export function Section({ title, meta, href, linkLabel = 'View all', children, flush }: { title: ReactNode; meta?: ReactNode; href?: string; linkLabel?: string; children: ReactNode; flush?: boolean }) {
+export function Section({ title, meta, href, linkLabel = 'View all', children, flush, className }: { className?: string; title: ReactNode; meta?: ReactNode; href?: string; linkLabel?: string; children: ReactNode; flush?: boolean }) {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-baseline gap-2">
           {title}

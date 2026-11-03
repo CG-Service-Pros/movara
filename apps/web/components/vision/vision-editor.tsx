@@ -292,7 +292,7 @@ export function VisionEditor({
         }
       />
       <div className="min-h-0 flex-1 overflow-auto px-6 py-5" data-print-body>
-        <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-7 md:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-7 md:grid-cols-2">
           <Col title="Where we're going">
             <Section title={L.coreValues}>
               <StringList label="Core value" items={s.coreValues} onChange={(v) => set('coreValues', v)} placeholder="Own the outcome" addLabel="Add value" />

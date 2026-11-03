@@ -54,7 +54,7 @@ export default async function MeetingsPage({ params, searchParams }: { params: P
 
   return (
     <Page title={terms.t('weekly_meeting', 'plural')} meta={<span>{series.length} series</span>} actions={dialog}>
-      <div className="mx-auto max-w-[1000px] px-8 pb-12 pt-6">
+      <div className="w-full px-6 pb-12 pt-6 lg:px-8">
         {series.length === 0 ? (
           <EmptyState
             icon={<CalendarClock />}

@@ -41,7 +41,7 @@ export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defau
   const list = tab === 'review' ? toReview : tab === 'reviewed' ? reviewed : headlines
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-4">
+    <div className="flex w-full flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2">
         <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
           <TabsList>

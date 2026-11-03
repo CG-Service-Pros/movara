@@ -47,7 +47,7 @@ export function MeetingSummary({ slug, b }: { slug: string; b: Bundle }) {
         meta={<><span>{fmtDay(live.startedAt ?? live.scheduledAt, b.timezone, true)}</span><Badge>Ended</Badge></>}
       />
       <div className="min-h-0 flex-1 overflow-auto">
-        <div className="mx-auto max-w-[920px] px-8 pb-12 pt-6">
+        <div className="mx-auto w-full max-w-[1200px] px-8 pb-12 pt-6">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5" data-testid="summary-stats">
             <Stat label="Duration" value={`${duration} min`} sub={`planned ${planned} min`} />
             <Stat label="Rating" value={st?.ratingAvg != null ? String(st.ratingAvg) : '–'} sub={`${st?.ratingCount ?? rated.length} rating${(st?.ratingCount ?? rated.length) === 1 ? '' : 's'}`} tone={st?.ratingAvg != null && st.ratingAvg >= 8 ? 'success' : undefined} />

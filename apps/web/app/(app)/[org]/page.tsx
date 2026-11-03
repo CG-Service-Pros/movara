@@ -94,7 +94,7 @@ export default async function HomePage({ params }: { params: Promise<{ org: stri
 
   return (
     <Page title="Home" meta={<span className="text-body">My week</span>}>
-      <div className="mx-auto w-full max-w-[1100px] px-4 pb-10 pt-6 sm:px-6">
+      <div className="w-full px-4 pb-10 pt-6 sm:px-6 lg:px-8">
         <header className="mb-6">
           <p className="text-sm text-body">
             {dateLine} · Week {mw.week.week} of {mw.week.of} · {quarterLabel(mw.quarter)}
@@ -105,10 +105,10 @@ export default async function HomePage({ params }: { params: Promise<{ org: stri
         </header>
 
         {modules.meetings && <div className="mb-5 lg:hidden">{meetingCard}</div>}
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="flex min-w-0 flex-col gap-5">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="flex min-w-0 flex-col gap-5 2xl:grid 2xl:grid-cols-2 2xl:content-start 2xl:items-start">
             {modules.priorities && (
-              <Section title={`My ${P.toLowerCase()}`} meta={mw.priorities.length ? mw.priorities.length : undefined} href={`${base}/priorities?tab=mine`} flush>
+              <Section className="2xl:col-span-2" title={`My ${P.toLowerCase()}`} meta={mw.priorities.length ? mw.priorities.length : undefined} href={`${base}/priorities?tab=mine`} flush>
                 {mw.priorities.length === 0 ? (
                   <Muted>No {P.toLowerCase()} are assigned to you this quarter.</Muted>
                 ) : (

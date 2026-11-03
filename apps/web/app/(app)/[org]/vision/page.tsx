@@ -132,7 +132,7 @@ export default async function VisionPage({ params, searchParams }: { params: Pro
         <div data-print-body>
           <ProposalsBanner count={pendingCount} org={slug} />
           {viewingOld && (
-            <div data-print-hide className="mx-auto mb-4 flex max-w-[1100px] items-center gap-2 rounded-lg bg-warning-soft px-3 py-2 text-sm font-[550] text-warning-text">
+            <div data-print-hide className="mb-4 flex w-full items-center gap-2 rounded-lg bg-warning-soft px-3 py-2 text-sm font-[550] text-warning-text">
               You are reading an older revision.
               <Link href={`/${slug}/vision`} className="ml-auto underline">
                 Back to the current one
@@ -140,7 +140,7 @@ export default async function VisionPage({ params, searchParams }: { params: Pro
             </div>
           )}
           {view.draft && !viewingOld && (
-            <div data-print-hide className="mx-auto mb-4 flex max-w-[1100px] items-center gap-2 rounded-lg bg-canvas px-3 py-2 text-sm text-body">
+            <div data-print-hide className="mb-4 flex w-full items-center gap-2 rounded-lg bg-canvas px-3 py-2 text-sm text-body">
               Draft v{view.draft.number} is in progress.
               <Link href={`/${slug}/vision?edit=1`} className="ml-auto font-[550] text-accent-text hover:underline">
                 Continue editing

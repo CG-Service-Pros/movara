@@ -115,7 +115,7 @@ export function VisionDocument({
   issues: IssueLite[]
 }) {
   return (
-    <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-7 md:grid-cols-2 print:grid-cols-2">
+    <div className="grid w-full grid-cols-1 gap-7 md:grid-cols-2 print:grid-cols-2">
       <Col title="Where we're going">
         <Section title={L.coreValues}>
           {s.coreValues.length ? (

@@ -255,7 +255,7 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
         {/* Section content */}
         <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface">
           <div className="min-h-0 flex-1 overflow-auto" data-testid="section-body">
-            <div className="mx-auto max-w-[780px] px-8 pb-10 pt-6" key={sections[idx]?.term}>
+            <div className="mx-auto w-full max-w-[1100px] px-8 pb-10 pt-6" key={sections[idx]?.term}>
               {live.status === 'scheduled' ? (
                 <ReadyToStart b={b} />
               ) : kind === 'checkin' ? (

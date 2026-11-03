@@ -237,7 +237,7 @@ export function ChartWorkspace({
           </>
         ) : (
           <div className="h-full overflow-auto px-6 py-4">
-            <div className="mx-auto max-w-[860px]" data-testid="chart-list">
+            <div className="mx-auto max-w-[1100px]" data-testid="chart-list">
               {roots.map((r) => (
                 <ListRow key={r.id} node={r} edit={edit} onPick={setSelected} prioTitle={prioTitle} />
               ))}

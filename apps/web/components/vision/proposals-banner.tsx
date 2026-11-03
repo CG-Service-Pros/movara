@@ -8,7 +8,7 @@ export function ProposalsBanner({ count, org }: { count: number; org: string }) 
     <Link
       href={`/${org}/settings/approvals`}
       data-print-hide
-      className="mx-auto mb-4 flex max-w-[1100px] items-center gap-2 rounded-lg bg-accent-soft px-3 py-2 text-sm font-[550] text-accent-text outline-none hover:brightness-95 focus-visible:ring-2 focus-visible:ring-accent/50"
+      className="mb-4 flex w-full items-center gap-2 rounded-lg bg-accent-soft px-3 py-2 text-sm font-[550] text-accent-text outline-none hover:brightness-95 focus-visible:ring-2 focus-visible:ring-accent/50"
     >
       <Inbox size={15} strokeWidth={1.7} />
       {count} proposed {count === 1 ? 'change' : 'changes'} waiting for approval
