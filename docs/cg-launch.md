@@ -10,6 +10,8 @@ and open a pull request against the CG fork.
 - Root directory: `apps/web`, with workspace sources outside the root enabled.
 - Runtime: Node 22, Vercel region `iad1`.
 - Database: a dedicated `cg-movara` Supabase project in **CG Service Pros**, region `us-east-1`.
+- Supabase project reference: `hburzfdggmdilgznaicf` (PostgreSQL 17).
+- Production origin: `https://cg-movara.vercel.app`.
 - Authentication: Movara's existing Better Auth; Supabase supplies PostgreSQL only.
 
 Follow [the deployment guide](deploy-vercel-supabase.md) for connection strings.
@@ -26,8 +28,16 @@ Never connect branch previews to the production database.
 3. Confirm every `public` table has RLS enabled and neither `anon` nor
    `authenticated` has table privileges. Verify an anonymous REST request cannot
    read `public.user` or `public.orgs`.
-4. Use the transaction pooler for the application. The server connects as the
-   database owner; application authorization remains in `@movara/core`.
+4. Use the transaction pooler for the application. The server connects as
+   `movara_server`, which owns Movara's tables; application authorization remains
+   in `@movara/core`. This login has no superuser, role-creation or global RLS-bypass
+   privileges. It has database/schema creation rights for Drizzle migrations.
+
+The application login's default privileges also revoke API-role access to future
+tables, sequences and functions. Run migrations and hardening as `movara_server`
+so new objects have the same owner and defaults. The verified transaction pooler
+is `aws-0-us-east-1.pooler.supabase.com:6543`; migrations use the direct host.
+The database password is generated and stored privately; never put it in this file.
 
 The hardening SQL intentionally gives browser API roles no access. Better Auth
 sessions are not Supabase Auth JWTs. Do not add broad Supabase policies to make
