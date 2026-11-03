@@ -21,12 +21,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OscarH30/movara.git",
+    "url": "git+https://github.com/movara-app/movara.git",
     "directory": "packs/eos"
   },
-  "homepage": "https://github.com/OscarH30/movara/tree/main/packs/eos",
+  "homepage": "https://github.com/movara-app/movara/tree/main/packs/eos",
   "bugs": {
-    "url": "https://github.com/OscarH30/movara/issues"
+    "url": "https://github.com/movara-app/movara/issues"
   },
   "publishConfig": {
     "access": "public"

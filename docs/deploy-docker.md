@@ -14,7 +14,7 @@ One command brings up PostgreSQL 16, the web app, the standalone MCP server and 
 ## Steps
 
 ```bash
-git clone https://github.com/OscarH30/movara.git && cd movara
+git clone https://github.com/movara-app/movara.git && cd movara
 cp docker/.env.example docker/.env
 # edit docker/.env: BETTER_AUTH_SECRET (openssl rand -base64 32), POSTGRES_PASSWORD, URLs
 docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build

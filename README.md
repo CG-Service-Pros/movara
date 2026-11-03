@@ -49,7 +49,7 @@ To view them: `cd design/stageshow && npm install && npm run dev` (or `./restart
 Requirements: Node 22 and pnpm 10 (`corepack enable`).
 
 ```bash
-git clone https://github.com/OscarH30/movara.git
+git clone https://github.com/movara-app/movara.git
 cd movara
 pnpm install
 pnpm dev
