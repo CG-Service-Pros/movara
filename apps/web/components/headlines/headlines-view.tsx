@@ -19,6 +19,7 @@ import { Tip } from '@movara/ui/tooltip'
 import { cn } from '@movara/ui/cn'
 import { ageLabel, OwnerPicker, PersonChip, useAct, type PersonLite, type TeamLite } from '../issues/common'
 import { cascadeHeadlineAction, deleteHeadlineAction, postHeadlineAction, reviewHeadlineAction } from '@/app/(app)/[org]/headlines/actions'
+import { useCanWrite } from '@/components/shell/shell-context'
 
 type Kind = 'customer' | 'employee' | 'general'
 export type HeadlineItem = { id: string; text: string; kind: Kind; ownerId: string | null; teamId: string | null; createdAt: string; reviewedAt: string | null; cascaded: boolean; cascadedFromId: string | null; actorAgent: boolean }
@@ -28,6 +29,7 @@ type Tab = 'review' | 'reviewed' | 'all'
 export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defaultTeamId, meId, now, labels, highlightId, openNew }: {
   highlightId?: string; openNew?: boolean; orgSlug: string; headlines: HeadlineItem[]; people: PersonLite[]; teams: TeamLite[]; teamId: string | null; defaultTeamId: string; meId: string; now: string; labels: { headline: string; headlines: string }
 }) {
+  const canWrite = useCanWrite()
   const router = useRouter()
   const { act } = useAct()
   const [tab, setTab] = React.useState<Tab>(() => { const h = highlightId ? headlines.find((x) => x.id === highlightId) : undefined; return h ? (h.reviewedAt ? 'reviewed' : 'review') : 'review' })
@@ -55,17 +57,17 @@ export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defau
             <SelectTrigger className="w-44" aria-label="Team"><SelectValue /></SelectTrigger>
             <SelectContent><SelectItem value="all">All teams</SelectItem>{teams.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
           </Select>
-          <Button variant="primary" onClick={() => setPosting(true)}><Plus size={14} strokeWidth={2} />Post {labels.headline.toLowerCase()}</Button>
+          {canWrite && <Button variant="primary" onClick={() => setPosting(true)}><Plus size={14} strokeWidth={2} />Post {labels.headline.toLowerCase()}</Button>}
         </div>
       </div>
 
       {list.length === 0 ? (
-        <EmptyState icon={<Megaphone />} title={tab === 'reviewed' ? `No reviewed ${labels.headlines.toLowerCase()}` : `No ${labels.headlines.toLowerCase()} to review`} description="Share good news from customers and the team so everyone starts the week in the loop." action={<Button variant="primary" onClick={() => setPosting(true)}><Plus size={14} strokeWidth={2} />Post {labels.headline.toLowerCase()}</Button>} />
+        <EmptyState icon={<Megaphone />} title={tab === 'reviewed' ? `No reviewed ${labels.headlines.toLowerCase()}` : `No ${labels.headlines.toLowerCase()} to review`} description="Share good news from customers and the team so everyone starts the week in the loop." action={canWrite ? <Button variant="primary" onClick={() => setPosting(true)}><Plus size={14} strokeWidth={2} />Post {labels.headline.toLowerCase()}</Button> : undefined} />
       ) : (
         <ul className="flex flex-col">
           {list.map((h) => (
             <li key={h.id} data-headline-id={h.id} data-highlight={h.id === highlightId || undefined} className={cn('group flex items-start gap-3 border-b border-line-faint px-2 py-2.5 last:border-0 hover:bg-canvas', h.id === highlightId && 'bg-accent-soft')}>
-              <Checkbox className="mt-0.5" checked={!!h.reviewedAt} aria-label={h.reviewedAt ? 'Mark not reviewed' : 'Mark reviewed'} onCheckedChange={(c) => act(() => reviewHeadlineAction(orgSlug, h.id, c === true), { success: c === true ? 'Marked reviewed' : 'Marked not reviewed' })} />
+              <Checkbox className="mt-0.5" checked={!!h.reviewedAt} disabled={!canWrite} aria-label={h.reviewedAt ? 'Mark not reviewed' : 'Mark reviewed'} onCheckedChange={(c) => act(() => reviewHeadlineAction(orgSlug, h.id, c === true), { success: c === true ? 'Marked reviewed' : 'Marked not reviewed' })} />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <p className={cn('text-base font-[500]', h.reviewedAt ? 'text-body' : 'text-ink')}>{h.text}</p>
                 <div className="flex flex-wrap items-center gap-1.5 text-xs text-faint">
@@ -79,7 +81,7 @@ export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defau
               </div>
               <PersonChip person={person(h.ownerId)} className="mt-0.5" />
               <DropdownMenu>
-                <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="size-6" aria-label="Actions"><MoreHorizontal size={15} strokeWidth={1.7} /></Button></DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild disabled={!canWrite}><Button size="icon" variant="ghost" className="size-6 disabled:invisible" aria-label="Actions" disabled={!canWrite}><MoreHorizontal size={15} strokeWidth={1.7} /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem icon={h.reviewedAt ? <Undo2 /> : <CheckCheck />} onSelect={() => act(() => reviewHeadlineAction(orgSlug, h.id, !h.reviewedAt))}>{h.reviewedAt ? 'Mark not reviewed' : 'Mark reviewed'}</DropdownMenuItem>
                   <DropdownMenuItem icon={<Send />} onSelect={() => setCascading(h)}>Cascade to teams…</DropdownMenuItem>

@@ -6,6 +6,7 @@ import { CommandPalette } from './command-palette'
 import { MobileNav } from './mobile-nav'
 import type { NavSection, PaletteItem } from './nav'
 import type { OrgSwitcherProps } from './org-switcher'
+import { ShellProvider } from './shell-context'
 import { Sidebar } from './sidebar'
 
 /**
@@ -15,9 +16,10 @@ import { Sidebar } from './sidebar'
  */
 export type CoachShellProps = { coachName: string; ready: boolean; canConfigure: boolean; labels: CoachLabels }
 
-export function AppShell({ accent, sections, switcher, palette, coach, children }: { accent?: string; sections: NavSection[]; switcher: OrgSwitcherProps; palette: PaletteItem[]; coach: CoachShellProps; children: ReactNode }) {
+export function AppShell({ accent, sections, switcher, palette, coach, canWrite, children }: { accent?: string; sections: NavSection[]; switcher: OrgSwitcherProps; palette: PaletteItem[]; coach: CoachShellProps; canWrite: boolean; children: ReactNode }) {
   const style = accent ? ({ '--accent': accent } as CSSProperties) : undefined
   return (
+    <ShellProvider canWrite={canWrite}>
     <CoachProvider org={switcher.orgSlug} {...coach}>
     <div className="flex h-screen bg-canvas max-md:flex-col" style={style} data-shell>
       <Sidebar sections={sections} switcher={switcher} />
@@ -28,5 +30,6 @@ export function AppShell({ accent, sections, switcher, palette, coach, children 
       <Toaster />
     </div>
     </CoachProvider>
+    </ShellProvider>
   )
 }

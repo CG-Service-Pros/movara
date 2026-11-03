@@ -38,11 +38,11 @@ export function AgentsList({ slug, agents, people, meId, canCreate, isAdmin, aut
           <Link key={a.id} href={`/${slug}/settings/agents/${a.id}`} className="flex items-center gap-3 px-4 py-3 outline-none hover:bg-canvas/60 focus-visible:bg-canvas">
             <AgentMark size={28} />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 truncate text-base font-[550] text-ink">{a.name}<Badge tone={a.preset ? 'accent' : 'neutral'} data-testid="preset-badge">{presetLabel(a.preset)}</Badge></div>
+              <div className="flex min-w-0 items-center gap-2 text-base font-[550] text-ink"><span className="truncate">{a.name}</span><Badge tone={a.preset ? 'accent' : 'neutral'} className="shrink-0" data-testid="preset-badge">{presetLabel(a.preset)}</Badge></div>
               <div className="truncate text-sm text-body">{a.client ?? 'No client set'} · owned by {a.owner}</div>
             </div>
             <div className="hidden text-sm text-faint sm:block">{a.scopeCount} scopes · {a.keyCount} key{a.keyCount === 1 ? '' : 's'}</div>
-            <div className="w-24 text-right text-sm text-body">{a.lastSeenAt ? ago(a.lastSeenAt) : 'Never seen'}</div>
+            <div className="w-24 text-right text-sm text-body max-sm:hidden">{a.lastSeenAt ? ago(a.lastSeenAt) : 'Never seen'}</div>
             <Badge tone={a.status === 'active' ? 'success' : a.status === 'paused' ? 'warning' : 'danger'} className="capitalize">{a.status}</Badge>
           </Link>
         ))}
@@ -88,7 +88,7 @@ export function AgentsList({ slug, agents, people, meId, canCreate, isAdmin, aut
             <div className="min-w-0 flex-1">
               <label htmlFor="auto-accept" className="text-base font-[550] text-ink">Auto-accept items pushed by agents</label>
               <p className="text-sm text-body">
-                Off (recommended): proposed to-dos, issues and headlines wait in the <Link href={`/${slug}/inbox`} className="text-accent-text hover:underline">Inbox</Link> until a person accepts them.
+                Off (recommended): proposed to-dos, issues and headlines wait in the <Link href={`/${slug}/inbox`} className="text-accent-text underline underline-offset-2">Inbox</Link> until a person accepts them.
                 On: an agent that asks for it creates the records directly, within its own scopes. Everything stays attributed and audited.
               </p>
             </div>

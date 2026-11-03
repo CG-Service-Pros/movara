@@ -23,6 +23,7 @@ import {
   archiveMetricAction, createMetricAction, recordValueAction, reorderMetricsAction, updateMetricAction, updateSettingsAction, type MetricInput,
 } from '@/app/(app)/[org]/scorecard/actions'
 import { createIssuesAction } from '@/app/(app)/[org]/issues/actions'
+import { useCanWrite } from '@/components/shell/shell-context'
 
 export type MetricItem = {
   id: string
@@ -66,6 +67,7 @@ export function ScorecardView({
   const [order, setOrder] = React.useState<'fwd' | 'rev'>('fwd')
   const [edits, setEdits] = React.useState<Record<string, number | null>>({})
   const [editing, setEditing] = React.useState<string | null>(null)
+  const canWrite = useCanWrite()
   const [dialog, setDialog] = React.useState<{ metric: MetricItem | null } | null>(openNew ? { metric: null } : null)
   const [settings, setSettings] = React.useState(false)
   const scrollRef = React.useRef<HTMLDivElement>(null)
@@ -141,12 +143,12 @@ export function ScorecardView({
             <Button variant="secondary" onClick={() => setOrder(order === 'fwd' ? 'rev' : 'fwd')} aria-label="Reverse period order"><ArrowLeftRight size={14} strokeWidth={1.7} />{order === 'fwd' ? 'Oldest first' : 'Newest first'}</Button>
           </Tip>
           <Tip label={`${labels.scorecard} settings`}><Button size="icon" variant="ghost" aria-label="Settings" onClick={() => setSettings(true)}><Settings2 size={15} strokeWidth={1.7} /></Button></Tip>
-          <Button variant="primary" onClick={() => setDialog({ metric: null })}><Plus size={14} strokeWidth={2} />Add {labels.metric.toLowerCase()}</Button>
+          {canWrite && <Button variant="primary" onClick={() => setDialog({ metric: null })}><Plus size={14} strokeWidth={2} />Add {labels.metric.toLowerCase()}</Button>}
         </div>
       </div>
 
       {metrics.length === 0 ? (
-        <EmptyState icon={<BarChart3 />} title={`No ${labels.metrics.toLowerCase()} yet`} description={`Add the few numbers ${scorecard.teamName} reviews every ${INTERVAL_WORD[scorecard.interval]}. Each one gets an owner and a goal.`} action={<Button variant="primary" onClick={() => setDialog({ metric: null })}><Plus size={14} strokeWidth={2} />Add {labels.metric.toLowerCase()}</Button>} />
+        <EmptyState icon={<BarChart3 />} title={`No ${labels.metrics.toLowerCase()} yet`} description={`Add the few numbers ${scorecard.teamName} reviews every ${INTERVAL_WORD[scorecard.interval]}. Each one gets an owner and a goal.`} action={canWrite ? <Button variant="primary" onClick={() => setDialog({ metric: null })}><Plus size={14} strokeWidth={2} />Add {labels.metric.toLowerCase()}</Button> : undefined} />
       ) : (
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto pb-6">
           <table className="border-separate border-spacing-0 text-base" style={colTemplate}>
@@ -178,7 +180,7 @@ export function ScorecardView({
                         <span className="min-w-0 flex-1 truncate font-[500] text-ink" title={m.description ? `${m.title}: ${m.description}` : m.title}>{m.title}</span>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="size-6 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100" aria-label={`Actions for ${m.title}`}><MoreHorizontal size={15} strokeWidth={1.7} /></Button>
+                            <Button size="icon" variant="ghost" disabled={!canWrite} className="size-6 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 disabled:invisible data-[state=open]:opacity-100" aria-label={`Actions for ${m.title}`}><MoreHorizontal size={15} strokeWidth={1.7} /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start">
                             <DropdownMenuItem icon={<Pencil />} onSelect={() => setDialog({ metric: m })}>Edit {labels.metric.toLowerCase()}</DropdownMenuItem>
@@ -207,7 +209,7 @@ export function ScorecardView({
                             isNow={p === current}
                             editing={editing === k}
                             prov={prov}
-                            onEdit={() => setEditing(k)}
+                            onEdit={() => canWrite && setEditing(k)}
                             onCancel={() => setEditing(null)}
                             onSave={(v) => save(m, p, v)}
                           />
@@ -261,7 +263,7 @@ function Cell({ metric, value, status, isNow, editing, prov, onEdit, onCancel, o
           if (e.key === 'Enter') { e.preventDefault(); commit() }
           if (e.key === 'Escape') { e.preventDefault(); cancelled.current = true; onCancel() }
         }}
-        className="h-8 w-full rounded-[7px] bg-surface px-2 text-right text-base tabular-nums text-ink outline-none shadow-[0_0_0_1.5px_var(--color-accent),0_0_0_3px_var(--color-accent-soft)] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+        className="h-8 w-full rounded-[7px] bg-surface px-2 text-right text-base tabular-nums max-sm:text-[16px] text-ink outline-none shadow-[0_0_0_1.5px_var(--color-accent),0_0_0_3px_var(--color-accent-soft)] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
       />
     )
   }

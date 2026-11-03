@@ -27,6 +27,7 @@ import { NewPriorityDialog, type NewPriorityInput } from './new-priority-dialog'
 import { DetailSkeleton, PriorityDetail, type DetailApi } from './priority-detail'
 import { groupPriorities, PriorityRows, Summary } from './priority-list'
 import { STATUS_CYCLE, type ActionResult, type Labels, type Option, type PriorityDetailData, type PriorityItem, type PStatus, type Tab } from './types'
+import { useCanWrite } from '@/components/shell/shell-context'
 
 type Snap = { items: PriorityItem[]; detail: PriorityDetailData | null }
 type Op =
@@ -81,6 +82,7 @@ export type PrioritiesViewProps = {
 const ALL = 'all'
 
 export function PrioritiesView(props: PrioritiesViewProps) {
+  const canWrite = useCanWrite()
   const { orgSlug, quarter, tab, teamId, labels, people, teams } = props
   const router = useRouter()
   const [snap, apply] = React.useOptimistic<Snap, Op>({ items: props.items, detail: props.detail }, reduce)
@@ -193,19 +195,19 @@ export function PrioritiesView(props: PrioritiesViewProps) {
         e.preventDefault()
         const n = e.key === 'j' ? Math.min(flat.length - 1, i + 1) : Math.max(0, i < 0 ? 0 : i - 1)
         select(flat[n]!.id)
-      } else if (e.key === 's' && i >= 0) {
+      } else if (e.key === 's' && i >= 0 && canWrite) {
         e.preventDefault()
         const cur = flat[i]!
         const idx = STATUS_CYCLE.indexOf(cur.status)
         setStatus(cur.id, STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]!)
-      } else if (e.key === 'n') {
+      } else if (e.key === 'n' && canWrite) {
         e.preventDefault()
         setCreating(true)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [flat, sel, select, setStatus])
+  }, [flat, sel, select, setStatus, canWrite])
 
   async function create(input: NewPriorityInput): Promise<string | null> {
     const r = await createPriorityAction(orgSlug, { ...input, quarter }, newRequestId())
@@ -282,10 +284,12 @@ export function PrioritiesView(props: PrioritiesViewProps) {
         </div>
       }
       actions={
-        <Button variant="primary" onClick={() => setCreating(true)} aria-label={`New ${p.singular.toLowerCase()}`}>
-          <Plus size={14} strokeWidth={2} />
-          <span className="max-sm:hidden">New {p.singular.toLowerCase()}</span>
-        </Button>
+        canWrite ? (
+          <Button variant="primary" onClick={() => setCreating(true)} aria-label={`New ${p.singular.toLowerCase()}`}>
+            <Plus size={14} strokeWidth={2} />
+            <span className="max-sm:hidden">New {p.singular.toLowerCase()}</span>
+          </Button>
+        ) : undefined
       }
       bodyClassName="flex flex-col overflow-hidden"
     >
@@ -301,9 +305,11 @@ export function PrioritiesView(props: PrioritiesViewProps) {
               title={`No ${p.plural.toLowerCase()} here yet`}
               description={tab === 'mine' ? `Nothing is assigned to you in ${quarterLabel(quarter)}.` : `Add the few ${p.plural.toLowerCase()} that matter most in ${quarterLabel(quarter)}.`}
               action={
-                <Button variant="primary" onClick={() => setCreating(true)}>
-                  <Plus size={14} strokeWidth={2} /> New {p.singular.toLowerCase()}
-                </Button>
+                canWrite ? (
+                  <Button variant="primary" onClick={() => setCreating(true)}>
+                    <Plus size={14} strokeWidth={2} /> New {p.singular.toLowerCase()}
+                  </Button>
+                ) : undefined
               }
             />
           ) : (

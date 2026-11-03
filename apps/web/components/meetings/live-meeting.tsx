@@ -23,6 +23,7 @@ import { Tick, type Act } from './parts'
 import { IssuesBuildView, NextStepsView, PrioritySettingView, QuarterReviewView, TeamHealthView, VisionReviewView } from './planning-views'
 import { CheckInView, GenericView, HeadlinesView, PrioritiesView, ScorecardView, TodoReviewView, WrapUpView } from './section-views'
 import type { Bundle } from './types'
+import { useCanWrite, useFocusMode } from '@/components/shell/shell-context'
 
 const KINDS: Record<string, string> = {
   check_in: 'checkin', metric_review: 'scorecard', priority_review: 'priorities', headline_review: 'headlines', todo_review: 'todos', issue_solving: 'ids', wrap_up: 'wrapup',
@@ -115,6 +116,8 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
   }, [ended, router])
 
   const running = live.status === 'live' || live.status === 'paused'
+  useFocusMode(running)
+  const canWrite = useCanWrite()
   const sections = live.agenda
   const idx = live.sectionIndex
   const sectionElapsed = (i: number) => {
@@ -216,7 +219,7 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
               <Button className={HEAD_BTN} onClick={() => setConfirmEnd(true)}>End meeting</Button>
             </>
           )}
-          {live.status === 'scheduled' && <Button variant="primary" className={HEAD_BTN} onClick={() => act({ k: 'start' })}>Start meeting</Button>}
+          {live.status === 'scheduled' && canWrite && <Button variant="primary" className={HEAD_BTN} onClick={() => act({ k: 'start' })}>Start meeting</Button>}
         </div>
       </div>
 

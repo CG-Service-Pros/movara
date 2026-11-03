@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { metricValues, metrics, priorities, scorecards, newId, type DbHandle } from '@movara/db'
+import { meetings, metricValues, metrics, priorities, scorecards, newId, type DbHandle } from '@movara/db'
+import { eq } from 'drizzle-orm'
 import { currentQuarter, execute, getOrg, headlinePost, issueCreate, listTeams, meetingSeriesCreate, myWeek, search, todayIn, periodStart, todoCreate, base } from '../src'
 import { createTestDb, seedTestOrg } from '../src/testing'
 
@@ -57,6 +58,12 @@ describe('search and my week', () => {
     expect(w.todos.map((t) => t.title)).toEqual(['Mine late', 'Mine open'])
     expect(w.todos[0]!.overdue).toBe(true)
     expect(w.nextMeeting?.name).toBe('Weekly')
+    expect(w.nextMeeting?.missed).toBe(false)
+    // A meeting that was due days ago and never started still shows (flagged), instead of hiding the series.
+    await db.update(meetings).set({ scheduledAt: new Date(Date.now() - 3 * 86400_000) }).where(eq(meetings.id, w.nextMeeting!.id))
+    const later = await myWeek(o.ctx)
+    expect(later.nextMeeting?.id).toBe(w.nextMeeting!.id)
+    expect(later.nextMeeting?.missed).toBe(true)
     expect(w.week.of).toBe(13)
     // agents see their owner's week
     const ag = await o.addAgent('Reader', ['read'])

@@ -7,6 +7,7 @@ import { Field } from '@movara/ui/field'
 import { Input } from '@movara/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@movara/ui/select'
 import { Textarea } from '@movara/ui/textarea'
+import { toast } from '@movara/ui/toaster'
 import type { Labels, Option, PLevel } from './types'
 
 export type NewPriorityInput = { title: string; ownerId: string | null; teamId: string | null; level: PLevel; dueDate: string | null; milestones: string[] }
@@ -68,7 +69,8 @@ export function NewPriorityDialog({
       milestones: ms.split('\n').map((s) => s.trim()).filter(Boolean),
     }).then(() => null, (x) => String(x?.message ?? x))
     setBusy(false)
-    if (err) setError(err)
+    // Server refusals (permissions, validation from core) are not about the title field: show them as a toast.
+    if (err) toast.error(err)
   }
 
   return (

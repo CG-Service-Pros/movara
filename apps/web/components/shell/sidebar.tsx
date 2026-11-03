@@ -1,5 +1,7 @@
 'use client'
 
+import { useShellFocus } from './shell-context'
+
 import { Search } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
@@ -82,5 +84,7 @@ export function SidebarNav({ sections, switcher, onNavigate, className }: { sect
 
 /** Desktop sidebar (hidden on mobile, where the hamburger sheet takes over). */
 export function Sidebar(props: { sections: NavSection[]; switcher: OrgSwitcherProps }) {
+  // Meeting focus mode: the agenda is the navigation; keep only a gutter so the content panel stays inset.
+  if (useShellFocus()) return <div aria-hidden className="w-2 shrink-0 max-md:hidden" />
   return <SidebarNav {...props} className="max-md:hidden" />
 }
