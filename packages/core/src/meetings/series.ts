@@ -21,11 +21,20 @@ export async function listMeetingTemplates(ctx: Ctx): Promise<MeetingTemplate[]>
 async function orgTemplates(ctx: Ctx): Promise<MeetingTemplate[]> {
   const [o] = await ctx.db.select({ pack: orgs.terminologyPack }).from(orgs).where(eq(orgs.id, ctx.orgId)).limit(1)
   const own = o?.pack?.meetingTemplates ?? []
+  // Packs from before the template family used other keys (EOS 1.0 shipped `l10` for the weekly meeting).
+  const covered = new Set(own.map((x) => LEGACY_TEMPLATE_KEYS[x.key] ?? x.key))
   const std = STANDARD_PACK.meetingTemplates ?? []
-  return [...own, ...std.filter((t) => !own.some((x) => x.key === t.key))] as MeetingTemplate[]
+  return [...own, ...std.filter((t) => !covered.has(t.key))] as MeetingTemplate[]
 }
 
-const agendaSchema = z.array(z.object({ term: z.string().min(1).max(60), minutes: z.number().int().min(1).max(480) })).min(1).max(30)
+const LEGACY_TEMPLATE_KEYS: Record<string, string> = { l10: 'weekly' }
+
+/** Total length of an agenda in minutes. */
+export const agendaMinutes = (agenda: AgendaItemJson[]): number => agenda.reduce((n, a) => n + a.minutes, 0)
+/** Number of days an agenda spans (1 unless some sections are tagged `day: 2`). */
+export const agendaDays = (agenda: AgendaItemJson[]): number => Math.max(1, ...agenda.map((a) => a.day ?? 1))
+
+const agendaSchema = z.array(z.object({ term: z.string().min(1).max(60), minutes: z.number().int().min(1).max(480), day: z.union([z.literal(1), z.literal(2)]).optional() })).min(1).max(40)
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected HH:MM')
 const actorSchema = z.object({ type: z.enum(['person', 'agent']), id: z.uuid(), onBehalfOf: z.uuid().optional() })
 
@@ -59,14 +68,15 @@ export const meetingSeriesCreate = defineCommand({
   input: z.object({
     teamId: z.uuid(),
     name: z.string().trim().min(1).max(120),
-    /** Template key from the org's terminology pack (default 'weekly'). Ignored when `agenda` is given. */
-    templateKey: z.string().min(1).max(60).default('weekly'),
-    /** Custom agenda (overrides the template). */
+    /** Template key from the org's terminology pack or Standard: weekly, quarterly, annual, alignment, custom (default 'weekly', or 'custom' when only `agenda` is given). */
+    templateKey: z.string().min(1).max(60).optional(),
+    /** Custom agenda (overrides the template's sections). Sections may carry `day: 1 | 2` for multi-day sessions. */
     agenda: agendaSchema.optional(),
     /** Weekly iCalendar rule, e.g. FREQ=WEEKLY;BYDAY=MO. Empty/null = ad-hoc. */
     rrule: z.string().nullable().optional(),
     startTime: timeSchema.nullable().optional(),
-    durationMinutes: z.number().int().min(5).max(600).default(90),
+    /** Defaults to the longest day of the agenda (capped at 10 h). */
+    durationMinutes: z.number().int().min(5).max(600).optional(),
     /** Default: the team's members. */
     attendeeIds: z.array(z.uuid()).max(200).optional(),
     facilitatorId: z.uuid().nullable().optional(),
@@ -78,15 +88,16 @@ export const meetingSeriesCreate = defineCommand({
   run: async (ctx, input) => {
     await assertTeam(ctx, input.teamId)
     let agenda: AgendaItemJson[]
-    let templateKey = input.templateKey
+    let templateKey = input.templateKey ?? (input.agenda ? 'custom' : 'weekly')
     if (input.agenda) {
       agenda = input.agenda
-      if (!input.templateKey || input.templateKey === 'weekly') templateKey = 'custom'
     } else {
-      const t = (await orgTemplates(ctx)).find((x) => x.key === input.templateKey)
-      if (!t) throw new MovaraError('validation', `Unknown meeting template "${input.templateKey}"`)
+      const t = (await orgTemplates(ctx)).find((x) => x.key === templateKey)
+      if (!t) throw new MovaraError('validation', `Unknown meeting template "${templateKey}"`)
+      if (!t.agenda.length) throw new MovaraError('validation', `The "${t.name}" template has no sections: provide an \`agenda\``)
       agenda = t.agenda
     }
+    if (agenda.some((a) => a.day === 2) && agenda.some((a, i) => (a.day ?? 1) < (agenda[i - 1]?.day ?? 1))) throw new MovaraError('validation', 'Day 1 sections must come before day 2 sections')
     const rrule = validateRrule(input.rrule)
     const attendeeIds = input.attendeeIds
       ? [...new Set(input.attendeeIds)]
@@ -102,7 +113,7 @@ export const meetingSeriesCreate = defineCommand({
         agenda,
         rrule,
         startTime: input.startTime ?? null,
-        durationMinutes: input.durationMinutes,
+        durationMinutes: input.durationMinutes ?? Math.min(600, Math.max(5, ...[1, 2].map((d) => agendaMinutes(agenda.filter((a) => (a.day ?? 1) === d))))),
         attendeeIds,
         facilitatorId: input.facilitatorId ?? null,
         scribeActor: input.scribeActor ?? null,

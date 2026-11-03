@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@movara/terminology/schema/terminology-pack.schema.json",
   "id": "community.eos",
   "name": "EOS",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "locale": "en",
   "format": 1,
   "description": "Terminology used by companies running on EOS. Community pack; not affiliated with or endorsed by EOS Worldwide.",
@@ -90,11 +90,60 @@
     "core_process": {
       "singular": "Core Process",
       "plural": "Core Processes"
+    },
+    "quarterly_planning": {
+      "singular": "Quarterly Session",
+      "plural": "Quarterly Sessions"
+    },
+    "annual_planning": {
+      "singular": "Annual Planning",
+      "plural": "Annual Planning Sessions"
+    },
+    "quarter_review": {
+      "singular": "Review Previous Quarter",
+      "plural": "Review Previous Quarter",
+      "short": "Quarter review"
+    },
+    "year_review": {
+      "singular": "Review Previous Year",
+      "plural": "Review Previous Year",
+      "short": "Year review"
+    },
+    "vision_review": {
+      "singular": "Review the V/TO",
+      "plural": "Review the V/TO",
+      "short": "V/TO review"
+    },
+    "priority_setting": {
+      "singular": "Establish Next Quarter's Rocks",
+      "plural": "Establish Next Quarter's Rocks",
+      "short": "Set Rocks"
+    },
+    "team_health": {
+      "singular": "Team Health",
+      "plural": "Team Health"
+    },
+    "issues_list_build": {
+      "singular": "Build the Issues List",
+      "plural": "Build the Issues List",
+      "short": "Build Issues List"
+    },
+    "next_steps": {
+      "singular": "Next Steps",
+      "plural": "Next Steps"
+    },
+    "day_one": {
+      "singular": "Day 1",
+      "plural": "Day 1"
+    },
+    "day_two": {
+      "singular": "Day 2",
+      "plural": "Day 2"
     }
   },
   "meetingTemplates": [
     {
-      "key": "l10",
+      "key": "weekly",
       "name": "Level 10 Meeting",
       "agenda": [
         {
@@ -126,6 +175,133 @@
           "minutes": 5
         }
       ]
+    },
+    {
+      "key": "quarterly",
+      "name": "Quarterly Session",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 15
+        },
+        {
+          "term": "quarter_review",
+          "minutes": 30
+        },
+        {
+          "term": "vision_review",
+          "minutes": 60
+        },
+        {
+          "term": "priority_setting",
+          "minutes": 120
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 105
+        },
+        {
+          "term": "next_steps",
+          "minutes": 10
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 15
+        }
+      ]
+    },
+    {
+      "key": "annual",
+      "name": "Annual Planning",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 30,
+          "day": 1
+        },
+        {
+          "term": "year_review",
+          "minutes": 60,
+          "day": 1
+        },
+        {
+          "term": "team_health",
+          "minutes": 90,
+          "day": 1
+        },
+        {
+          "term": "vision_review",
+          "minutes": 120,
+          "day": 1
+        },
+        {
+          "term": "issues_list_build",
+          "minutes": 30,
+          "day": 1
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 15,
+          "day": 1
+        },
+        {
+          "term": "check_in",
+          "minutes": 15,
+          "day": 2
+        },
+        {
+          "term": "one_year_plan",
+          "minutes": 120,
+          "day": 2
+        },
+        {
+          "term": "priority_setting",
+          "minutes": 120,
+          "day": 2
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 120,
+          "day": 2
+        },
+        {
+          "term": "next_steps",
+          "minutes": 15,
+          "day": 2
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 15,
+          "day": 2
+        }
+      ]
+    },
+    {
+      "key": "alignment",
+      "name": "Same Page Meeting",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 10
+        },
+        {
+          "term": "issues_list_build",
+          "minutes": 20
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 80
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 10
+        }
+      ]
+    },
+    {
+      "key": "custom",
+      "name": "Custom Meeting",
+      "agenda": []
     }
   ]
 }

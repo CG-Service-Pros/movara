@@ -1,6 +1,6 @@
 # @movara-community/pack-eos
 
-EOS terminology pack for [Movara](https://github.com/movara-app/movara) (community, **unofficial**). Renames Movara's concepts to the terms used by companies running on EOS (Rocks, Level 10, V/TO, IDS...) and adds a Level 10 meeting template.
+EOS terminology pack for [Movara](https://github.com/movara-app/movara) (community, **unofficial**). Renames Movara's concepts to the terms used by companies running on EOS (Rocks, Level 10, V/TO, IDS...) and adds the EOS meeting templates: Level 10 Meeting, Quarterly Session, Annual Planning (two days), Same Page Meeting and Custom.
 
 EOS(R), Traction(R), Level 10 Meeting(TM), V/TO(TM) and related terms are trademarks of EOS Worldwide, LLC.
 This pack is not affiliated with or endorsed by EOS Worldwide. Movara shows the attribution while the pack is active.

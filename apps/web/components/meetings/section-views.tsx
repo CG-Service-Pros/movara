@@ -296,7 +296,7 @@ export function GenericView({ title }: { title: string }) {
 
 // ------------------------------------------------------------------ wrap-up
 
-export function WrapUpView({ b, act, onEnd }: { b: Bundle; act: Act; onEnd: () => void }) {
+export function WrapUpView({ b, act, onEnd, endDay }: { b: Bundle; act: Act; onEnd: () => void; endDay?: { label: string; run: () => void } }) {
   const { live } = b
   const newTodos = b.todos.filter((t) => live.newTodoIds.includes(t.id))
   const solved = live.ids.solvedIssueIds.length
@@ -419,7 +419,7 @@ export function WrapUpView({ b, act, onEnd }: { b: Bundle; act: Act; onEnd: () =
           />
           <Mail size={14} className="text-icon" /> Send recap to attendees
         </label>
-        <Button className="ml-auto" variant="primary" onClick={onEnd}>End meeting</Button>
+        <Button className="ml-auto h-10 min-w-[140px] px-5" variant="primary" onClick={endDay ? endDay.run : onEnd}>{endDay ? endDay.label : 'End meeting'}</Button>
       </div>
       {!mine && (
         <p className="mt-2 flex items-center gap-1.5 text-xs text-faint"><AlertTriangle size={12} /> You have not rated yet.</p>

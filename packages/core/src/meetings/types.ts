@@ -61,6 +61,14 @@ export type StoredMeetingState = {
   reviewedHeadlineIds: string[]
   /** Check-in: ids of people who have shared. */
   sharedIds: string[]
+  /** Quarter review: each attendee's 1-10 grade of the quarter, by person id. */
+  quarterGrades: Record<string, number>
+  /** Team health: each attendee's 1-10 rating and note, by person id. */
+  teamHealth: Record<string, { rating: number; note: string }>
+  /** Multi-day sessions: true between "End day N" and "Start day N+1" (the meeting is paused). */
+  dayBreak: boolean
+  /** Days that were ended with "End day N". */
+  endedDays: number[]
   /** Set by meeting end. */
   stats?: MeetingStats
 }

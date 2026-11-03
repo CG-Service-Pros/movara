@@ -64,3 +64,10 @@ export function goalText(m: { comparison: string; goal: number | null; goalUpper
     default: return g
   }
 }
+
+/** Length of an agenda: "45 min", "5 h 55 min", or "2 days" for multi-day sessions. */
+export function fmtLength(minutes: number, days = 1): string {
+  if (days > 1) return `${days} days`
+  const h = Math.floor(minutes / 60)
+  return h ? `${h} h ${minutes % 60} min` : `${minutes} min`
+}

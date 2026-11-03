@@ -5,7 +5,7 @@ import {
   endMeeting, execute, getLiveState, getMeeting, getMeetingSeries, getTodo, idsFocus, idsResolve, idsStart, issueCreate, listHeadlines, listIssues, listMeetingHistory, listMeetingSeries,
   listMeetings, listMeetingTemplates, listTeams, listTodos, meetingCapture, meetingDropToIssue, meetingHeartbeat, meetingJoin, meetingLeave, meetingNextSection, meetingPause, meetingRate,
   meetingResume, meetingReviewHeadline, meetingScheduleNext, meetingSeriesCreate, meetingSeriesUpdate, meetingSetSection, meetingSetSettings, meetingStart, meetingEnd,
-  headlinePost, orgSetTerminologyPack, prepareMeeting, todoCreate, todoComplete, type EmailMessage, type EmailSender, nextOccurrence, zonedToUtc, getIssue, ctxForPerson,
+  headlinePost, orgSetTerminologyPack, meetingEndDay, meetingStartDay, meetingSetQuarterGrade, meetingSetTeamHealth, planningQuarters, agendaDays, agendaMinutes, prepareMeeting, todoCreate, todoComplete, type EmailMessage, type EmailSender, nextOccurrence, zonedToUtc, getIssue, ctxForPerson,
 } from '../src'
 import { createTestDb, seedTestOrg } from '../src/testing'
 
@@ -259,5 +259,152 @@ describe('live meeting', () => {
     expect(prep.offTrackMetrics).toEqual([])
     expect(prep.offTrackPriorities).toEqual([])
     await expect(prepareMeeting(ctx, {})).rejects.toMatchObject({ code: 'validation' })
+  })
+})
+
+describe('meeting templates', () => {
+  it('creates a series from every Standard template with the right agenda and duration', async () => {
+    const o = await seedTestOrg(db)
+    const team = (await listTeams(o.ctx))[0]!
+    const keys = (await listMeetingTemplates(o.ctx)).map((t) => t.key)
+    expect(keys).toEqual(['weekly', 'quarterly', 'annual', 'alignment', 'custom'])
+    const make = async (templateKey: string, extra: object = {}) => ok(await execute(o.ctx, meetingSeriesCreate, { teamId: team.id, name: templateKey, templateKey, rrule: null, ...extra })).series
+
+    const weekly = await make('weekly')
+    expect(weekly.durationMinutes).toBe(90)
+    const quarterly = await make('quarterly')
+    expect(quarterly.agenda.map((a) => a.term)).toEqual(['check_in', 'quarter_review', 'vision_review', 'priority_setting', 'issue_solving', 'next_steps', 'wrap_up'])
+    expect(agendaMinutes(quarterly.agenda)).toBe(355)
+    expect(quarterly.durationMinutes).toBe(355)
+    expect(agendaDays(quarterly.agenda)).toBe(1)
+    const annual = await make('annual')
+    expect(agendaDays(annual.agenda)).toBe(2)
+    expect(annual.agenda.filter((a) => a.day === 1)).toHaveLength(6)
+    expect(annual.agenda.filter((a) => a.day === 2)).toHaveLength(6)
+    expect(annual.durationMinutes).toBe(405) // the longest day
+    const alignment = await make('alignment')
+    expect(alignment.agenda.map((a) => a.minutes)).toEqual([10, 20, 80, 10])
+    expect(alignment.durationMinutes).toBe(120)
+
+    // custom: empty template needs sections
+    await expect(execute(o.ctx, meetingSeriesCreate, { teamId: team.id, name: 'c', templateKey: 'custom', rrule: null })).rejects.toMatchObject({ code: 'validation' })
+    const custom = await make('custom', { agenda: [{ term: 'check_in', minutes: 10 }] })
+    expect(custom).toMatchObject({ templateKey: 'custom' })
+    expect(custom.agenda).toHaveLength(1)
+    // days must be ordered
+    await expect(execute(o.ctx, meetingSeriesCreate, { teamId: team.id, name: 'bad', rrule: null, agenda: [{ term: 'check_in', minutes: 5, day: 2 }, { term: 'wrap_up', minutes: 5, day: 1 }] })).rejects.toMatchObject({ code: 'validation' })
+  })
+
+  it('shows the org pack templates without duplicating legacy keys', async () => {
+    const o = await seedTestOrg(db)
+    const pack = { ...STANDARD_PACK, id: 'test.legacy', meetingTemplates: [{ key: 'l10', name: 'Level 10 Meeting', agenda: [{ term: 'check_in' as const, minutes: 5 }] }] }
+    ok(await execute(o.ctx, orgSetTerminologyPack, { pack }))
+    const names = (await listMeetingTemplates(o.ctx)).map((t) => t.name)
+    expect(names).toContain('Level 10 Meeting')
+    expect(names).not.toContain('Weekly meeting')
+    expect(names).toContain('Quarterly planning')
+  })
+
+  it('picks the quarter to review and the quarter to plan', () => {
+    const cal = { fiscalYearStartMonth: 1, weekStartDay: 1, timezone: 'UTC' }
+    expect(planningQuarters(cal, '2026-12-10')).toEqual({ review: '2026-Q4', plan: '2027-Q1' })
+    expect(planningQuarters(cal, '2027-01-08')).toEqual({ review: '2026-Q4', plan: '2027-Q1' })
+    expect(planningQuarters(cal, '2026-11-02')).toEqual({ review: '2026-Q4', plan: '2027-Q1' })
+    expect(planningQuarters(cal, '2026-10-05')).toEqual({ review: '2026-Q3', plan: '2026-Q4' })
+  })
+})
+
+describe('multi-day sessions', () => {
+  async function annual() {
+    const t = await setup()
+    const s = ok(await execute(t.ctx, meetingSeriesCreate, { teamId: t.team.id, name: 'Annual', templateKey: 'annual', rrule: null, attendeeIds: [t.ctx.actor.id, t.a.personId] }))
+    const m = ok(await execute(t.ctx, meetingStart, { seriesId: s.series.id }))
+    return { ...t, meetingId: m.id }
+  }
+
+  it('ends day 1 (paused, persisted) and starts day 2 at its first section', async () => {
+    const { ctx, meetingId } = await annual()
+    let st = (await getLiveState(ctx, meetingId))!
+    expect(st).toMatchObject({ day: 1, days: 2, dayBreak: false, status: 'live' })
+    expect(st.agenda.map((a) => a.day)).toEqual([1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2])
+    for (let i = 0; i < 5; i++) ok(await execute(ctx, meetingNextSection, { meetingId }))
+    // the day boundary is closed until the day is ended
+    await expect(execute(ctx, meetingNextSection, { meetingId })).rejects.toMatchObject({ code: 'conflict' })
+    await expect(execute(ctx, meetingSetSection, { meetingId, index: 8 })).rejects.toMatchObject({ code: 'conflict' })
+    await expect(execute(ctx, meetingStartDay, { meetingId })).rejects.toMatchObject({ code: 'conflict' })
+
+    ok(await execute(ctx, meetingEndDay, { meetingId }))
+    st = (await getLiveState(ctx, meetingId))!
+    expect(st).toMatchObject({ status: 'paused', paused: true, dayBreak: true, endedDays: [1], sectionIndex: 5 })
+    expect(st.agenda.every((a) => !a.running)).toBe(true)
+    await expect(execute(ctx, meetingEndDay, { meetingId })).rejects.toMatchObject({ code: 'conflict' })
+    await expect(execute(ctx, meetingResume, { meetingId })).rejects.toMatchObject({ code: 'conflict' })
+    await expect(execute(ctx, meetingNextSection, { meetingId })).rejects.toMatchObject({ code: 'conflict' })
+
+    // persisted in the stored state: a fresh read sees the same break
+    const elapsed = st.agenda[5]!.elapsedMs
+    ok(await execute(ctx, meetingStartDay, { meetingId }))
+    st = (await getLiveState(ctx, meetingId))!
+    expect(st).toMatchObject({ status: 'live', paused: false, dayBreak: false, day: 2, sectionIndex: 6, endedDays: [1] })
+    expect(st.agenda[6]!.running).toBe(true)
+    expect(st.agenda[5]!.elapsedMs).toBe(elapsed)
+    // day 2 is the last day: it cannot be "ended", only the meeting
+    await expect(execute(ctx, meetingEndDay, { meetingId })).rejects.toMatchObject({ code: 'conflict' })
+    // day 1 sections are closed again once day 2 started
+    await expect(execute(ctx, meetingSetSection, { meetingId, index: 2 })).rejects.toMatchObject({ code: 'conflict' })
+    ok(await execute(ctx, meetingNextSection, { meetingId }))
+    expect((await getLiveState(ctx, meetingId))!.sectionIndex).toBe(7)
+  })
+
+  it('refuses end_day on single-day agendas and ends a meeting that is between days', async () => {
+    const t = await setup()
+    const m = ok(await execute(t.ctx, meetingStart, { seriesId: t.series.id }))
+    await expect(execute(t.ctx, meetingEndDay, { meetingId: m.id })).rejects.toMatchObject({ code: 'conflict' })
+    const a = await annual()
+    ok(await execute(a.ctx, meetingEndDay, { meetingId: a.meetingId }))
+    const end = await endMeeting(a.ctx, { meetingId: a.meetingId })
+    expect(end.ok).toBe(true)
+    expect((await getLiveState(a.ctx, a.meetingId))!.status).toBe('ended')
+  })
+})
+
+describe('quarter grade and team health', () => {
+  it('stores per-attendee grades and health in the live state and the summary', async () => {
+    const t = await setup()
+    const { ctx, a, b } = t
+    const s = ok(await execute(ctx, meetingSeriesCreate, { teamId: t.team.id, name: 'Quarterly', templateKey: 'quarterly', rrule: null, attendeeIds: [ctx.actor.id, a.personId] }))
+    const m = ok(await execute(ctx, meetingStart, { seriesId: s.series.id }))
+    const meetingId = m.id
+    ok(await execute(ctx, meetingSetQuarterGrade, { meetingId, score: 8 }))
+    ok(await execute(a.ctx, meetingSetQuarterGrade, { meetingId, score: 6 }))
+    ok(await execute(ctx, meetingSetTeamHealth, { meetingId, rating: 7, note: 'Tired but good' }))
+    ok(await execute(ctx, meetingSetTeamHealth, { meetingId, personId: a.personId, rating: 9 }))
+    let st = (await getLiveState(ctx, meetingId))!
+    expect(st.quarterGrades).toEqual({ [ctx.actor.id]: 8, [a.personId]: 6 })
+    expect(st.teamHealth).toEqual({ [ctx.actor.id]: { rating: 7, note: 'Tired but good' }, [a.personId]: { rating: 9, note: '' } })
+    // changing the rating keeps the note; rating null clears; the score can be cleared
+    ok(await execute(ctx, meetingSetTeamHealth, { meetingId, rating: 5 }))
+    ok(await execute(ctx, meetingSetQuarterGrade, { meetingId, personId: a.personId, score: null }))
+    st = (await getLiveState(ctx, meetingId))!
+    expect(st.teamHealth[ctx.actor.id]).toEqual({ rating: 5, note: 'Tired but good' })
+    expect(st.quarterGrades).toEqual({ [ctx.actor.id]: 8 })
+    ok(await execute(ctx, meetingSetTeamHealth, { meetingId, personId: a.personId, rating: null }))
+    expect(Object.keys((await getLiveState(ctx, meetingId))!.teamHealth)).toEqual([ctx.actor.id])
+    expect(st.rev).toBeGreaterThan(0)
+
+    // validation and permissions
+    await expect(execute(ctx, meetingSetQuarterGrade, { meetingId, score: 11 })).rejects.toMatchObject({ code: 'validation' })
+    await expect(execute(ctx, meetingSetQuarterGrade, { meetingId, personId: b.personId, score: 5 })).rejects.toMatchObject({ code: 'validation' }) // not an attendee
+    const ag = await t.addAgent('Notes', ['read', 'write:meetings'])
+    await expect(execute(ag.ctx, meetingSetQuarterGrade, { meetingId, personId: a.personId, score: 5 })).rejects.toMatchObject({ code: 'forbidden' })
+    await expect(execute(ag.ctx, meetingSetTeamHealth, { meetingId, personId: a.personId, rating: 5 })).rejects.toMatchObject({ code: 'forbidden' })
+    const other = await seedTestOrg(db)
+    await expect(execute(other.ctx, meetingSetQuarterGrade, { meetingId, score: 5 })).rejects.toMatchObject({ code: 'not_found' })
+
+    const end = await endMeeting(ctx, { meetingId })
+    if (!end.ok) throw new Error('approval')
+    expect(end.data.summary).toContain('Quarter grade 8 (1)')
+    expect(end.data.summary).toContain('Team health 5 (1)')
+    await expect(execute(ctx, meetingSetQuarterGrade, { meetingId, score: 3 })).rejects.toMatchObject({ code: 'conflict' })
   })
 })

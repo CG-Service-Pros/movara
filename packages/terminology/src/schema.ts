@@ -17,6 +17,8 @@ export const TERM_KEYS = [
   // Meetings
   'weekly_meeting', 'check_in', 'metric_review', 'priority_review', 'headline_review',
   'todo_review', 'issue_solving', 'wrap_up', 'planning_session', 'alignment_meeting',
+  'quarterly_planning', 'annual_planning', 'quarter_review', 'year_review', 'vision_review',
+  'priority_setting', 'team_health', 'issues_list_build', 'next_steps', 'day_one', 'day_two',
   // Issue-solving steps
   'identify', 'discuss', 'solve',
   // Processes
@@ -34,7 +36,8 @@ export const Term = z.object({
 })
 export type Term = z.infer<typeof Term>
 
-const AgendaItem = z.object({ term: z.enum(TERM_KEYS), minutes: z.number().int().min(1).max(480) })
+/** `day` groups multi-day sessions (annual planning): 1 or 2. Omitted = a single-day agenda. */
+const AgendaItem = z.object({ term: z.enum(TERM_KEYS), minutes: z.number().int().min(1).max(480), day: z.union([z.literal(1), z.literal(2)]).optional() })
 
 export const TerminologyPack = z.object({
   $schema: z.string().optional(),
@@ -55,7 +58,8 @@ export const TerminologyPack = z.object({
   meetingTemplates: z.array(z.object({
     key: z.string().regex(/^[a-z0-9_-]+$/),
     name: z.string(),
-    agenda: z.array(AgendaItem).min(1),
+    /** Empty for the Custom template (the user adds sections). */
+    agenda: z.array(AgendaItem),
   })).optional(),
   /** Optional status label overrides. Status *values* never change, only labels. */
   statuses: z.record(z.string(), z.string()).optional(),

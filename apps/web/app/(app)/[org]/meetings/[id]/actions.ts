@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import {
-  endMeeting, execute, headlineCascade, headlinePost, idsFocus, idsResolve, idsSetStep, idsStart, isMovaraError, issueUpdate, meetingCapture, meetingDropToIssue,
-  meetingJoin, meetingNextSection, meetingPause, meetingRate, meetingResume, meetingReviewHeadline, meetingSetSection, meetingSetSettings, meetingSetShared,
+  endMeeting, execute, getLiveState, headlineCascade, headlinePost, idsFocus, idsResolve, idsSetStep, idsStart, isMovaraError, issueUpdate, meetingCapture, meetingDropToIssue,
+  meetingEndDay, meetingJoin, meetingNextSection, meetingSetQuarterGrade, meetingSetTeamHealth, meetingStartDay, priorityCreate, meetingPause, meetingRate, meetingResume, meetingReviewHeadline, meetingSetSection, meetingSetSettings, meetingSetShared,
   meetingStart, prioritySetStatus, todoComplete, todoUncomplete,
 } from '@movara/core'
 import { loadBundle } from '@/components/meetings/bundle'
@@ -23,7 +23,14 @@ export type MeetingOp =
   | { k: 'todo'; id: string; done: boolean }
   | { k: 'focus'; issueIds: string[] }
   | { k: 'ids_start'; issueId: string }
-  | { k: 'capture_todo'; issueId: string; title: string; ownerId: string; dueDate?: string }
+  | { k: 'capture_todo'; issueId?: string; title: string; ownerId: string; dueDate?: string }
+  | { k: 'capture_issue'; title: string; ownerId?: string; long?: boolean }
+  | { k: 'end_day' }
+  | { k: 'start_day' }
+  | { k: 'quarter_grade'; personId: string; score: number | null }
+  | { k: 'team_health'; personId: string; rating: number | null; note?: string }
+  | { k: 'priority_create'; title: string; ownerId: string; level: 'company' | 'individual'; quarter: string }
+  | { k: 'priority_drop'; id: string; title: string }
   | { k: 'ids_step'; step: 'identify' | 'discuss' | 'solve' }
   | { k: 'shared'; personId: string; shared: boolean }
   | { k: 'resolve'; issueId: string; solved: boolean }
@@ -51,7 +58,23 @@ export async function meetingAction(slug: string, meetingId: string, op: Meeting
       case 'focus': await execute(ctx, idsFocus, { meetingId, issueIds: op.issueIds }); break
       case 'ids_start': await execute(ctx, idsStart, { meetingId, issueId: op.issueId }); break
       case 'capture_todo':
-        await execute(ctx, meetingCapture, { meetingId, todos: [{ title: op.title, ownerIds: [op.ownerId], dueDate: op.dueDate || undefined }], source: { type: 'issue', id: op.issueId } })
+        await execute(ctx, meetingCapture, { meetingId, todos: [{ title: op.title, ownerIds: [op.ownerId], dueDate: op.dueDate || undefined }], ...(op.issueId ? { source: { type: 'issue', id: op.issueId } } : {}) })
+        break
+      case 'capture_issue':
+        await execute(ctx, meetingCapture, { meetingId, issues: [{ title: op.title, ownerIds: op.ownerId ? [op.ownerId] : undefined, horizon: op.long ? 'long' : 'short' }] })
+        break
+      case 'end_day': await execute(ctx, meetingEndDay, { meetingId }); break
+      case 'start_day': await execute(ctx, meetingStartDay, { meetingId }); break
+      case 'quarter_grade': await execute(ctx, meetingSetQuarterGrade, { meetingId, personId: op.personId, score: op.score }); break
+      case 'team_health': await execute(ctx, meetingSetTeamHealth, { meetingId, personId: op.personId, rating: op.rating, note: op.note }); break
+      case 'priority_create': {
+        const teamId = (await getLiveState(ctx, meetingId))!.teamId
+        await execute(ctx, priorityCreate, { title: op.title, ownerId: op.ownerId, level: op.level, quarter: op.quarter, teamId })
+        break
+      }
+      case 'priority_drop':
+        await execute(ctx, meetingDropToIssue, { meetingId, from: { type: 'priority', id: op.id }, title: op.title })
+        await execute(ctx, prioritySetStatus, { priorityId: op.id, status: 'dropped' })
         break
       case 'ids_step': await execute(ctx, idsSetStep, { meetingId, step: op.step }); break
       case 'shared': await execute(ctx, meetingSetShared, { meetingId, personId: op.personId, shared: op.shared }); break

@@ -10,6 +10,9 @@ export function Toaster(props: ToasterProps) {
   return (
     <Sonner
       position="bottom-right"
+      // Clears the live meeting footer (64px) so toasts never cover its Next / End buttons.
+      offset={{ bottom: 76, right: 20 }}
+      mobileOffset={{ bottom: 76, right: 12, left: 12 }}
       toastOptions={{
         classNames: {
           toast: '!rounded-lg !bg-raised !text-ink !shadow-pop !border-0 !text-sm !font-[500]',

@@ -161,6 +161,57 @@
     "core_process": {
       "singular": "Core process",
       "plural": "Core processes"
+    },
+    "quarterly_planning": {
+      "singular": "Quarterly planning",
+      "plural": "Quarterly planning sessions",
+      "description": "A one-day session to review the quarter and set the next quarter's priorities."
+    },
+    "annual_planning": {
+      "singular": "Annual planning",
+      "plural": "Annual planning sessions",
+      "description": "A two-day session to review the year, refresh the vision plan and plan the year ahead."
+    },
+    "quarter_review": {
+      "singular": "Review previous quarter",
+      "plural": "Review previous quarter",
+      "short": "Quarter review"
+    },
+    "year_review": {
+      "singular": "Review previous year",
+      "plural": "Review previous year",
+      "short": "Year review"
+    },
+    "vision_review": {
+      "singular": "Review the vision plan",
+      "plural": "Review the vision plan",
+      "short": "Vision review"
+    },
+    "priority_setting": {
+      "singular": "Set next quarter's priorities",
+      "plural": "Set next quarter's priorities",
+      "short": "Set priorities"
+    },
+    "team_health": {
+      "singular": "Team health",
+      "plural": "Team health"
+    },
+    "issues_list_build": {
+      "singular": "Build the issues list",
+      "plural": "Build the issues list",
+      "short": "Build issues list"
+    },
+    "next_steps": {
+      "singular": "Next steps",
+      "plural": "Next steps"
+    },
+    "day_one": {
+      "singular": "Day 1",
+      "plural": "Day 1"
+    },
+    "day_two": {
+      "singular": "Day 2",
+      "plural": "Day 2"
     }
   },
   "meetingTemplates": [
@@ -197,6 +248,133 @@
           "minutes": 5
         }
       ]
+    },
+    {
+      "key": "quarterly",
+      "name": "Quarterly planning",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 15
+        },
+        {
+          "term": "quarter_review",
+          "minutes": 30
+        },
+        {
+          "term": "vision_review",
+          "minutes": 60
+        },
+        {
+          "term": "priority_setting",
+          "minutes": 120
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 105
+        },
+        {
+          "term": "next_steps",
+          "minutes": 10
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 15
+        }
+      ]
+    },
+    {
+      "key": "annual",
+      "name": "Annual planning",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 30,
+          "day": 1
+        },
+        {
+          "term": "year_review",
+          "minutes": 60,
+          "day": 1
+        },
+        {
+          "term": "team_health",
+          "minutes": 90,
+          "day": 1
+        },
+        {
+          "term": "vision_review",
+          "minutes": 120,
+          "day": 1
+        },
+        {
+          "term": "issues_list_build",
+          "minutes": 30,
+          "day": 1
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 15,
+          "day": 1
+        },
+        {
+          "term": "check_in",
+          "minutes": 15,
+          "day": 2
+        },
+        {
+          "term": "one_year_plan",
+          "minutes": 120,
+          "day": 2
+        },
+        {
+          "term": "priority_setting",
+          "minutes": 120,
+          "day": 2
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 120,
+          "day": 2
+        },
+        {
+          "term": "next_steps",
+          "minutes": 15,
+          "day": 2
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 15,
+          "day": 2
+        }
+      ]
+    },
+    {
+      "key": "alignment",
+      "name": "Alignment check-in",
+      "agenda": [
+        {
+          "term": "check_in",
+          "minutes": 10
+        },
+        {
+          "term": "issues_list_build",
+          "minutes": 20
+        },
+        {
+          "term": "issue_solving",
+          "minutes": 80
+        },
+        {
+          "term": "wrap_up",
+          "minutes": 10
+        }
+      ]
+    },
+    {
+      "key": "custom",
+      "name": "Custom meeting",
+      "agenda": []
     }
   ],
   "statuses": {

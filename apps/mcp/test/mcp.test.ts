@@ -131,6 +131,20 @@ describe('writes', () => {
     expect(titles(await call(s.client, 'todos_list', { status: ['open', 'done'] }))).toEqual(['Done one', 'Open one'])
   })
 
+  it('runs a two-day session through meeting_end_day / meeting_start_day', async () => {
+    const s = await setup()
+    const series = await execute(s.ctx, meetingSeriesCreate, { teamId: s.team.id, name: 'Annual', templateKey: 'annual', rrule: null, firstScheduledAt: new Date(Date.now() + 3600_000) })
+    if (!series.ok) throw new Error('approval')
+    const meetingId = series.data.firstMeeting!.id
+    expect((await call(s.client, 'meeting_start', { meetingId })).body.ok).toBe(true)
+    for (let i = 0; i < 5; i++) expect((await call(s.client, 'meeting_next_section', { meetingId })).body.ok).toBe(true)
+    expect((await call(s.client, 'meeting_next_section', { meetingId })).isError).toBe(true) // day boundary
+    expect((await call(s.client, 'meeting_end_day', { meetingId })).body.ok).toBe(true)
+    expect((await getLiveState(s.ctx, meetingId))).toMatchObject({ status: 'paused', dayBreak: true })
+    expect((await call(s.client, 'meeting_start_day', { meetingId })).body.ok).toBe(true)
+    expect((await getLiveState(s.ctx, meetingId))).toMatchObject({ status: 'live', day: 2, sectionIndex: 6 })
+  })
+
   it('todo_create / issue_create for a team with a live meeting land in that meeting', async () => {
     const s = await setup()
     const series = await execute(s.ctx, meetingSeriesCreate, { teamId: s.team.id, name: 'Weekly', rrule: null, firstScheduledAt: new Date(Date.now() + 3600_000) })

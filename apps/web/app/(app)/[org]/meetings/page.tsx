@@ -11,7 +11,10 @@ import { StartButton } from '@/components/meetings/start-button'
 import { Page } from '@/components/shell/page'
 import { requireModule } from '@/lib/ctx'
 
-const SECTION_KEYS = ['check_in', 'metric_review', 'priority_review', 'headline_review', 'todo_review', 'issue_solving', 'wrap_up'] as const
+const SECTION_KEYS = [
+  'check_in', 'metric_review', 'priority_review', 'headline_review', 'todo_review', 'issue_solving', 'wrap_up',
+  'quarter_review', 'year_review', 'vision_review', 'one_year_plan', 'priority_setting', 'team_health', 'issues_list_build', 'next_steps',
+] as const
 
 export default async function MeetingsPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ id?: string; new?: string }> }) {
   const { org: slug } = await params
@@ -31,7 +34,6 @@ export default async function MeetingsPage({ params, searchParams }: { params: P
   ])
   const tz = org.timezone
   const teamName = (id: string) => teams.find((t) => t.id === id)?.name ?? '–'
-  const meetingWord = terms.t('weekly_meeting')
   const nextOf = (seriesId: string) => upcoming.filter((m) => m.seriesId === seriesId).sort((a, b) => (a.status === 'live' ? -1 : b.status === 'live' ? 1 : +a.scheduledAt - +b.scheduledAt))[0]
   const myTeam = teams.find((t) => t.members.some((m) => ctx.actor.type === 'person' && m.personId === ctx.actor.id)) ?? teams[0]
 
@@ -44,22 +46,23 @@ export default async function MeetingsPage({ params, searchParams }: { params: P
         teams: teams.map((t) => ({ id: t.id, name: t.name, memberIds: t.members.map((m) => m.personId) })),
         people: people.map((p) => ({ id: p.id, name: p.name })),
         templates: templates.map((t) => ({ key: t.key, name: t.name, agenda: t.agenda })),
+        dayLabels: [terms.t('day_one'), terms.t('day_two')],
         agents: agents.filter((a) => a.status !== 'revoked' && (a.scopes as string[]).some((s) => s === 'write:meetings' || s === 'admin')).map((a) => ({ id: a.id, name: a.name })),
         sectionTerms: SECTION_KEYS.map((k) => ({ key: k, label: terms.t(k, 'short') })),
-        labels: { meeting: meetingWord, newMeeting: `New ${meetingWord.toLowerCase()}` },
+        labels: { meeting: 'Meeting', newMeeting: 'New meeting' },
         today: todayIn(org),
       }}
     />
   )
 
   return (
-    <Page title={terms.t('weekly_meeting', 'plural')} meta={<span>{series.length} series</span>} actions={dialog}>
+    <Page title="Meetings" meta={<span>{series.length} series</span>} actions={dialog}>
       <div className="w-full px-6 pb-12 pt-6 lg:px-8">
         {series.length === 0 ? (
           <EmptyState
             icon={<CalendarClock />}
-            title={`No ${terms.t('weekly_meeting', 'plural').toLowerCase()} yet`}
-            description={terms.term('weekly_meeting').description ?? 'Set up a recurring meeting for a team.'}
+            title="No meetings yet"
+            description="Set up a weekly meeting, a planning session or an alignment check-in for a team."
             action={dialog || undefined}
           />
         ) : (
@@ -102,7 +105,7 @@ export default async function MeetingsPage({ params, searchParams }: { params: P
               })}
             </div>
 
-            <h2 className="mt-8 text-sm font-[600] text-ink">Past {terms.t('weekly_meeting', 'plural').toLowerCase()}</h2>
+            <h2 className="mt-8 text-sm font-[600] text-ink">Past meetings</h2>
             {history.length === 0 ? (
               <p className="mt-2 rounded-xl border border-dashed border-line px-4 py-8 text-center text-sm text-body">Nothing here until the first meeting ends.</p>
             ) : (

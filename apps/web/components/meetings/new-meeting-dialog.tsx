@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@movara/ui/button'
@@ -12,14 +12,18 @@ import { Segmented } from '@movara/ui/segmented'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@movara/ui/select'
 import { toast } from '@movara/ui/toaster'
 import { createSeries } from '@/app/(app)/[org]/meetings/actions'
-import { WEEKDAYS } from './format'
+import { WEEKDAYS, fmtLength } from './format'
+
+type AgendaRow = { term: string; minutes: number; day?: 1 | 2 }
 
 export type DialogData = {
   slug: string
   defaultTeamId: string
   teams: { id: string; name: string; memberIds: string[] }[]
   people: { id: string; name: string }[]
-  templates: { key: string; name: string; agenda: { term: string; minutes: number }[] }[]
+  templates: { key: string; name: string; agenda: AgendaRow[] }[]
+  /** Labels for day 1 and day 2 of multi-day templates. */
+  dayLabels: [string, string]
   agents: { id: string; name: string }[]
   /** Terms usable as agenda sections: value is the term key. */
   sectionTerms: { key: string; label: string }[]
@@ -37,7 +41,7 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
   const first = data.templates[0]
   const [teamId, setTeamId] = useState(data.defaultTeamId)
   const [templateKey, setTemplateKey] = useState(first?.key ?? 'weekly')
-  const [agenda, setAgenda] = useState(first?.agenda ?? [])
+  const [agenda, setAgenda] = useState<AgendaRow[]>(first?.agenda ?? [])
   const [name, setName] = useState('')
   const [kind, setKind] = useState<'weekly' | 'adhoc'>('weekly')
   const [days, setDays] = useState<string[]>(['MO'])
@@ -46,13 +50,18 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
   const team = data.teams.find((t) => t.id === teamId)
   const [attendees, setAttendees] = useState<string[]>(team?.memberIds ?? [])
   const [scribe, setScribe] = useState('none')
-  const total = useMemo(() => agenda.reduce((n, a) => n + (Number.isFinite(a.minutes) ? a.minutes : 0), 0), [agenda])
+  const minutesOf = (rows: AgendaRow[]) => rows.reduce((n, a) => n + (Number.isFinite(a.minutes) ? a.minutes : 0), 0)
+  const daysOf = (rows: AgendaRow[]) => Math.max(1, ...rows.map((a) => a.day ?? 1))
+  const total = useMemo(() => minutesOf(agenda), [agenda])
+  const dayCount = daysOf(agenda)
   const label = (k: string) => data.sectionTerms.find((t) => t.key === k)?.label ?? k
 
   const pickTemplate = (key: string) => {
     setTemplateKey(key)
     const t = data.templates.find((x) => x.key === key)
     if (t) setAgenda(t.agenda.map((a) => ({ ...a })))
+    // Planning sessions and alignment check-ins are one-offs by default; only the weekly meeting repeats weekly.
+    setKind(key === 'weekly' || key === 'l10' ? 'weekly' : 'adhoc')
   }
   const pickTeam = (id: string) => {
     setTeamId(id)
@@ -67,7 +76,7 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
       name: name.trim(),
       teamId,
       templateKey,
-      agenda: agenda.map((a) => ({ term: a.term, minutes: Math.max(1, Math.round(a.minutes) || 1) })),
+      agenda: agenda.map((a) => ({ term: a.term, minutes: Math.max(1, Math.round(a.minutes) || 1), ...(a.day ? { day: a.day } : {}) })),
       schedule: kind === 'weekly' ? { kind, days, time } : { kind, date, time },
       attendeeIds: attendees,
       scribeAgentId: scribe === 'none' ? null : scribe,
@@ -88,7 +97,7 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{data.labels.newMeeting}</DialogTitle>
-          <DialogDescription>A recurring {data.labels.meeting.toLowerCase()} for a team, or a one-off.</DialogDescription>
+          <DialogDescription>A meeting for a team: pick a template, then repeat it weekly or run it once.</DialogDescription>
         </DialogHeader>
 
         <div className="-mx-1 flex min-h-0 flex-col gap-4 overflow-auto px-1 pb-1">
@@ -104,8 +113,8 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
             </Field>
             <Field label="Template" htmlFor="nm-template">
               <Select value={templateKey} onValueChange={pickTemplate}>
-                <SelectTrigger id="nm-template"><SelectValue /></SelectTrigger>
-                <SelectContent>{data.templates.map((t) => <SelectItem key={t.key} value={t.key}>{t.name}</SelectItem>)}</SelectContent>
+                <SelectTrigger id="nm-template"><SelectValue>{data.templates.find((t) => t.key === templateKey)?.name}</SelectValue></SelectTrigger>
+                <SelectContent>{data.templates.map((t) => <SelectItem key={t.key} value={t.key}>{t.agenda.length ? `${t.name} · ${fmtLength(minutesOf(t.agenda), daysOf(t.agenda))}` : t.name}</SelectItem>)}</SelectContent>
               </Select>
             </Field>
           </div>
@@ -113,11 +122,19 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <span className="text-sm font-[550] text-ink">Agenda</span>
-              <span className="text-xs tabular-nums text-faint">{total} min</span>
+              <span className="text-xs tabular-nums text-faint" data-testid="agenda-total">{fmtLength(total, dayCount)}</span>
             </div>
             <div className="flex flex-col gap-1.5">
+              {agenda.length === 0 && <p className="rounded-md border border-dashed border-line px-3 py-4 text-center text-sm text-body">No sections yet. Add the sections this meeting needs.</p>}
               {agenda.map((a, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <Fragment key={i}>
+                {dayCount > 1 && (i === 0 || (agenda[i - 1]!.day ?? 1) !== (a.day ?? 1)) && (
+                  <div className={cn('flex items-center justify-between text-xs font-[600] text-body', i > 0 && 'mt-2')}>
+                    <span>{data.dayLabels[(a.day ?? 1) - 1]}</span>
+                    <span className="font-[500] tabular-nums text-faint">{fmtLength(minutesOf(agenda.filter((x) => (x.day ?? 1) === (a.day ?? 1))))}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
                   <span className="w-4 text-xs tabular-nums text-faint">{i + 1}</span>
                   <Select value={a.term} onValueChange={(v) => setAgenda((s) => s.map((x, j) => (j === i ? { ...x, term: v } : x)))}>
                     <SelectTrigger className="flex-1" aria-label={`Section ${i + 1}`}><SelectValue>{label(a.term)}</SelectValue></SelectTrigger>
@@ -127,7 +144,7 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
                     type="number"
                     min={1}
                     max={480}
-                    className="w-16 text-right tabular-nums"
+                    className="w-20 text-right tabular-nums"
                     aria-label={`Minutes for section ${i + 1}`}
                     value={a.minutes}
                     onChange={(e) => setAgenda((s) => s.map((x, j) => (j === i ? { ...x, minutes: Number(e.target.value) } : x)))}
@@ -135,9 +152,10 @@ export function NewMeetingDialog({ data, defaultOpen = false }: { data: DialogDa
                   <span className="text-xs text-faint">min</span>
                   <Button size="icon" variant="ghost" aria-label="Remove section" onClick={() => setAgenda((s) => s.filter((_, j) => j !== i))}><X size={14} /></Button>
                 </div>
+                </Fragment>
               ))}
             </div>
-            <Button className="mt-2" size="sm" variant="ghost" onClick={() => setAgenda((s) => [...s, { term: data.sectionTerms[0]?.key ?? 'check_in', minutes: 5 }])}><Plus size={13} /> Add section</Button>
+            <Button className="mt-2" size="sm" variant="ghost" onClick={() => setAgenda((s) => [...s, { term: data.sectionTerms[0]?.key ?? 'check_in', minutes: 5, ...(s.length && s[s.length - 1]!.day ? { day: s[s.length - 1]!.day } : {}) }])}><Plus size={13} /> Add section</Button>
           </div>
 
           <div>

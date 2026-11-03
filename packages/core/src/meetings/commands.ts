@@ -14,7 +14,7 @@ import { renderRecapHtml } from './recap-html'
 import { createTerms } from '../terminology'
 import { findLiveMeetingIds } from './live'
 import { createNextOccurrence } from './series'
-import { loadMeeting, requireLive, saveState, startTimer, stopTimer, type Loaded } from './state'
+import { dayOf, loadMeeting, requireLive, saveState, startTimer, stopTimer, type Loaded } from './state'
 import type { MeetingStats, PresenceEntry } from './types'
 import { meetingSeries } from '@movara/db'
 
@@ -128,6 +128,13 @@ function goToSection(l: Loaded, index: number, now: Date) {
   startTimer(s, index, now)
 }
 
+/** Sections of another day can only be reached through "End day N" / "Start day N+1". */
+function assertSameDay(l: Loaded, to: number) {
+  const { agenda, sectionIndex, dayBreak } = l.state
+  if (dayBreak) throw new MovaraError('conflict', `Day ${dayOf(agenda, sectionIndex)} has ended: start day ${dayOf(agenda, sectionIndex) + 1} to continue`)
+  if (dayOf(agenda, to) !== dayOf(agenda, sectionIndex)) throw new MovaraError('conflict', `Day ${dayOf(agenda, sectionIndex)} is not over: end day ${dayOf(agenda, sectionIndex)} first`)
+}
+
 export const meetingNextSection = defineCommand({
   name: 'meeting.next_section',
   scope: 'write:meetings',
@@ -136,6 +143,7 @@ export const meetingNextSection = defineCommand({
     const l = await loadMeeting(ctx, input.meetingId, true)
     requireLive(l.meeting)
     if (l.state.sectionIndex >= l.state.agenda.length - 1) throw new MovaraError('conflict', 'This is the last section; end the meeting')
+    assertSameDay(l, l.state.sectionIndex + 1)
     goToSection(l, l.state.sectionIndex + 1, new Date())
     await saveState(ctx, l)
     return out(l, { sectionIndex: l.state.sectionIndex })
@@ -150,6 +158,7 @@ export const meetingSetSection = defineCommand({
     const l = await loadMeeting(ctx, input.meetingId, true)
     requireLive(l.meeting)
     if (input.index >= l.state.agenda.length) throw new MovaraError('validation', `Section index out of range (0..${l.state.agenda.length - 1})`)
+    if (input.index !== l.state.sectionIndex) assertSameDay(l, input.index)
     if (input.index !== l.state.sectionIndex) goToSection(l, input.index, new Date())
     await saveState(ctx, l)
     return out(l, { sectionIndex: l.state.sectionIndex })
@@ -179,12 +188,56 @@ export const meetingResume = defineCommand({
   run: async (ctx, input) => {
     const l = await loadMeeting(ctx, input.meetingId, true)
     requireLive(l.meeting)
+    if (l.state.dayBreak) throw new MovaraError('conflict', `Day ${dayOf(l.state.agenda, l.state.sectionIndex)} has ended: start day ${dayOf(l.state.agenda, l.state.sectionIndex) + 1} to continue`)
     if (l.state.paused) {
       l.state.paused = false
       startTimer(l.state, l.state.sectionIndex, new Date())
       await saveState(ctx, l)
     }
     return out(l, { paused: false })
+  },
+})
+
+/** Multi-day sessions: finish the current day. The meeting pauses (state persisted) until "Start day N+1". */
+export const meetingEndDay = defineCommand({
+  name: 'meeting.end_day',
+  scope: 'write:meetings',
+  input: z.object({ meetingId }),
+  run: async (ctx, input) => {
+    const l = await loadMeeting(ctx, input.meetingId, true)
+    requireLive(l.meeting)
+    const s = l.state
+    const day = dayOf(s.agenda, s.sectionIndex)
+    if (s.dayBreak) throw new MovaraError('conflict', `Day ${day} has already ended`)
+    if (!s.agenda.some((a) => (a.day ?? 1) > day)) throw new MovaraError('conflict', `Day ${day} is the last day: end the meeting instead`)
+    stopTimer(s, s.sectionIndex, new Date())
+    s.paused = true
+    s.dayBreak = true
+    if (!s.endedDays.includes(day)) s.endedDays.push(day)
+    await saveState(ctx, l)
+    return out(l, { endedDay: day, paused: true })
+  },
+})
+
+/** Resume a multi-day session on the next day, at its first section. */
+export const meetingStartDay = defineCommand({
+  name: 'meeting.start_day',
+  scope: 'write:meetings',
+  input: z.object({ meetingId }),
+  run: async (ctx, input) => {
+    const l = await loadMeeting(ctx, input.meetingId, true)
+    requireLive(l.meeting)
+    const s = l.state
+    if (!s.dayBreak) throw new MovaraError('conflict', 'No day has ended: end the current day first')
+    const next = dayOf(s.agenda, s.sectionIndex) + 1
+    const index = s.agenda.findIndex((a) => (a.day ?? 1) === next)
+    if (index < 0) throw new MovaraError('conflict', `The agenda has no day ${next}`)
+    s.dayBreak = false
+    s.paused = false
+    s.sectionIndex = index
+    startTimer(s, index, new Date())
+    await saveState(ctx, l)
+    return out(l, { day: next, sectionIndex: index })
   },
 })
 
@@ -368,6 +421,47 @@ export const meetingSetShared = defineCommand({
   },
 })
 
+// ---------------------------------------------------------------- quarter grade / team health
+
+async function gradePerson(ctx: Ctx, l: Loaded, personId: string | undefined): Promise<string> {
+  if (ctx.actor.type !== 'person') throw new MovaraError('forbidden', 'Only people can grade or rate')
+  const id = personId ?? ctx.actor.id
+  if (!l.series.attendeeIds.includes(id)) throw new MovaraError('validation', 'Only attendees of this meeting can be graded')
+  return id
+}
+
+/** Quarter review: an attendee's 1-10 grade of the quarter (default: the acting person; null clears it). People only. */
+export const meetingSetQuarterGrade = defineCommand({
+  name: 'meeting.set_quarter_grade',
+  scope: 'write:meetings',
+  input: z.object({ meetingId, personId: z.uuid().optional(), score: z.number().int().min(1).max(10).nullable() }),
+  run: async (ctx, input) => {
+    const l = await loadMeeting(ctx, input.meetingId, true)
+    requireLive(l.meeting)
+    const id = await gradePerson(ctx, l, input.personId)
+    if (input.score === null) delete l.state.quarterGrades[id]
+    else l.state.quarterGrades[id] = input.score
+    await saveState(ctx, l)
+    return out(l, { quarterGrades: l.state.quarterGrades })
+  },
+})
+
+/** Team health: an attendee's 1-10 rating plus a short note (default: the acting person; rating null clears it). People only. */
+export const meetingSetTeamHealth = defineCommand({
+  name: 'meeting.set_team_health',
+  scope: 'write:meetings',
+  input: z.object({ meetingId, personId: z.uuid().optional(), rating: z.number().int().min(1).max(10).nullable(), note: z.string().trim().max(500).optional() }),
+  run: async (ctx, input) => {
+    const l = await loadMeeting(ctx, input.meetingId, true)
+    requireLive(l.meeting)
+    const id = await gradePerson(ctx, l, input.personId)
+    if (input.rating === null) delete l.state.teamHealth[id]
+    else l.state.teamHealth[id] = { rating: input.rating, note: input.note ?? l.state.teamHealth[id]?.note ?? '' }
+    await saveState(ctx, l)
+    return out(l, { teamHealth: l.state.teamHealth })
+  },
+})
+
 // ---------------------------------------------------------------- rating / settings
 
 /** People only: agents can never rate. */
@@ -442,6 +536,7 @@ export type EndMeetingData = {
   nextMeeting: { id: string; scheduledAt: string } | null
 }
 
+const avg = (xs: number[]) => Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 10) / 10
 const fmtDay = (d: Date, timezone = 'UTC') => todayIn({ timezone }, d)
 
 /**
@@ -504,6 +599,8 @@ export const meetingEnd = defineCommand({
     const lines = [
       `${l.series.name} · ${fmtDay(startedAt, orgTz)}`,
       `Duration ${stats.durationMinutes} min · Rating ${stats.ratingAvg ?? 'n/a'} (${stats.ratingCount}) · Issues solved ${stats.issuesSolved}/${stats.issuesTotal} · To-dos done ${stats.todosDone}/${stats.todosTotal}`,
+      ...(Object.keys(s.quarterGrades).length ? [`Quarter grade ${avg(Object.values(s.quarterGrades))} (${Object.keys(s.quarterGrades).length})`] : []),
+      ...(Object.keys(s.teamHealth).length ? [`Team health ${avg(Object.values(s.teamHealth).map((h) => h.rating))} (${Object.keys(s.teamHealth).length})`] : []),
       ...(solved.length ? ['', 'Solved:', ...solved.map((i) => `- ${i.title}`)] : []),
       ...(newTodos.length ? ['', 'New to-dos:', ...newTodos.map((t) => `- ${t.title} (${nameOf(t.ownerId)}${t.dueDate ? `, due ${t.dueDate}` : ''})`)] : []),
     ]

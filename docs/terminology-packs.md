@@ -14,7 +14,7 @@ resolve(key) = org override  →  active pack  →  Standard pack (always comple
 | Package | Contents | Ships with the app |
 |---|---|---|
 | `@movara/terminology` (`packages/terminology`) | Zod schema, JSON Schema, resolver, import preview, the **Standard** pack | Yes |
-| `@movara-community/pack-eos` (`packs/eos`, later its own repo) | EOS terms, the Level 10 template, a trademark attribution | **No**, imported by the org |
+| `@movara-community/pack-eos` (`packs/eos`, later its own repo) | EOS terms, the EOS meeting templates (Level 10, Quarterly Session, Annual Planning, Same Page), a trademark attribution | **No**, imported by the org |
 
 Keeping EOS out of the core repo keeps trademarked terms out of the default product. The
 EOS pack carries an attribution string, which Movara shows in Settings and on exports while
@@ -33,10 +33,16 @@ the pack is active.
     "priority":       { "singular": "Rock", "plural": "Rocks" },
     "weekly_meeting": { "singular": "Level 10 Meeting", "plural": "Level 10 Meetings", "short": "Level 10" }
   },
-  "meetingTemplates": [ { "key": "l10", "name": "Level 10 Meeting", "agenda": [ { "term": "check_in", "minutes": 5 } ] } ],
+  "meetingTemplates": [ { "key": "weekly", "name": "Level 10 Meeting", "agenda": [ { "term": "check_in", "minutes": 5 } ] } ],   // keys: weekly, quarterly, annual, alignment, custom
   "statuses": { "on_track": "On track" }   // labels only; status values never change
 }
 ```
+
+Meeting templates: the Standard pack and the EOS pack each ship the same five keys (`weekly`,
+`quarterly`, `annual`, `alignment`, `custom`) under neutral or EOS names. An agenda section is a term key
+(`quarter_review`, `vision_review`, `priority_setting`, `team_health`, `issues_list_build`, `next_steps`, ...)
+with `minutes` and an optional `day` (1 or 2) for multi-day sessions such as annual planning; the `custom`
+template has an empty agenda. A pack template with the same key replaces the Standard one.
 
 The schema is in `packages/terminology/src/schema.ts`. Packs may be partial; missing keys
 fall back to Standard.

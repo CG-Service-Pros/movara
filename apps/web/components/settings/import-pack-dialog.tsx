@@ -40,7 +40,7 @@ export function PackPreviewCard({ preview }: { preview: PackPreview }) {
       )}
       {templates.length > 0 && (
         <div className="text-sm text-body">
-          New meeting templates: {templates.map((t) => <b key={t.key} className="font-[550] text-ink">{t.name} </b>)}
+          New meeting templates: {templates.map((t, i) => <span key={t.key}>{i > 0 && ', '}<b className="font-[550] text-ink">{t.name}</b></span>)}
         </div>
       )}
       {pack.attribution && <div className="border-t border-line pt-2 text-xs text-faint">{pack.attribution}</div>}

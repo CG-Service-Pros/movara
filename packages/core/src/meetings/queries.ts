@@ -1,11 +1,11 @@
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
 import { headlines, issues, meetings, meetingSeries, metrics, metricValues, people, priorities, scorecards, teams, todos, type AgendaItemJson } from '@movara/db'
-import { addDays, currentQuarter, todayIn } from '../calendar'
+import { addDays, currentQuarter, quarterOf, shiftQuarter, todayIn, type CalendarSettings } from '../calendar'
 import { requireRead, type Ctx } from '../ctx'
 import { MovaraError } from '../errors'
 import { found, scoped } from '../helpers'
 import { orgCalendar } from '../issues/internal'
-import { elapsedOf, loadMeeting, type MeetingRow, type SeriesRow } from './state'
+import { dayOf, elapsedOf, loadMeeting, type MeetingRow, type SeriesRow } from './state'
 import type { IdsStatus, IdsStep, MeetingSettings, MeetingStats } from './types'
 
 // ------------------------------------------------------------------ getMeeting
@@ -38,7 +38,7 @@ export async function getMeeting(ctx: Ctx, id: string): Promise<MeetingDetail> {
 
 // ------------------------------------------------------------------ live state
 
-export type LiveSection = { index: number; term: string; minutes: number; elapsedMs: number; running: boolean }
+export type LiveSection = { index: number; term: string; minutes: number; /** 1 or 2; 1 for single-day agendas. */ day: 1 | 2; elapsedMs: number; running: boolean }
 export type LiveFocusIssue = { id: string; title: string; ownerId: string | null; rank: number; status: string; discussed: boolean; solved: boolean }
 
 /** Shape served to the live-meeting UI and agents (poll with `sinceRev`). */
@@ -58,6 +58,11 @@ export type LiveState = {
   sectionIndex: number
   agenda: LiveSection[]
   paused: boolean
+  /** Multi-day sessions: the current day, the number of days, and whether the session is between days (paused). */
+  day: number
+  days: number
+  dayBreak: boolean
+  endedDays: number[]
   facilitatorId: string | null
   presence: { kind: 'person' | 'agent'; id: string; name: string; onBehalfOf?: string; joinedAt: string; lastSeen: string; online: boolean }[]
   attendees: { id: string; name: string; present: boolean; rated: boolean }[]
@@ -78,6 +83,10 @@ export type LiveState = {
   reviewedHeadlineIds: string[]
   /** Check-in: ids of attendees marked as having shared. */
   sharedIds: string[]
+  /** Quarter review: 1-10 grade of the quarter per attendee id. */
+  quarterGrades: Record<string, number>
+  /** Team health: 1-10 rating and note per attendee id. */
+  teamHealth: Record<string, { rating: number; note: string }>
   newTodoIds: string[]
   newHeadlineIds: string[]
   stats: MeetingStats | null
@@ -99,7 +108,7 @@ export async function getLiveState(ctx: Ctx, meetingId: string, opts: { sinceRev
   const nowMs = now.getTime()
   const teamId = l.series.teamId
 
-  const agenda: LiveSection[] = s.agenda.map((a, i) => ({ index: i, term: a.term, minutes: a.minutes, elapsedMs: elapsedOf(s.timers[String(i)], nowMs), running: !!s.timers[String(i)]?.runningSince }))
+  const agenda: LiveSection[] = s.agenda.map((a, i) => ({ index: i, term: a.term, minutes: a.minutes, day: a.day ?? 1, elapsedMs: elapsedOf(s.timers[String(i)], nowMs), running: !!s.timers[String(i)]?.runningSince }))
   const presence = Object.values(s.presence).map((p) => ({ ...p, online: nowMs - new Date(p.lastSeen).getTime() < ONLINE_MS }))
   const attendeeRows = l.series.attendeeIds.length ? await ctx.db.select({ id: people.id, name: people.name }).from(people).where(scoped(people, ctx, inArray(people.id, l.series.attendeeIds))).orderBy(asc(people.name)) : []
 
@@ -134,6 +143,10 @@ export async function getLiveState(ctx: Ctx, meetingId: string, opts: { sinceRev
     sectionIndex: s.sectionIndex,
     agenda,
     paused: s.paused,
+    day: dayOf(s.agenda, s.sectionIndex),
+    days: Math.max(1, ...s.agenda.map((a) => a.day ?? 1)),
+    dayBreak: s.dayBreak,
+    endedDays: s.endedDays,
     facilitatorId: l.series.facilitatorId,
     presence,
     attendees: attendeeRows.map((p) => ({ id: p.id, name: p.name, present: !!s.presence[p.id], rated: l.meeting.ratings[p.id] !== undefined })),
@@ -157,11 +170,28 @@ export async function getLiveState(ctx: Ctx, meetingId: string, opts: { sinceRev
     counts: { openTodos: nTodo('open'), pendingTodos: nTodo('pending'), doneTodos: nTodo('done'), newTodos: s.newTodoIds.length, headlinesToReview: hl?.toReview ?? 0, headlinesReviewed: hl?.reviewed ?? 0, openIssues: oi?.n ?? 0 },
     reviewedHeadlineIds: s.reviewedHeadlineIds,
     sharedIds: s.sharedIds,
+    quarterGrades: s.quarterGrades,
+    teamHealth: s.teamHealth,
     newTodoIds: s.newTodoIds,
     newHeadlineIds: s.newHeadlineIds,
     stats: s.stats ?? null,
     summary: l.meeting.summary,
   }
+}
+
+// ------------------------------------------------------------------ planning quarters
+
+/**
+ * Which quarter a planning session reviews and which it plans. In the first month of a quarter the session
+ * closes the quarter that just ended (review = previous, plan = current); later it looks ahead
+ * (review = current, plan = next).
+ */
+export function planningQuarters(cal: CalendarSettings, today: string): { review: string; plan: string } {
+  const q = quarterOf(today, cal)
+  const elapsedDays = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${q.start}T00:00:00Z`)) / 86_400_000)
+  return elapsedDays <= 30
+    ? { review: shiftQuarter(q.label, -1, cal), plan: q.label }
+    : { review: q.label, plan: shiftQuarter(q.label, 1, cal) }
 }
 
 // ------------------------------------------------------------------ history

@@ -34,7 +34,8 @@ export type ReminderSchedule = { enabled?: boolean; day?: number; time?: string 
 
 export type Source = { type: string; id: string } | null
 
-export type AgendaItemJson = { term: string; minutes: number }
+/** `day` (1 or 2) groups a multi-day agenda such as annual planning. */
+export type AgendaItemJson = { term: string; minutes: number; day?: 1 | 2 }
 
 export type MeetingState = {
   sectionIndex?: number

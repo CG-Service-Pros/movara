@@ -50,6 +50,7 @@ Auth: OAuth 2.1 (PKCE). Each agent gets its own client, owner and scopes.
 | | `meeting_prepare` | read | pre-read: off-track metrics/priorities, open issues, overdue to-dos |
 | | `meeting_start` / `meeting_next_section` / `meeting_end` | write:meetings | facilitator or delegated |
 | | `ids_focus_issue` / `ids_resolve` | write:meetings | `{ issueId, solved, todos? }` |
+| | `meeting_end_day` / `meeting_start_day` | write:meetings | two-day sessions (annual planning): pause after day 1, resume on day 2 |
 | | `meeting_capture` | write:meetings | notes agent: add to-dos/issues/headlines tied to the live meeting |
 | | `meeting_rate` | write:meetings | people only (agents cannot rate) |
 | Terminology | `terminology_get` | read | |

@@ -1,6 +1,6 @@
 {
   "name": "@movara-community/pack-eos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "EOS terminology pack for Movara (community, unofficial; not affiliated with EOS Worldwide).",
   "main": "pack.json",
   "files": [

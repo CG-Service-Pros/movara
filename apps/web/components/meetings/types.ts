@@ -12,6 +12,7 @@ export type BIssue = {
   ownerId: string | null
   rank: number
   status: string
+  horizon: string
   source: SourceRef
   sourceLabel: string | null
   createdBy: Provenance
@@ -45,6 +46,32 @@ export type BPriority = {
   milestonesTotal: number
 }
 
+export type QuarterReview = {
+  /** The quarter being closed ("2026-Q4"). */
+  quarter: string
+  priorities: { id: string; title: string; ownerId: string | null; status: string }[]
+  done: number
+  notDone: number
+  dropped: number
+  byPerson: { personId: string | null; done: number; total: number; pct: number }[]
+  scorecard: {
+    /** Share of recorded metric-weeks that were on track, 0-100 (null when nothing was recorded). */
+    onTrackPct: number | null
+    recorded: number
+    metrics: { id: string; title: string; ownerId: string | null; recorded: number; onTrack: number; first: string | null; last: string | null; trend: 'up' | 'down' | 'flat' | null }[]
+  } | null
+}
+export type VisionReview = {
+  hasPublished: boolean
+  hasDraft: boolean
+  sections: { key: string; label: string; items: { id: string; label: string | null; text: string }[] }[]
+}
+export type PriorityPlan = {
+  /** The quarter being planned. */
+  quarter: string
+  items: { id: string; title: string; ownerId: string | null; level: string; status: string }[]
+}
+
 export type Bundle = {
   live: LiveState
   /** The acting person. */
@@ -64,6 +91,10 @@ export type Bundle = {
   headlines: BHeadline[]
   todos: BTodo[]
   issues: BIssue[]
+  /** Loaded only while the matching section is current. */
+  quarterReview?: QuarterReview | null
+  visionReview?: VisionReview | null
+  priorityPlan?: PriorityPlan | null
 }
 
 export type ActionResult = { ok: true; bundle: Bundle } | { ok: false; error: string }

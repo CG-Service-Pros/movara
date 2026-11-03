@@ -34,9 +34,16 @@ export function readState(raw: MeetingState | null | undefined, fallbackAgenda: 
     newHeadlineIds: s.newHeadlineIds ?? [],
     reviewedHeadlineIds: s.reviewedHeadlineIds ?? [],
     sharedIds: s.sharedIds ?? [],
+    quarterGrades: s.quarterGrades ?? {},
+    teamHealth: s.teamHealth ?? {},
+    dayBreak: !!s.dayBreak,
+    endedDays: s.endedDays ?? [],
     stats: s.stats,
   }
 }
+
+/** The day (1 or 2) a section belongs to; single-day agendas are all day 1. */
+export const dayOf = (agenda: AgendaItemJson[], index: number): 1 | 2 => agenda[index]?.day ?? 1
 
 export const elapsedOf = (t: SectionTimer | undefined, nowMs: number): number =>
   (t?.elapsedMs ?? 0) + (t?.runningSince ? Math.max(0, nowMs - new Date(t.runningSince).getTime()) : 0)

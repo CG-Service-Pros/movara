@@ -1,6 +1,6 @@
 import {
   endMeeting, execute, getLiveState, getMeeting, getMeetingSeries, idsFocus, idsResolve, idsStart, listMeetingHistory, listMeetings, listMeetingSeries, listMeetingTemplates,
-  meetingCapture, meetingDropToIssue, meetingHeartbeat, meetingJoin, meetingLeave, meetingNextSection, meetingPause, meetingRate, meetingResume, meetingReviewHeadline,
+  meetingCapture, meetingDropToIssue, meetingEndDay, meetingSetQuarterGrade, meetingSetTeamHealth, meetingStartDay, meetingHeartbeat, meetingJoin, meetingLeave, meetingNextSection, meetingPause, meetingRate, meetingResume, meetingReviewHeadline,
   meetingScheduleNext, meetingSeriesCreate, meetingSeriesUpdate, meetingSetSection, meetingSetSettings, meetingStart, prepareMeeting,
   type Command, type Ctx,
 } from '@movara/core'
@@ -56,6 +56,10 @@ export const handlers: HandlerMap = {
   'POST /meetings/:id/ids/focus': live(idsFocus),
   'POST /meetings/:id/ids/start': live(idsStart),
   'POST /meetings/:id/ids/resolve': live(idsResolve),
+  'POST /meetings/:id/end-day': live(meetingEndDay),
+  'POST /meetings/:id/start-day': live(meetingStartDay),
+  'POST /meetings/:id/quarter-grade': live(meetingSetQuarterGrade),
+  'POST /meetings/:id/team-health': live(meetingSetTeamHealth),
   'POST /meetings/:id/rate': live(meetingRate),
   'POST /meetings/:id/settings': live(meetingSetSettings),
   'POST /meetings/:id/capture': live(meetingCapture),

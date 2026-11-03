@@ -2,7 +2,7 @@ import { z } from 'zod'
 import {
   SEARCH_TYPES, chartProposeChange, endMeeting, execute, getApproval, getChart, getIssue, getMeeting, getPriority,
   getVision, headlineCascade, headlinePost, idsFocus, idsResolve, idsStart, issueCreate, issueMove, issueReopen, issueSolve, listApprovals,
-  listIssues, listMeetings, listPriorities, listScorecards, listTodos, meetingCapture, meetingNextSection, meetingRate, meetingStart,
+  listIssues, listMeetings, listPriorities, listScorecards, listTodos, meetingCapture, meetingEndDay, meetingNextSection, meetingStartDay, meetingRate, meetingStart,
   metricCreate, metricRecordValues, milestoneAdd, milestoneToggle, myWeek, orgSetTerminologyPack, prepareMeeting, priorityCreate,
   prioritySetStatus, search, todoComplete, todoCreate, visionProposeChange, getScorecard, MovaraError,
   type Command, type Ctx, type Scope, type Terms,
@@ -154,7 +154,9 @@ export function buildTools(terms: Terms): ToolDef[] {
   }, async (ctx, a) => compact(await prepareMeeting(ctx, a)))
   write('meeting_start', meetingStart, `Start a ${WM} (by meetingId, or seriesId to pick the nearest scheduled one). Facilitator or delegated agent.`, { scope: 'write:meetings' })
   const mid = { meetingId: id('Meeting') }
-  write('meeting_next_section', meetingNextSection, `Advance the live ${WM} to the next agenda section.`, { shape: mid })
+  write('meeting_next_section', meetingNextSection, `Advance the live ${WM} to the next agenda section. Multi-day sessions (annual planning) cannot cross a day boundary: use \`meeting_end_day\` and \`meeting_start_day\`.`, { shape: mid })
+  write('meeting_end_day', meetingEndDay, `End day 1 of a two-day session (annual planning): the live ${WM} pauses and its state is kept until \`meeting_start_day\`.`, { shape: mid })
+  write('meeting_start_day', meetingStartDay, `Resume a paused two-day session on day 2, at its first section.`, { shape: mid })
   write('ids_focus_issue', idsFocus, `Pick the ${Is} to discuss next in the live ${WM} (up to the meeting's focus count). With \`start: true\` also begins discussing the first one.`, {
     shape: { ...mid, issueIds: z.array(z.uuid()).max(20).optional(), issueId: z.uuid().optional().describe('Shortcut for a single issue'), start: z.boolean().default(false) },
     map: (_c, a) => ({ meetingId: a.meetingId, issueIds: a.issueIds ?? (a.issueId ? [a.issueId] : []) }),

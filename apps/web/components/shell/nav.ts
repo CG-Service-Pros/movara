@@ -41,7 +41,7 @@ export function buildNav(o: { org: string; terms: Terms; teams: NavTeam[]; modul
   for (const team of teams) {
     const q = `team=${team.id}`
     const items: NavItem[] = []
-    if (m.meetings) items.push({ key: `meetings:${team.id}`, label: T.t('weekly_meeting', 'short'), href: `${base}/meetings`, query: q, icon: 'meeting', teamId: team.id })
+    if (m.meetings) items.push({ key: `meetings:${team.id}`, label: 'Meetings', href: `${base}/meetings`, query: q, icon: 'meeting', teamId: team.id })
     if (m.priorities) items.push({ key: `priorities:${team.id}`, label: T.t('priority', 'plural'), href: `${base}/priorities`, query: q, icon: 'priorities', teamId: team.id })
     if (m.scorecard) items.push({ key: `scorecard:${team.id}`, label: T.t('scorecard'), href: `${base}/scorecard`, query: q, icon: 'scorecard', teamId: team.id })
     if (m.issues) items.push({ key: `issues:${team.id}`, label: T.t('issues_list', 'short'), href: `${base}/issues`, query: q, icon: 'issues', teamId: team.id })
@@ -106,6 +106,6 @@ export function buildQuickActions(o: { org: string; terms: Terms; teams: NavTeam
   if (m.todos) out.push({ id: 'new:todo', label: `New ${T.t('todo').toLowerCase()}`, href: `/${org}/todos?new=1`, group: 'Create', icon: 'todos' })
   if (m.headlines) out.push({ id: 'new:headline', label: `New ${T.t('headline').toLowerCase()}`, href: `/${org}/headlines?new=1`, group: 'Create', icon: 'headlines' })
   if (m.scorecard) out.push({ id: 'new:metric', label: `New ${T.t('metric').toLowerCase()}`, href: `/${org}/scorecard?${team}new=1`, group: 'Create', icon: 'scorecard' })
-  if (m.meetings) out.push({ id: 'new:meeting', label: `New ${T.t('weekly_meeting').toLowerCase()}`, href: `/${org}/meetings?new=1`, group: 'Create', icon: 'meeting' })
+  if (m.meetings) out.push({ id: 'new:meeting', label: 'New meeting', href: `/${org}/meetings?new=1`, group: 'Create', icon: 'meeting' })
   return out
 }

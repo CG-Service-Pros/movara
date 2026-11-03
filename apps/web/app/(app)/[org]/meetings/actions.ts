@@ -9,7 +9,7 @@ export type CreateSeriesInput = {
   name: string
   teamId: string
   templateKey: string
-  agenda: { term: string; minutes: number }[]
+  agenda: { term: string; minutes: number; day?: 1 | 2 }[]
   /** 'weekly' with days + time, or 'adhoc' with a date + time (both in the org timezone). */
   schedule: { kind: 'weekly'; days: string[]; time: string } | { kind: 'adhoc'; date: string; time: string }
   attendeeIds: string[]
@@ -20,7 +20,9 @@ export async function createSeries(slug: string, input: CreateSeriesInput): Prom
   const ctx = await getCtx(slug)
   try {
     const org = await getOrg(ctx)
-    const total = input.agenda.reduce((n, a) => n + a.minutes, 0)
+    // A multi-day session's length is its longest day.
+    const dayMinutes = (d: number) => input.agenda.filter((a) => (a.day ?? 1) === d).reduce((n, a) => n + a.minutes, 0)
+    const total = Math.max(dayMinutes(1), dayMinutes(2))
     const weekly = input.schedule.kind === 'weekly'
     if (weekly && input.schedule.kind === 'weekly' && input.schedule.days.length === 0) return { ok: false, error: 'Pick at least one day' }
     const r = await execute(ctx, meetingSeriesCreate, {
