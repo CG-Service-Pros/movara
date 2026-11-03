@@ -5,6 +5,38 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { cn } from './cn'
 
+/**
+ * Radix returns focus to a DialogTrigger when a dialog closes. Most Movara dialogs open from state (a button's onClick,
+ * a keyboard shortcut) and have no Trigger, so focus fell to <body>. Remember what had focus when the content first
+ * rendered (before React applies `autoFocus` inside it) and restore that on close.
+ */
+export function useRestoreFocus(props: { onCloseAutoFocus?: (e: Event) => void }) {
+  const ref = React.useRef<HTMLElement | null>(null)
+  return {
+    /** Render as the first child of the Radix Content (it only mounts while open). */
+    origin: <FocusOrigin store={ref} />,
+    onCloseAutoFocus: (e: Event) => {
+      props.onCloseAutoFocus?.(e)
+      if (e.defaultPrevented) return
+      const el = ref.current
+      if (el?.isConnected) {
+        e.preventDefault()
+        el.focus()
+      }
+    },
+  }
+}
+
+function FocusOrigin({ store }: { store: React.MutableRefObject<HTMLElement | null> }) {
+  // Runs during the mount render, i.e. before commit-time autoFocus moves focus into the dialog.
+  React.useState(() => {
+    const a = typeof document === 'undefined' ? null : document.activeElement
+    store.current = a instanceof HTMLElement && a !== document.body ? a : null
+    return null
+  })
+  return null
+}
+
 /** Modal dialog root. Compose with DialogTrigger + DialogContent. Controlled via `open` / `onOpenChange`. */
 export const Dialog = DialogPrimitive.Root
 /** Element that opens the dialog (use `asChild`). */
@@ -22,6 +54,7 @@ export function DialogContent({
   hideClose,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { hideClose?: boolean }) {
+  const restoreFocus = useRestoreFocus(props)
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className={overlayClasses} />
@@ -31,7 +64,9 @@ export function DialogContent({
           className,
         )}
         {...props}
+        onCloseAutoFocus={restoreFocus.onCloseAutoFocus}
       >
+        {restoreFocus.origin}
         {children}
         {!hideClose && (
           <DialogPrimitive.Close

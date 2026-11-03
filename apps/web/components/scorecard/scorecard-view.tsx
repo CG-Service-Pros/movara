@@ -140,7 +140,7 @@ export function ScorecardView({
             </SelectContent>
           </Select>
           <Tip label={order === 'fwd' ? 'Showing oldest first' : 'Showing newest first'}>
-            <Button variant="secondary" onClick={() => setOrder(order === 'fwd' ? 'rev' : 'fwd')} aria-label="Reverse period order"><ArrowLeftRight size={14} strokeWidth={1.7} />{order === 'fwd' ? 'Oldest first' : 'Newest first'}</Button>
+            <Button variant="secondary" onClick={() => setOrder(order === 'fwd' ? 'rev' : 'fwd')} title="Reverse period order"><ArrowLeftRight size={14} strokeWidth={1.7} />{order === 'fwd' ? 'Oldest first' : 'Newest first'}</Button>
           </Tip>
           <Tip label={`${labels.scorecard} settings`}><Button size="icon" variant="ghost" aria-label="Settings" onClick={() => setSettings(true)}><Settings2 size={15} strokeWidth={1.7} /></Button></Tip>
           {canWrite && <Button variant="primary" onClick={() => setDialog({ metric: null })}><Plus size={14} strokeWidth={2} />Add {labels.metric.toLowerCase()}</Button>}

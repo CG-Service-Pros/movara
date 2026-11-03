@@ -9,7 +9,7 @@ import { Input } from '@movara/ui/input'
 import { Textarea } from '@movara/ui/textarea'
 import { Field } from '@movara/ui/field'
 import { EmptyState } from '@movara/ui/empty-state'
-import { Tabs, TabsList, TabsTrigger } from '@movara/ui/tabs'
+import { Segmented } from '@movara/ui/segmented'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@movara/ui/select'
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@movara/ui/sheet'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@movara/ui/dialog'
@@ -77,13 +77,11 @@ export function IssuesView({
   return (
     <div className="flex w-full flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-          <TabsList>
-            <TabsTrigger value="short">Short-term <span className="text-faint">{short.length}</span></TabsTrigger>
-            <TabsTrigger value="long">Long-term <span className="text-faint">{long.length}</span></TabsTrigger>
-            <TabsTrigger value="solved">Solved <span className="text-faint">{solved.length}</span></TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <Segmented<Tab> aria-label="Show" value={tab} onValueChange={setTab} options={[
+          { value: 'short', label: <>Short-term <span className="text-faint">{short.length}</span></> },
+          { value: 'long', label: <>Long-term <span className="text-faint">{long.length}</span></> },
+          { value: 'solved', label: <>Solved <span className="text-faint">{solved.length}</span></> },
+        ]} />
         <div className="ml-auto flex items-center gap-2">
           <Select value={teamId ?? 'all'} onValueChange={(v) => router.push(`?team=${v}`)}>
             <SelectTrigger className="w-44" aria-label="Team"><SelectValue /></SelectTrigger>
@@ -254,9 +252,7 @@ export function NewIssueDialog({
             </Field>
           </div>
           <Field label="List">
-            <Tabs value={horizon} onValueChange={(v) => setHorizon(v as 'short' | 'long')}>
-              <TabsList><TabsTrigger value="short">Short-term</TabsTrigger><TabsTrigger value="long">Long-term</TabsTrigger></TabsList>
-            </Tabs>
+            <Segmented<'short' | 'long'> aria-label="Horizon" value={horizon} onValueChange={setHorizon} options={[{ value: 'short', label: 'Short-term' }, { value: 'long', label: 'Long-term' }]} />
           </Field>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>

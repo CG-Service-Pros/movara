@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
+// Inter (variable), self-hosted from node_modules: no external font requests (CSP font-src 'self' holds); unicode-range subsets mean browsers fetch only the scripts a page uses.
+import '@fontsource-variable/inter'
 import './globals.css'
 
 export const metadata: Metadata = {

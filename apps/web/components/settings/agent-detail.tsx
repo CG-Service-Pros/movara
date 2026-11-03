@@ -154,7 +154,7 @@ export function AgentDetail({ slug, agent, mcpUrl, canManage, presetScopes }: { 
           {SCOPE_INFO.map((s) => (
             <div key={s.scope} className="flex items-center gap-4 px-4 py-2.5">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-base font-[550] text-ink">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-[550] text-ink">
                   <label htmlFor={`scope-${s.scope}`}>{s.label}</label>
                   <Mono>{s.scope}</Mono>
                   {s.gated && <Badge tone="warning"><ShieldAlert size={11} strokeWidth={2} />{s.gated}</Badge>}

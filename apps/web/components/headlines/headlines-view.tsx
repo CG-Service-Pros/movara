@@ -10,7 +10,6 @@ import { Textarea } from '@movara/ui/textarea'
 import { EmptyState } from '@movara/ui/empty-state'
 import { AgentMark } from '@movara/ui/agent-mark'
 import { Segmented } from '@movara/ui/segmented'
-import { Tabs, TabsList, TabsTrigger } from '@movara/ui/tabs'
 import { Checkbox } from '@movara/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@movara/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@movara/ui/dialog'
@@ -45,13 +44,11 @@ export function HeadlinesView({ orgSlug, headlines, people, teams, teamId, defau
   return (
     <div className="flex w-full flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-          <TabsList>
-            <TabsTrigger value="review">To review <span className="text-faint">{toReview.length}</span></TabsTrigger>
-            <TabsTrigger value="reviewed">Reviewed <span className="text-faint">{reviewed.length}</span></TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <Segmented<Tab> aria-label="Show" value={tab} onValueChange={setTab} options={[
+          { value: 'review', label: <>To review <span className="text-faint">{toReview.length}</span></> },
+          { value: 'reviewed', label: <>Reviewed <span className="text-faint">{reviewed.length}</span></> },
+          { value: 'all', label: 'All' },
+        ]} />
         <div className="ml-auto flex items-center gap-2">
           <Select value={teamId ?? 'all'} onValueChange={(v) => router.push(v === 'all' ? '?' : `?team=${v}`)}>
             <SelectTrigger className="w-44" aria-label="Team"><SelectValue /></SelectTrigger>

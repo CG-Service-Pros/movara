@@ -30,7 +30,7 @@ export function OrgSwitcher({ orgSlug, wordmark, logoLight, logoDark, orgs, user
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-7 w-full items-center gap-1.5 rounded-md px-2 text-left outline-none hover:bg-nav-active focus-visible:bg-nav-active" aria-label="Organization menu">
+      <DropdownMenuTrigger className="flex h-7 w-full items-center gap-1.5 rounded-md px-2 text-left outline-none hover:bg-nav-active focus-visible:bg-nav-active" aria-label={`${wordmark}, organization menu`}>
         {logoLight ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}

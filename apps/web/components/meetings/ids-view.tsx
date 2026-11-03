@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@movara/ui/textarea'
 import { toast } from '@movara/ui/toaster'
 import { fmtDate } from './format'
-import { Captured, Hint, Owner, SectionTitle, Tick, type Act } from './parts'
+import { Captured, Hint, Owner, Tick, type Act } from './parts'
 import type { BIssue, Bundle } from './types'
 
 type Step = 'identify' | 'discuss' | 'solve'

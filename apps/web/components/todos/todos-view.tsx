@@ -10,7 +10,7 @@ import { Textarea } from '@movara/ui/textarea'
 import { Field } from '@movara/ui/field'
 import { EmptyState } from '@movara/ui/empty-state'
 import { AgentMark } from '@movara/ui/agent-mark'
-import { Tabs, TabsList, TabsTrigger } from '@movara/ui/tabs'
+import { Segmented } from '@movara/ui/segmented'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@movara/ui/select'
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@movara/ui/sheet'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@movara/ui/dialog'
@@ -105,13 +105,12 @@ export function TodosView({
   return (
     <div className="flex w-full flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2">
-        <Tabs value={view} onValueChange={(v) => setView(v as View)}>
-          <TabsList>
-            <TabsTrigger value="my">My {labels.todos.toLowerCase()}</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* A view filter, not tab panels: a radio group keeps the ARIA honest. */}
+        <Segmented<View> aria-label="Show" value={view} onValueChange={setView} options={[
+          { value: 'my', label: `My ${labels.todos.toLowerCase()}` },
+          { value: 'team', label: 'Team' },
+          { value: 'all', label: 'All' },
+        ]} />
         {overdueCount > 0 && <Badge tone="danger">{overdueCount} overdue</Badge>}
         {canWrite && <Button variant="primary" className="ml-auto" onClick={() => setCreating(true)}><Plus size={14} strokeWidth={2} />New {labels.todo.toLowerCase()}</Button>}
       </div>

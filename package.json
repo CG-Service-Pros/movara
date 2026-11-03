@@ -11,6 +11,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
     "db:generate": "pnpm --filter @movara/db db:generate",
     "db:migrate": "pnpm --filter @movara/db db:migrate",
     "db:seed": "pnpm --filter @movara/db db:seed",

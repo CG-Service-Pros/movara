@@ -11,7 +11,7 @@ import { StatusGlyph } from '@movara/ui/status-glyph'
 import { toast } from '@movara/ui/toaster'
 import { PageHeader } from '@movara/ui/page-header'
 import { discardVisionDraft, publishVisionDraft, saveVisionSection } from '@/app/(app)/[org]/vision/actions'
-import { Col, Figure, Provenance, Section, quarterTitle, statusToGlyph } from './vision-doc'
+import { Col, Provenance, Section, quarterTitle, statusToGlyph } from './vision-doc'
 import { PrintStyles } from './print'
 import type { FullSections, IssueLite, PriorityLite, VisionLabels } from './shared'
 
@@ -174,7 +174,6 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 
 export function VisionEditor({
   slug,
-  wordmark,
   revisionId,
   number,
   initial,

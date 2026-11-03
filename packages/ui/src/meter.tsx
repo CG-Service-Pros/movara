@@ -27,6 +27,7 @@ export function Meter({ value, tone = 'neutral', className, ...props }: MeterPro
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(v * 100)}
+      aria-label="Progress"
       className={cn('h-1 w-11 overflow-hidden rounded-full bg-well', className)}
       {...props}
     >
