@@ -1,7 +1,7 @@
 import { getSessionCookie } from 'better-auth/cookies'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC = ['/sign-in', '/sign-up', '/api/auth', '/api/v1', '/mcp', '/_next', '/favicon.ico']
+const PUBLIC = ['/sign-in', '/sign-up', '/invite', '/api/auth', '/api/v1', '/mcp', '/_next', '/favicon.ico']
 
 /** Auth guard: anything but the public paths needs a Better Auth session cookie. (Real session checks happen in getCtx.) */
 export function proxy(request: NextRequest) {

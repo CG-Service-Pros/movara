@@ -1,7 +1,7 @@
 import 'server-only'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import { isIP } from 'node:net'
+import { assertPublicHttpsUrl, safeFetchText, SafeFetchError } from './safe-fetch'
 
 /** Max accepted size of a pack file (bytes). */
 export const MAX_PACK_BYTES = 256 * 1024
@@ -26,39 +26,14 @@ export function parseNpmSpec(spec: string): { name: string; version: string } {
 
 export const npmPackUrl = (name: string, version = 'latest') => `https://cdn.jsdelivr.net/npm/${name}@${version}/pack.json`
 
-function assertPublicHttps(raw: string): URL {
-  let u: URL
-  try {
-    u = new URL(raw.trim())
-  } catch {
-    throw new PackFetchError('That is not a valid URL.')
-  }
-  if (u.protocol !== 'https:') throw new PackFetchError('Only https:// URLs are allowed.')
-  const host = u.hostname.toLowerCase()
-  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal')) throw new PackFetchError('Local addresses are not allowed.')
-  const ip = isIP(host.replace(/^\[|\]$/g, ''))
-  if (ip) {
-    const priv = /^(10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.)/.test(host) || host === '::1' || /^\[?(fc|fd|fe80)/i.test(host)
-    if (priv) throw new PackFetchError('Private addresses are not allowed.')
-  }
-  return u
-}
-
-/** Fetch JSON with a timeout, https only, no redirects to other schemes, <= 256KB. */
+/** Fetch JSON through the SSRF-guarded fetcher: https only, public addresses only, 8s timeout, <= 256KB. */
 async function fetchJson(url: URL): Promise<unknown> {
-  let res: Response
   try {
-    res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(8000), headers: { accept: 'application/json' }, cache: 'no-store' })
-  } catch {
-    throw new PackFetchError('Could not reach that address.')
+    return parseJson(await safeFetchText(url, { maxBytes: MAX_PACK_BYTES, timeoutMs: 8000 }))
+  } catch (e) {
+    if (e instanceof SafeFetchError) throw new PackFetchError(e.message)
+    throw e
   }
-  if (res.url) assertPublicHttps(res.url)
-  if (!res.ok) throw new PackFetchError(res.status === 404 ? 'No pack.json found there (404).' : `The server answered ${res.status}.`)
-  const len = Number(res.headers.get('content-length') ?? 0)
-  if (len > MAX_PACK_BYTES) throw new PackFetchError('The pack is larger than 256KB.')
-  const buf = await res.arrayBuffer()
-  if (buf.byteLength > MAX_PACK_BYTES) throw new PackFetchError('The pack is larger than 256KB.')
-  return parseJson(new TextDecoder().decode(buf))
 }
 
 export function parseJson(text: string): unknown {
@@ -72,7 +47,12 @@ export function parseJson(text: string): unknown {
 
 export async function fetchPack(source: PackSource): Promise<unknown> {
   if (source.kind === 'npm') return fetchJson(new URL(npmPackUrl(source.name, source.version)))
-  return fetchJson(assertPublicHttps(source.url))
+  try {
+    return await fetchJson(assertPublicHttpsUrl(source.url))
+  } catch (e) {
+    if (e instanceof SafeFetchError) throw new PackFetchError(e.message)
+    throw e
+  }
 }
 
 export type PreinstalledEntry = { spec: string; source: 'npm' | 'file'; pack?: unknown; error?: string }

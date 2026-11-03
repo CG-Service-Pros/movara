@@ -9,6 +9,8 @@ import {
 } from '@motion/core'
 import { createTestDb, seedTestOrg } from '@motion/core/testing'
 import type { DbHandle } from '@motion/db'
+import { createHash, randomBytes } from 'node:crypto'
+import { agentsRevoke, approveAuthorization, exchangeAuthorizationCode, registerOAuthClient } from '@motion/core'
 import { createMcpHttpHandler } from '../src/http-handler'
 import { createMotionMcpServer } from '../src/server'
 
@@ -251,5 +253,61 @@ describe('http handler', () => {
     await init.text()
     const bad = await handle(new Request(url, { method: 'POST', headers: { ...hdr, authorization: `Bearer ${s.agent.apiKey}` }, body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) }))
     expect(bad.status).toBe(400)
+  })
+})
+
+describe('http handler: OAuth access tokens', () => {
+  const url = 'http://localhost/mcp'
+  const hdr = { 'content-type': 'application/json', accept: 'application/json, text/event-stream' }
+  const initBody = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 't', version: '0' } } })
+  const RURI = 'http://localhost:6274/callback'
+
+  async function oauthAgent() {
+    const o = await seedTestOrg(db)
+    const reg = await registerOAuthClient(db, { client_name: 'Claude Code', redirect_uris: [RURI] })
+    const verifier = randomBytes(32).toString('base64url')
+    const code = await approveAuthorization(o.ctx, { clientId: reg.client_id, redirectUri: RURI, codeChallenge: createHash('sha256').update(verifier).digest('base64url'), scopes: ['read'] })
+    const t = await exchangeAuthorizationCode(db, { clientId: reg.client_id, code, codeVerifier: verifier, redirectUri: RURI })
+    return { ...o, token: t.access_token }
+  }
+
+  it('accepts an OAuth token, lists tools by its scopes, and still accepts API keys; 401 advertises resource metadata', async () => {
+    const s = await oauthAgent()
+    const key = (await setup()).agent.apiKey
+    const handle = createMcpHttpHandler({ getDb: async () => db, resourceMetadataUrl: 'http://localhost/.well-known/oauth-protected-resource/mcp' })
+
+    const anon = await handle(new Request(url, { method: 'POST', headers: hdr, body: initBody }))
+    expect(anon.status).toBe(401)
+    expect(anon.headers.get('www-authenticate')).toContain('resource_metadata="http://localhost/.well-known/oauth-protected-resource/mcp"')
+
+    for (const bearer of [s.token, key]) {
+      const init = await handle(new Request(url, { method: 'POST', headers: { ...hdr, authorization: `Bearer ${bearer}` }, body: initBody }))
+      expect(init.status).toBe(200)
+      const sid = init.headers.get('mcp-session-id')!
+      await init.text()
+      const list = await handle(new Request(url, { method: 'POST', headers: { ...hdr, authorization: `Bearer ${bearer}`, 'mcp-session-id': sid }, body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) }))
+      expect(list.status).toBe(200)
+      const text = await list.text()
+      const payload = text.startsWith('{') ? text : (text.split('\n').find((l) => l.startsWith('data:')) ?? 'data:{}').slice(5)
+      const names: string[] = (JSON.parse(payload).result?.tools ?? []).map((t: { name: string }) => t.name)
+      if (bearer === s.token) {
+        expect(names).toContain('org_overview')
+        expect(names).not.toContain('todo_create') // read-only consent
+      }
+    }
+  })
+
+  it('denies a token once its agent is revoked', async () => {
+    const s = await oauthAgent()
+    const handle = createMcpHttpHandler({ getDb: async () => db })
+    const ok = await handle(new Request(url, { method: 'POST', headers: { ...hdr, authorization: `Bearer ${s.token}` }, body: initBody }))
+    expect(ok.status).toBe(200)
+    await ok.text()
+    const { authenticateOAuthToken } = await import('@motion/core')
+    const agentId = (await authenticateOAuthToken(db, s.token)).actor.id
+    const r = await execute(s.ctx, agentsRevoke, { agentId })
+    expect(r.ok).toBe(true)
+    const denied = await handle(new Request(url, { method: 'POST', headers: { ...hdr, authorization: `Bearer ${s.token}` }, body: initBody }))
+    expect(denied.status).toBe(401)
   })
 })

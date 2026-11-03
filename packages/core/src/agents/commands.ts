@@ -4,6 +4,7 @@ import { agents, apiKeys, API_KEY_PREFIX, generateApiKey, hashApiKey, people, ty
 import { actingPersonId, ctxForAgent, hasRole, SCOPES, type Ctx } from '../ctx'
 import { MotionError } from '../errors'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
+import { revokeAgentOAuthTokens } from './oauth'
 import { defineCommand, execute, type ExecuteOptions } from '../runner'
 
 const scopesSchema = z.array(z.enum(SCOPES)).max(SCOPES.length)
@@ -83,6 +84,7 @@ export const agentsRevoke = defineCommand({
     const now = new Date()
     const [after] = await ctx.db.update(agents).set({ status: 'revoked', ...touch(agents, ctx) }).where(scoped(agents, ctx, eq(agents.id, input.agentId))).returning()
     await ctx.db.update(apiKeys).set({ revokedAt: now, ...touch(apiKeys, ctx) }).where(and(eq(apiKeys.orgId, ctx.orgId), eq(apiKeys.agentId, input.agentId), isNull(apiKeys.revokedAt)))
+    await revokeAgentOAuthTokens(ctx.db, ctx.orgId, input.agentId)
     return { data: after!, entity: { type: 'agent', id: input.agentId }, before: { status: before.status }, after: { status: 'revoked' } }
   },
 })

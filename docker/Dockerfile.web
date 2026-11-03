@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1.7
 # Motion web app (Next.js 16). Build from the repo root:
 #   docker build -f docker/Dockerfile.web -t motion-web .
-# next.config.ts does not enable `output: 'standalone'`, so this image runs `next start`
-# on a pruned monorepo (only @motion/web, @motion/mcp and what they depend on).
+# next.config.ts sets `output: 'standalone'` (tracing root = monorepo root), so the runtime image holds only the
+# traced server (`node apps/web/server.js`) plus static assets. The `builder` stage keeps the full pruned workspace
+# and is what the compose `migrate` job uses (`pnpm db:migrate` / `db:seed`).
 ARG NODE_VERSION=22
 
 FROM node:${NODE_VERSION}-bookworm-slim AS base
@@ -23,14 +24,19 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 RUN pnpm --filter @motion/web build
 
-# 3. Runtime.
+# 3. Runtime: standalone server only. Layout mirrors the monorepo, so server.js lives at apps/web/server.js.
 FROM base AS runner
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
 RUN groupadd --system --gid 1001 motion && useradd --system --uid 1001 --gid motion --create-home motion
-COPY --from=builder --chown=motion:motion /app /app
+WORKDIR /app
+COPY --from=builder --chown=motion:motion /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=motion:motion /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=motion:motion /app/apps/web/public ./apps/web/public
+# Optional single-container mode: -e DATABASE_URL=pglite:///data/pglite -v motion-data:/data (not needed with Postgres).
+# (server.js chdirs to apps/web, so always give PGlite an absolute path.)
+RUN mkdir -p /data && chown motion:motion /data
 USER motion
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/sign-in').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-WORKDIR /app/apps/web
-CMD ["pnpm", "exec", "next", "start", "-H", "0.0.0.0"]
+CMD ["node", "apps/web/server.js"]

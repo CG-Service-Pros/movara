@@ -6,5 +6,6 @@ export const controlClasses =
 
 /** 28px single-line text input. Set `aria-invalid` for the error state. */
 export function Input({ className, type = 'text', ...props }: React.ComponentProps<'input'>) {
-  return <input type={type} className={cn(controlClasses, 'h-7 px-2.5', className)} {...props} />
+  // Browser extensions / autofill (e.g. `fdprocessedid`, password managers) add attributes to form controls before React hydrates.
+  return <input type={type} className={cn(controlClasses, 'h-7 px-2.5', className)} suppressHydrationWarning {...props} />
 }

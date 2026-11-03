@@ -46,7 +46,8 @@ export const oauthClients = pgTable(
   'oauth_clients',
   {
     ...commonCols(),
-    orgId: uuid('org_id').notNull().references(() => orgs.id, { onDelete: 'cascade' }),
+    /** Null for clients registered dynamically (RFC 7591): the org is only chosen at consent time. */
+    orgId: uuid('org_id').references(() => orgs.id, { onDelete: 'cascade' }),
     agentId: uuid('agent_id').references(() => agents.id, { onDelete: 'cascade' }),
     clientId: text('client_id').notNull(),
     clientSecretHash: text('client_secret_hash'),
@@ -72,4 +73,22 @@ export const oauthTokens = pgTable(
     revokedAt: ts('revoked_at'),
   },
   (t) => [uniqueIndex('oauth_tokens_hash_uq').on(t.tokenHash), index('oauth_tokens_org_client_idx').on(t.orgId, t.clientId)],
+)
+
+/** Single-use OAuth authorization codes (PKCE S256). Only the sha256 hash of the code is stored. */
+export const oauthCodes = pgTable(
+  'oauth_codes',
+  {
+    ...commonCols(),
+    orgId: uuid('org_id').notNull().references(() => orgs.id, { onDelete: 'cascade' }),
+    agentId: uuid('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
+    clientId: text('client_id').notNull(),
+    codeHash: text('code_hash').notNull(),
+    redirectUri: text('redirect_uri').notNull(),
+    codeChallenge: text('code_challenge').notNull(),
+    scopes: text('scopes').array().notNull().default([]),
+    expiresAt: ts('expires_at').notNull(),
+    usedAt: ts('used_at'),
+  },
+  (t) => [uniqueIndex('oauth_codes_hash_uq').on(t.codeHash)],
 )

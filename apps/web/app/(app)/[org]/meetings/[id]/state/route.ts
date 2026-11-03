@@ -9,9 +9,10 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: Request, { params }: { params: Promise<{ org: string; id: string }> }) {
   const { org, id } = await params
   const ctx = await getCtx(org)
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return new NextResponse(null, { status: 404 })
   const since = new URL(req.url).searchParams.get('sinceRev')
   try {
-    const live = await getLiveState(ctx, id, since !== null && since !== '' ? { sinceRev: Number(since) } : {})
+    const live = await getLiveState(ctx, id, since !== null && since !== '' ? { sinceRev: Number.isFinite(Number(since)) ? Number(since) : undefined } : {})
     if (!live) return new NextResponse(null, { status: 204 })
     return NextResponse.json(await loadBundle(ctx, id, live), { headers: { 'cache-control': 'no-store' } })
   } catch (e) {
@@ -24,6 +25,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
 export async function POST(_req: Request, { params }: { params: Promise<{ org: string; id: string }> }) {
   const { org, id } = await params
   const ctx = await getCtx(org)
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return new NextResponse(null, { status: 404 })
   try {
     return NextResponse.json({ ok: await meetingHeartbeat(ctx, id) })
   } catch (e) {

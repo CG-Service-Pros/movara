@@ -3,17 +3,18 @@ import { orgs, people, type Db } from '@motion/db'
 import { requireRead, type Ctx } from '../ctx'
 import { found, scoped } from '../helpers'
 
-export type PersonRow = typeof people.$inferSelect
+export type PersonRow = Omit<typeof people.$inferSelect, 'inviteTokenHash'>
+const strip = ({ inviteTokenHash: _h, ...rest }: typeof people.$inferSelect): PersonRow => rest
 
 export async function listPeople(ctx: Ctx): Promise<PersonRow[]> {
   requireRead(ctx)
-  return ctx.db.select().from(people).where(scoped(people, ctx)).orderBy(asc(people.name))
+  return (await ctx.db.select().from(people).where(scoped(people, ctx)).orderBy(asc(people.name))).map(strip)
 }
 
 export async function getPerson(ctx: Ctx, id: string): Promise<PersonRow> {
   requireRead(ctx)
   const [p] = await ctx.db.select().from(people).where(scoped(people, ctx, eq(people.id, id))).limit(1)
-  return found(p, 'Person')
+  return strip(found(p, 'Person'))
 }
 
 /** Every org a Better Auth user belongs to (for the org switcher and post-login redirect). */

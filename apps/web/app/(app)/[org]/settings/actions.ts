@@ -3,11 +3,12 @@
 import { revalidatePath } from 'next/cache'
 import {
   agentsCreate, agentsRevoke, agentsRevokeApiKey, agentsUpdate, agentsUpdateScopes, approveApproval, declineApproval, execute, getOrg, isMotionError, issueApiKey,
-  orgSetTerminologyOverrides, orgSetTerminologyPack, orgUpdateBranding, orgUpdateCalendar, orgUpdateGeneral, orgUpdateModules, peopleAdd, peopleRemove, peopleUpdateRole,
+  orgSetTerminologyOverrides, orgSetTerminologyPack, orgUpdateBranding, orgUpdateCalendar, orgUpdateGeneral, orgUpdateModules, peopleAdd, peopleCreateInvite, peopleRemove, peopleUpdateRole, requireRole,
   type Ctx,
 } from '@motion/core'
 import { previewImport, TermOverrides, type TerminologyPack } from '@motion/terminology'
 import { getCtx } from '@/lib/ctx'
+import { inviteUrl, sendInviteEmail } from '@/lib/invite'
 import { fetchPack, PackFetchError, parseJson, parseNpmSpec, type PackSource } from '@/lib/terminology-import'
 
 export type ActionResult<T = undefined> = { ok: true; data?: T; pending?: boolean } | { ok: false; error: string }
@@ -61,6 +62,9 @@ async function currentPack(ctx: Ctx) {
 export async function previewPack(slug: string, input: { kind: 'npm' | 'url' | 'file' | 'json'; value: string }): Promise<ActionResult<PackPreview>> {
   try {
     const ctx = await getCtx(slug)
+    // Fetching a remote file is an outbound request made by the server: admins only (the apply step is admin-only in core too).
+    requireRole(ctx, 'admin')
+    if (typeof input?.value !== 'string' || input.value.length > 300_000) return { ok: false, error: 'Input is missing or too large.' }
     let raw: unknown
     if (input.kind === 'npm') {
       const { name, version } = parseNpmSpec(input.value)
@@ -106,8 +110,23 @@ export async function saveOverrides(slug: string, overrides: unknown) {
 }
 
 // ---- Members -------------------------------------------------------------------------------
-export async function inviteMember(slug: string, input: { name: string; email: string; role: 'admin' | 'member' | 'viewer' }) {
-  return run(slug, ['members'], (ctx) => execute(ctx, peopleAdd, input))
+export type InviteResult = { link: string; email: string; name: string; emailed: boolean }
+
+/** Invite someone: returns the single-use `/invite/<token>` link (shown once in Members settings; emailed when SMTP is configured). */
+export async function inviteMember(slug: string, input: { name: string; email: string; role: 'admin' | 'member' | 'viewer' }): Promise<ActionResult<InviteResult>> {
+  const r = await run<{ inviteToken: string; name: string; email: string }>(slug, ['members'], (ctx) => execute(ctx, peopleAdd, input))
+  if (!r.ok || !r.data) return r as ActionResult<InviteResult>
+  const link = inviteUrl(r.data.inviteToken)
+  const emailed = await sendInviteEmail({ to: r.data.email, name: r.data.name, orgName: (await getOrg(await getCtx(slug))).name, link })
+  return { ok: true, data: { link, email: r.data.email, name: r.data.name, emailed } }
+}
+
+/** Issue a fresh invite link for someone who has not joined yet (invalidates the previous link). */
+export async function reissueInvite(slug: string, personId: string): Promise<ActionResult<InviteResult>> {
+  const r = await run<{ inviteToken: string; name: string; email: string }>(slug, ['members'], (ctx) => execute(ctx, peopleCreateInvite, { personId }))
+  if (!r.ok || !r.data) return r as ActionResult<InviteResult>
+  const link = inviteUrl(r.data.inviteToken)
+  return { ok: true, data: { link, email: r.data.email, name: r.data.name, emailed: false } }
 }
 export async function changeRole(slug: string, personId: string, role: 'owner' | 'admin' | 'member' | 'viewer') {
   return run(slug, ['members'], (ctx) => execute(ctx, peopleUpdateRole, { personId, role }))

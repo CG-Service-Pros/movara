@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
-import { authenticateApiKey, isMotionError, type Ctx } from '@motion/core'
+import { ACCESS_TOKEN_PREFIX, authenticateApiKey, authenticateOAuthToken, isMotionError, type Ctx } from '@motion/core'
 import type { Db } from '@motion/db'
 import { createMotionMcpServer } from './server'
 
@@ -12,6 +12,11 @@ export type McpHttpHandlerOptions = {
   /** Idle sessions are dropped after this many ms. Default 30 min. */
   sessionTtlMs?: number
   pollMs?: number
+  /**
+   * URL of the OAuth protected-resource metadata document (RFC 9728), e.g. https://app/.well-known/oauth-protected-resource/mcp.
+   * Advertised in `WWW-Authenticate` so OAuth-capable MCP clients (Claude, ChatGPT, Cursor) can discover the authorization server.
+   */
+  resourceMetadataUrl?: string | (() => string | undefined)
 }
 
 const rpcError = (status: number, code: number, message: string, headers: Record<string, string> = {}) =>
@@ -20,8 +25,10 @@ const rpcError = (status: number, code: number, message: string, headers: Record
     headers: { 'content-type': 'application/json', ...headers },
   })
 
-const unauthorized = (message: string) =>
-  rpcError(401, -32001, message, { 'www-authenticate': 'Bearer realm="motion", error="invalid_token"' })
+const unauthorized = (message: string, resourceMetadata?: string, invalid = true) =>
+  rpcError(401, -32001, message, {
+    'www-authenticate': `Bearer realm="motion"${invalid ? ', error="invalid_token"' : ''}${resourceMetadata ? `, resource_metadata="${resourceMetadata}"` : ''}`,
+  })
 
 export const bearerOf = (req: Request): string | null => {
   const m = /^Bearer\s+(.+)$/i.exec(req.headers.get('authorization') ?? '')
@@ -44,13 +51,14 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions) {
 
   return async function handle(req: Request): Promise<Response> {
     const key = bearerOf(req)
-    if (!key) return unauthorized('Missing Authorization: Bearer <api key>')
+    const rm = typeof opts.resourceMetadataUrl === 'function' ? opts.resourceMetadataUrl() : opts.resourceMetadataUrl
+    if (!key) return unauthorized('Missing Authorization: Bearer <api key or OAuth access token>', rm, false)
     const db = await opts.getDb()
     let ctx: Ctx
     try {
-      ctx = await authenticateApiKey(db, key)
+      ctx = key.startsWith(ACCESS_TOKEN_PREFIX) ? await authenticateOAuthToken(db, key) : await authenticateApiKey(db, key)
     } catch (e) {
-      if (isMotionError(e)) return unauthorized(e.message)
+      if (isMotionError(e)) return unauthorized(e.message, rm)
       throw e
     }
 
@@ -87,7 +95,7 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions) {
 }
 
 /** One handler per process (survives Next dev HMR). */
-export function sharedMcpHttpHandler(getDb: () => Promise<Db>) {
+export function sharedMcpHttpHandler(getDb: () => Promise<Db>, opts: Omit<McpHttpHandlerOptions, 'getDb'> = {}) {
   const g = globalThis as unknown as { __motionMcpHandler?: ReturnType<typeof createMcpHttpHandler> }
-  return (g.__motionMcpHandler ??= createMcpHttpHandler({ getDb }))
+  return (g.__motionMcpHandler ??= createMcpHttpHandler({ getDb, ...opts }))
 }

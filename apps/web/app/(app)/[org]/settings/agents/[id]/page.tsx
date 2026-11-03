@@ -3,13 +3,14 @@ import { getAgent, getPerson, hasRole, listApiKeys, actingPersonId } from '@moti
 import { Page } from '@/components/shell/page'
 import { AgentDetail } from '@/components/settings/agent-detail'
 import { SettingsBody } from '@/components/settings/ui'
-import { requireModule } from '@/lib/ctx'
+import { assertRouteId, orNotFound, requireModule } from '@/lib/ctx'
 import { appUrl } from '@/components/settings/app-url'
 
 export default async function AgentPage({ params }: { params: Promise<{ org: string; id: string }> }) {
-  const { org: slug, id } = await params
+  const { org: slug, id: rawId } = await params
+  const id = assertRouteId(rawId)
   const { ctx } = await requireModule(slug, 'agents')
-  const agent = await getAgent(ctx, id)
+  const agent = await orNotFound(getAgent(ctx, id))
   const [keys, owner] = await Promise.all([listApiKeys(ctx, id), getPerson(ctx, agent.ownerPersonId)])
   const canManage = hasRole(ctx, 'admin') || agent.ownerPersonId === actingPersonId(ctx)
   return (

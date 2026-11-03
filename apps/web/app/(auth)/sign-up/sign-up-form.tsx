@@ -6,8 +6,9 @@ import { Button } from '@motion/ui/button'
 import { Field } from '@motion/ui/field'
 import { Input } from '@motion/ui/input'
 import { authClient } from '@/lib/auth-client'
+import { safeNext } from '@/lib/safe-next'
 
-export function SignUpForm() {
+export function SignUpForm({ next }: { next?: string }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -19,7 +20,7 @@ export function SignUpForm() {
     start(async () => {
       const { error } = await authClient.signUp.email({ name: String(f.get('name')), email: String(f.get('email')), password: String(f.get('password')) })
       if (error) return setError(error.message ?? 'Could not create the account')
-      router.replace('/')
+      router.replace(safeNext(next))
       router.refresh()
     })
   }

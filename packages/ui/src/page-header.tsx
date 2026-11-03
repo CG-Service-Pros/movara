@@ -11,14 +11,14 @@ export interface PageHeaderProps extends Omit<React.ComponentProps<'div'>, 'titl
   actions?: React.ReactNode
 }
 
-/** 44px toolbar row at the top of the inset panel, with a bottom hairline. */
+/** 44px (min) toolbar row at the top of the inset panel, with a bottom hairline. Actions wrap onto extra lines on narrow screens instead of clipping. */
 export function PageHeader({ title, meta, tabs, actions, className, ...props }: PageHeaderProps) {
   return (
-    <div className={cn('flex h-11 shrink-0 items-center gap-2 border-b border-line px-4', className)} {...props}>
-      <h1 className="truncate text-base font-semibold text-ink">{title}</h1>
+    <div className={cn('flex min-h-11 shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b border-line px-4 py-1.5', className)} {...props}>
+      <h1 className="min-w-0 truncate text-base font-semibold text-ink">{title}</h1>
       {meta && <div className="flex items-center gap-1.5 text-base font-[500] text-body">{meta}</div>}
       {tabs && <div className="ml-3 flex items-center">{tabs}</div>}
-      {actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
+      {actions && <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">{actions}</div>}
     </div>
   )
 }

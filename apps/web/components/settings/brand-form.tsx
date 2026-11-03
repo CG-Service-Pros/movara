@@ -27,7 +27,7 @@ function LogoField({ label, value, onChange, dark }: { label: string; value?: st
   function pick(file: File | undefined) {
     if (!file) return
     if (file.size > MAX_LOGO) return void toast.error('Logo must be 200KB or smaller.')
-    if (!/^image\/(png|jpeg|svg\+xml|webp|gif)$/.test(file.type)) return void toast.error('Use a PNG, SVG, JPEG or WebP image.')
+    if (!/^image\/(png|jpeg|svg\+xml|webp)$/.test(file.type)) return void toast.error('Use a PNG, SVG, JPEG or WebP image.')
     const r = new FileReader()
     r.onload = () => onChange(String(r.result))
     r.readAsDataURL(file)
@@ -43,7 +43,7 @@ function LogoField({ label, value, onChange, dark }: { label: string; value?: st
             <span className="text-xs" style={{ color: dark ? '#9aa1ab' : '#9aa1ab' }}>No logo</span>
           )}
         </div>
-        <input ref={ref} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" className="sr-only" aria-label={`${label} file`} onChange={(e) => { pick(e.target.files?.[0]); e.target.value = '' }} />
+        <input ref={ref} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="sr-only" aria-label={`${label} file`} onChange={(e) => { pick(e.target.files?.[0]); e.target.value = '' }} />
         <Button onClick={() => ref.current?.click()}><Upload size={14} strokeWidth={1.7} />Upload</Button>
         {value && <Button variant="ghost" onClick={() => onChange(null)}><X size={14} strokeWidth={1.7} />Remove</Button>}
       </div>
@@ -114,7 +114,7 @@ export function BrandForm({ slug, init, orgName, canEdit }: { slug: string; init
       <div>
         <div className="mb-2 text-xs font-[550] text-faint">Live preview</div>
         <div className="flex overflow-hidden rounded-xl bg-canvas shadow-panel" style={style} data-testid="brand-preview">
-          <div className="flex w-48 flex-col gap-3 p-3">
+          <div className="flex w-48 shrink-0 flex-col gap-3 p-3 max-sm:w-28">
             {light ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={light} alt="" className="h-4 max-w-[120px] self-start object-contain" />
@@ -128,7 +128,7 @@ export function BrandForm({ slug, init, orgName, canEdit }: { slug: string; init
           </div>
           <div className="m-2 ml-0 flex flex-1 flex-col items-start gap-3 rounded-lg bg-surface p-4 shadow-panel">
             <div className="flex items-center gap-2">
-              <button type="button" className="h-7 rounded-md bg-accent px-3 text-sm font-[550] text-white">Primary action</button>
+              <button type="button" className="h-7 whitespace-nowrap rounded-md bg-accent px-3 text-sm font-[550] text-white">Primary action</button>
               <button type="button" className="h-7 rounded-md px-3 text-sm font-[550] text-accent-text shadow-[0_0_0_1px_var(--m-line)]">Secondary</button>
             </div>
             <span className="inline-flex h-5 items-center rounded-full bg-accent-soft px-2 text-xs font-[550] text-accent-text">Accent badge</span>

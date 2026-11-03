@@ -15,6 +15,20 @@
       "when": 1793662924395,
       "tag": "0001_metric_description",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793663672006,
+      "tag": "0002_faithful_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793664581056,
+      "tag": "0003_exotic_korg",
+      "breakpoints": true
     }
   ]
 }

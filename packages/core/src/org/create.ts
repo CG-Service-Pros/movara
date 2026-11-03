@@ -6,12 +6,22 @@ import { MotionError } from '../errors'
 import { newId } from '../helpers'
 
 export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,38})[a-z0-9]$/
-const RESERVED_SLUGS = new Set(['api', 'app', 'new', 'onboarding', 'sign-in', 'sign-up', 'settings', 'admin', 'www', 'mcp', '_next'])
+const RESERVED_SLUGS = new Set(['api', 'app', 'new', 'onboarding', 'sign-in', 'sign-up', 'settings', 'admin', 'www', 'mcp', '_next', 'oauth', 'static', 'public', 'favicon'])
 
 export const createOrgInput = z.object({
   name: z.string().trim().min(1).max(80),
   slug: z.string().trim().toLowerCase().regex(SLUG_RE, 'Use 3-40 lowercase letters, numbers and dashes'),
-  timezone: z.string().default('UTC'),
+  timezone: z
+    .string()
+    .default('UTC')
+    .refine((tz) => {
+      try {
+        new Intl.DateTimeFormat('en', { timeZone: tz })
+        return true
+      } catch {
+        return false
+      }
+    }, 'Unknown timezone'),
   fiscalYearStartMonth: z.number().int().min(1).max(12).default(1),
   weekStartDay: z.number().int().min(0).max(6).default(1),
   /** Better Auth user id of the owner (they must exist). */

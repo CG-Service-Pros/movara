@@ -13,6 +13,26 @@ async function load(ctx: Ctx) {
   return found(o, 'Organization')
 }
 
+/** Max length of an inline (data URL) logo, ~200KB of image data once base64-encoded. */
+export const MAX_LOGO_DATA_URL = 280_000
+const DATA_IMAGE = /^data:image\/(?:png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/
+
+/**
+ * A brand image: an https URL, or a base64 data URL of png/jpeg/webp/svg. Nothing else (no javascript:, http:, other mime types).
+ * SVGs are only ever rendered through <img>, where scripts do not run.
+ */
+export const brandImage = z
+  .string()
+  .max(MAX_LOGO_DATA_URL)
+  .refine((v) => {
+    if (v.startsWith('data:')) return DATA_IMAGE.test(v)
+    try {
+      return new URL(v).protocol === 'https:'
+    } catch {
+      return false
+    }
+  }, 'Use an https URL or a PNG, JPEG, WebP or SVG image up to 200KB')
+
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a #rrggbb color')
 
 export const orgUpdateGeneral = defineCommand({
@@ -41,11 +61,11 @@ export const orgUpdateBranding = defineCommand({
   minRole: 'admin',
   input: z.object({
     wordmark: z.string().trim().max(40).optional(),
-    logoLight: z.string().url().nullable().optional(),
-    logoDark: z.string().url().nullable().optional(),
-    favicon: z.string().url().nullable().optional(),
+    logoLight: brandImage.nullable().optional(),
+    logoDark: brandImage.nullable().optional(),
+    favicon: brandImage.nullable().optional(),
     accent: hex.optional(),
-    loginBackground: z.string().url().nullable().optional(),
+    loginBackground: brandImage.nullable().optional(),
     emailSenderName: z.string().trim().max(80).optional(),
   }),
   run: async (ctx, input, h) => {
@@ -87,6 +107,14 @@ export const orgUpdateModules = defineCommand({
   },
 })
 
+const validTz = (tz: string) => {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: tz })
+    return true
+  } catch {
+    return false
+  }
+}
 const month = z.number().int().min(1).max(12)
 export const orgUpdateCalendar = defineCommand({
   name: 'org.update_calendar',
@@ -95,7 +123,7 @@ export const orgUpdateCalendar = defineCommand({
   input: z.object({
     fiscalYearStartMonth: month.optional(),
     weekStartDay: z.number().int().min(0).max(6).optional(),
-    timezone: z.string().optional(),
+    timezone: z.string().refine(validTz, 'Unknown timezone').optional(),
     quarterCalendar: z
       .object({ mode: z.enum(['standard', 'custom']), quarterStartMonths: z.tuple([month, month, month, month]).optional() })
       .refine((q) => q.mode === 'standard' || !!q.quarterStartMonths, { message: 'quarterStartMonths is required for a custom calendar' })

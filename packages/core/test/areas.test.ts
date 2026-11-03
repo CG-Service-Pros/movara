@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { people, user, newId, type DbHandle } from '@motion/db'
 import { STANDARD_PACK } from '@motion/terminology'
 import {
-  createOrg, execute, getOrg, getOrgBySlug, getTerms, createTerms, linkUserByEmail, listMembershipsForUser, listPeople, listTeams, listTeamsForPerson, listAudit,
+  createOrg, execute, getOrg, getOrgBySlug, getTerms, createTerms, acceptInvite, getInvite, peopleCreateInvite, listMembershipsForUser, listPeople, listTeams, listTeamsForPerson, listAudit,
   orgSetTerminologyOverrides, orgSetTerminologyPack, orgUpdateBranding, orgUpdateCalendar, orgUpdateModules, orgUpdateSettings, orgUpdateGeneral,
   peopleAdd, peopleRemove, peopleUpdate, peopleUpdateRole, teamsAddMember, teamsCreate, teamsDelete, teamsRemoveMember, teamsUpdate, ctxForUser, getPerson,
 } from '../src'
@@ -113,14 +113,31 @@ describe('people', () => {
     expect(added.data).toMatchObject({ email: 'pat@example.com', userId: null })
     await expect(execute(ctx, peopleAdd, { name: 'Pat Again', email: 'pat@example.com' })).rejects.toMatchObject({ code: 'conflict' })
 
-    // Sign-up links the pending person.
+    // The token is shown once; only its hash is stored and it never leaks through reads.
+    const token = added.data.inviteToken
+    expect(token.length).toBeGreaterThan(30)
+    expect(JSON.stringify(await listPeople(ctx))).not.toContain(token)
+    expect(Object.keys(await getPerson(ctx, added.data.id))).not.toContain('inviteTokenHash')
+
+    // Signing up with the invited address does NOT grant access.
     const uid = newId()
     await db.insert(user).values({ id: uid, name: 'Pat', email: 'pat@example.com', emailVerified: true })
-    expect(await linkUserByEmail(db, { id: uid, email: 'pat@example.com' })).toBe(1)
+    expect((await getPerson(ctx, added.data.id)).userId).toBeNull()
+    expect(await ctxForUser(db, { id: org.id }, uid)).toBeNull()
+
+    // Only the token links the account; it is single use.
+    expect(await getInvite(db, token)).toMatchObject({ orgSlug: org.slug, email: 'pat@example.com' })
+    expect(await getInvite(db, 'nope')).toBeNull()
+    await expect(acceptInvite(db, 'nope', uid)).rejects.toMatchObject({ code: 'not_found' })
+    expect(await acceptInvite(db, token, uid)).toMatchObject({ orgId: org.id, personId: added.data.id })
     expect((await getPerson(ctx, added.data.id)).userId).toBe(uid)
     expect((await ctxForUser(db, { id: org.id }, uid))!.role).toBe('member')
+    const other = newId()
+    await db.insert(user).values({ id: other, name: 'Eve', email: 'eve@example.com', emailVerified: true })
+    await expect(acceptInvite(db, token, other)).rejects.toMatchObject({ code: 'not_found' })
+    await expect(execute(ctx, peopleCreateInvite, { personId: added.data.id })).rejects.toMatchObject({ code: 'conflict' })
 
-    // Adding someone who already has an account links immediately.
+    // Adding someone who already has an account does not link them either.
     const again = await execute(ctx, peopleAdd, { name: 'Pat Two', email: 'pat@example.com' }).catch((e) => e)
     expect(again.code).toBe('conflict')
 
@@ -134,8 +151,25 @@ describe('people', () => {
     expect((await listPeople(ctx)).map((p) => p.id)).not.toContain(added.data.id)
     // Re-adding a removed person restores them.
     const back = await execute(ctx, peopleAdd, { name: 'Pat Back', email: 'pat@example.com' })
-    expect(back.ok && back.data.id === added.data.id && back.data.deletedAt === null).toBe(true)
+    expect(back.ok && back.data.id === added.data.id && back.data.deletedAt === null && back.data.userId === null).toBe(true)
     expect((await db.select().from(people).where(eq(people.id, added.data.id)))[0]!.name).toBe('Pat Back')
+  })
+
+  it('invite links expire, can be reissued and are bound to a pending person', async () => {
+    const { ctx, org } = await seedTestOrg(db)
+    const added = await execute(ctx, peopleAdd, { name: 'Dana', email: 'dana@example.com' })
+    if (!added.ok) throw new Error('x')
+    const uid = newId()
+    await db.insert(user).values({ id: uid, name: 'Dana', email: 'dana@example.com', emailVerified: false })
+    await db.update(people).set({ inviteExpiresAt: new Date(Date.now() - 1000) }).where(eq(people.id, added.data.id))
+    await expect(acceptInvite(db, added.data.inviteToken, uid)).rejects.toMatchObject({ code: 'not_found' })
+    const re = await execute(ctx, peopleCreateInvite, { personId: added.data.id })
+    if (!re.ok) throw new Error('x')
+    await expect(acceptInvite(db, added.data.inviteToken, uid)).rejects.toMatchObject({ code: 'not_found' })
+    expect((await acceptInvite(db, re.data.inviteToken, uid)).orgId).toBe(org.id)
+    // A different org's admin cannot reissue links for this org's people.
+    const { ctx: ctx2 } = await seedTestOrg(db)
+    await expect(execute(ctx2, peopleCreateInvite, { personId: added.data.id })).rejects.toMatchObject({ code: 'not_found' })
   })
 
   it('protects the last owner and owner promotions', async () => {

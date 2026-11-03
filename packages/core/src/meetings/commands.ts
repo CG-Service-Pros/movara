@@ -1,4 +1,5 @@
 import { and, asc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm'
+import { todayIn } from '../calendar'
 import { z } from 'zod'
 import { agents, headlines, issues, meetings, metrics, orgs, people, priorities, todos, type ActorJson } from '@motion/db'
 import { requireRole, requireScope, type Ctx } from '../ctx'
@@ -441,7 +442,7 @@ export type EndMeetingData = {
   nextMeeting: { id: string; scheduledAt: string } | null
 }
 
-const fmtDay = (d: Date) => d.toISOString().slice(0, 10)
+const fmtDay = (d: Date, timezone = 'UTC') => todayIn({ timezone }, d)
 
 /**
  * Finalize a live meeting: pending to-dos become done; (if settings.clearItems) done to-dos and reviewed headlines
@@ -458,6 +459,8 @@ export const meetingEnd = defineCommand({
     const s = l.state
     const teamId = l.series.teamId
     stopTimer(s, s.sectionIndex, now)
+
+    const [{ tz: orgTz } = { tz: 'UTC' }] = await ctx.db.select({ tz: orgs.timezone }).from(orgs).where(eq(orgs.id, ctx.orgId)).limit(1)
 
     // 1. pending -> done
     await ctx.db
@@ -499,7 +502,7 @@ export const meetingEnd = defineCommand({
     const owners = newTodos.length ? await ctx.db.select({ id: people.id, name: people.name }).from(people).where(scoped(people, ctx, inArray(people.id, [...new Set(newTodos.map((t) => t.ownerId).filter((x): x is string => !!x))]))) : []
     const nameOf = (id: string | null) => owners.find((o) => o.id === id)?.name ?? 'Unassigned'
     const lines = [
-      `${l.series.name} · ${fmtDay(startedAt)}`,
+      `${l.series.name} · ${fmtDay(startedAt, orgTz)}`,
       `Duration ${stats.durationMinutes} min · Rating ${stats.ratingAvg ?? 'n/a'} (${stats.ratingCount}) · Issues solved ${stats.issuesSolved}/${stats.issuesTotal} · To-dos done ${stats.todosDone}/${stats.todosTotal}`,
       ...(solved.length ? ['', 'Solved:', ...solved.map((i) => `- ${i.title}`)] : []),
       ...(newTodos.length ? ['', 'New to-dos:', ...newTodos.map((t) => `- ${t.title} (${nameOf(t.ownerId)}${t.dueDate ? `, due ${t.dueDate}` : ''})`)] : []),
@@ -516,7 +519,7 @@ export const meetingEnd = defineCommand({
           wordmark: org?.branding?.wordmark,
           accent: org?.branding?.accent,
           seriesName: l.series.name,
-          date: fmtDay(startedAt),
+          date: fmtDay(startedAt, orgTz),
           stats,
           solved: solved.map((i) => i.title),
           newTodos: newTodos.map((t) => ({ title: t.title, owner: nameOf(t.ownerId), dueDate: t.dueDate })),
@@ -530,7 +533,7 @@ export const meetingEnd = defineCommand({
             attendance: 'Attendance',
           },
         })
-        recap = { to: to.map((t) => t.email), subject: `${l.series.name} recap · ${fmtDay(startedAt)}`, text: summary, html }
+        recap = { to: to.map((t) => t.email), subject: `${l.series.name} recap · ${fmtDay(startedAt, orgTz)}`, text: summary, html }
       }
     }
 

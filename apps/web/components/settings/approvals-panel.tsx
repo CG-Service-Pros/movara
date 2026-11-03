@@ -13,6 +13,8 @@ import { useSave } from './use-save'
 export type ApprovalItem = {
   id: string; action: string; summary: string | null; payload: unknown; status: 'pending' | 'approved' | 'declined'
   requestedBy: ActorLike; decidedBy: ActorLike | null; createdAt: string; decidedAt: string | null; note: string | null; error: string | null
+  /** Admins, or the owner of the requesting agent. */
+  canDecide?: boolean
 }
 
 const show = (v: unknown) => (typeof v === 'string' ? v : JSON.stringify(v))
@@ -60,7 +62,7 @@ export function ApprovalsPanel({ slug, items, names, canDecide }: { slug: string
                 </div>
                 <div className="text-base font-[550] text-ink">{a.summary ?? a.action}</div>
                 <PayloadDiff payload={a.payload} />
-                {canDecide && (
+                {canDecide && a.canDecide !== false && (
                   <div className="flex items-center gap-2">
                     <Input aria-label="Note" placeholder="Add a note (optional)" value={note[a.id] ?? ''} onChange={(e) => setNote({ ...note, [a.id]: e.target.value })} />
                     <Button variant="primary" loading={pending && busy === a.id + 'approve'} disabled={pending} onClick={() => decide(a.id, 'approve')}><Check size={14} strokeWidth={2} />Approve</Button>

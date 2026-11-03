@@ -28,7 +28,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.web
-    image: motion-web:local
+      target: builder # full workspace (tsx + pnpm scripts); the runtime image is standalone-only
+    image: motion-web-migrate:local
     restart: "no"
     depends_on:
       postgres:

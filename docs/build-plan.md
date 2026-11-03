@@ -1,5 +1,7 @@
 # Build plan
 
+**Status (2026-11-02): M0–M6 built.** Everything below exists in this repo and is covered by typecheck, unit tests (198), Playwright e2e and a production build. Not done yet: npm publishing (the release workflow is ready and needs `NPM_TOKEN`), building the Docker images (the Dockerfiles and compose file are written but have never been built here), a hosted docs site, and row-level security (org isolation is enforced in core and tested).
+
 Milestones are ordered so a real team (Vindex) can run its weekly meeting on Motion as early as possible.
 
 ## M0 — Foundations (week 1)
@@ -35,7 +37,7 @@ Milestones are ordered so a real team (Vindex) can run its weekly meeting on Mot
 - Docker Compose self-host, Supabase + Vercel one-click deploy template, docs site, demo data, security review, license (Apache-2.0), CONTRIBUTING, public repo.
 
 ## Decisions still open
-1. Final product name (see naming research), npm scope and GitHub org.
+1. Name: **Motion** (decided). An unrelated commercial app also uses the name; run a trademark check before a public launch. npm scope `@motion` availability is unverified.
 2. Legal review of the EOS pack's name and attribution before publishing it.
-3. Auth for self-host: Auth.js vs. Better Auth.
+3. ~~Auth for self-host~~: Better Auth (decided), with a built-in OAuth 2.1 server for MCP clients.
 4. Hosted offering (a "Motion Cloud") or OSS only.

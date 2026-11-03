@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { listAgents, listApiKeys } from '@motion/core'
+import { actingPersonId, hasRole, listAgents, listApiKeys } from '@motion/core'
 import { AgentMark } from '@motion/ui/agent-mark'
 import { Badge } from '@motion/ui/badge'
 import { Page } from '@/components/shell/page'
@@ -30,7 +30,7 @@ export default async function KeysPage({ params }: { params: Promise<{ org: stri
                       <div className="truncate text-base font-[550] text-ink">{k.name || 'Unnamed key'}</div>
                       <div className="text-sm text-body"><Mono>{k.prefix}…</Mono> · created {fmtDate(k.createdAt)} · last used {ago(k.lastUsedAt)}</div>
                     </div>
-                    {k.revokedAt ? <Badge tone="danger">Revoked</Badge> : <RevokeKeyButton slug={slug} keyId={k.id} />}
+                    {k.revokedAt ? <Badge tone="danger">Revoked</Badge> : (hasRole(ctx, 'admin') || a.ownerPersonId === actingPersonId(ctx)) ? <RevokeKeyButton slug={slug} keyId={k.id} /> : null}
                   </div>
                 ))}
                 {list.length === 0 && <div className="px-4 py-5 text-center text-base text-body">No keys.</div>}

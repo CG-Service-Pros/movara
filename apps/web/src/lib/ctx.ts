@@ -1,7 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
-import { ctxForUser, getOrg, getTerms, listTeamsForPerson, type Ctx, type OrgRow, type Terms } from '@motion/core'
+import { isMotionError, ctxForUser, getOrg, getTerms, listTeamsForPerson, type Ctx, type OrgRow, type Terms } from '@motion/core'
 import { MODULE_KEYS, type ModuleKey } from '@motion/db'
 import { notFound } from 'next/navigation'
 import { getDb } from './db'
@@ -48,3 +48,20 @@ export const getMyTeams = cache(async (orgSlug: string) => {
   const ctx = await getCtx(orgSlug)
   return listTeamsForPerson(ctx, ctx.actor.type === 'person' ? ctx.actor.id : (ctx.actor.onBehalfOf as string))
 })
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+/** Route ids must be uuids: anything else is a 404, never a database error. */
+export function assertRouteId(id: string): string {
+  if (!UUID_RE.test(id)) notFound()
+  return id
+}
+
+/** Await a core getter; a `not_found` MotionError becomes the 404 page. */
+export async function orNotFound<T>(p: Promise<T>): Promise<T> {
+  try {
+    return await p
+  } catch (e) {
+    if (isMotionError(e) && e.code === 'not_found') notFound()
+    throw e
+  }
+}

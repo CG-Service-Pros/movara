@@ -1,3 +1,5 @@
+> **Decision:** the product is named **Motion** (owner's choice, 2026-11-02). Note: usemotion.com is an unrelated commercial productivity app with the same name, so check trademarks before a public launch. The research below is kept for reference.
+
 # Naming research (2026-11-02)
 
 Goal: one word that feels like "Traction" (grip, forward motion). "Momentum" is excluded (owner's other project). Every bare .com checked is registered, and every bare GitHub handle is too. Plan on a suffixed domain (e.g. `get<name>.com`) or `.so` / `.dev`, plus a suffixed GitHub org.

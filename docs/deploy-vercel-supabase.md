@@ -10,7 +10,12 @@ Reference cloud setup: Supabase provides PostgreSQL, Vercel hosts the Next.js ap
    - **Transaction pooler** (`postgresql://postgres.<ref>:<pw>@aws-0-<region>.pooler.supabase.com:6543/postgres`): for the app on Vercel. Serverless functions open many short-lived connections, so use the pooler.
 3. URL-encode special characters in the password.
 
-> The app's driver (postgres-js) uses prepared statements by default, which the transaction pooler (port 6543) does not support. If you see `prepared statement ... does not exist` errors, use the **Session pooler** string (port 5432) as `DATABASE_URL`. Start with the session pooler if in doubt.
+> **Session vs transaction pooler.** The transaction pooler (port 6543) cannot serve named prepared statements. Motion's driver (postgres-js)
+> turns prepared statements **off automatically** when `DATABASE_URL` has port `6543`, a `*.pooler.*` host or `?pgbouncer=true`, so the
+> transaction pooler string works as-is (the `pgbouncer` parameter is stripped before connecting). The **session pooler** (port 5432 on the
+> pooler host) also works, but because its host contains `pooler.` prepared statements are disabled there too; set `DATABASE_PREPARE=1` to
+> force them back on, or `DATABASE_PREPARE=0` to force them off anywhere else. Rule of thumb: Vercel/serverless app -> transaction pooler (6543);
+> migrations (`pnpm db:migrate`) -> direct or session pooler (5432), since DDL and long sessions do not belong on the transaction pooler.
 
 ## 2. Run migrations
 
@@ -43,7 +48,7 @@ Do not seed a production database. Without `MOTION_SEED_DEMO`, the app only auto
 
 | Variable | Value |
 |---|---|
-| `DATABASE_URL` | Pooled Supabase connection string (see the note above) |
+| `DATABASE_URL` | Supabase **transaction pooler** string (port 6543; prepared statements are disabled automatically) |
 | `BETTER_AUTH_SECRET` | `openssl rand -base64 32` |
 | `BETTER_AUTH_URL` | Public URL, e.g. `https://motion.example.com` |
 | `APP_URL` | Same public URL (used in emails and links) |
@@ -59,7 +64,7 @@ Open the URL, **Create an account**, and complete onboarding to create your orga
 
 ## 4. MCP for agents
 
-- **Web route (default):** `https://<your-domain>/mcp` is served by the same deployment. It authenticates with Bearer agent keys from Settings -> Agents.
+- **Web route (default):** `https://<your-domain>/mcp` is served by the same deployment. It authenticates with OAuth (Claude, ChatGPT and Cursor sign in through Motion's consent screen; `APP_URL` must be the public URL) or Bearer agent keys from Settings -> Agents.
 - **Important: serverless caveat.** MCP sessions (the `Mcp-Session-Id` returned by `initialize`) are kept **in process memory**. On Vercel, requests can land on different function instances, so a later call may not find the session and fail. This works for quick tests but is not reliable for real agents.
 - **Recommended for production:** run the standalone MCP server (`apps/mcp`, port 3333) on a long-running host such as **Fly.io** or **Render**, pointing at the same `DATABASE_URL`:
   - Build with [`docker/Dockerfile.mcp`](../docker/Dockerfile.mcp) (`docker build -f docker/Dockerfile.mcp -t motion-mcp .`), expose port 3333, health check `GET /healthz`.
@@ -70,6 +75,8 @@ Open the URL, **Create an account**, and complete onboarding to create your orga
 ## 5. Troubleshooting
 
 - **`too many connections`:** use the pooler string, not the direct one.
+- **`prepared statement "…" does not exist` / `already exists`:** a pooler URL was not recognised (custom host). Set `DATABASE_PREPARE=0`.
+- **`output: 'standalone'`:** `next.config.ts` enables it for Docker; Vercel ignores it and builds as usual.
 - **Sign-in redirects or cookie errors:** `BETTER_AUTH_URL` / `APP_URL` must exactly match the URL in the browser (scheme and host).
 - **Build cannot find workspace packages:** Root Directory must be `apps/web` with source files outside the root enabled, and the lockfile (`pnpm-lock.yaml`) must be committed.
 - **Migrations from a laptop time out:** switch to the session pooler string.

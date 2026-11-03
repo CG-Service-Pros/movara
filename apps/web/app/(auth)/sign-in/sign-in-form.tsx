@@ -6,6 +6,7 @@ import { Button } from '@motion/ui/button'
 import { Field } from '@motion/ui/field'
 import { Input } from '@motion/ui/input'
 import { authClient } from '@/lib/auth-client'
+import { safeNext } from '@/lib/safe-next'
 
 export function SignInForm({ next }: { next?: string }) {
   const router = useRouter()
@@ -19,7 +20,7 @@ export function SignInForm({ next }: { next?: string }) {
     start(async () => {
       const { error } = await authClient.signIn.email({ email: String(f.get('email')), password: String(f.get('password')) })
       if (error) return setError(error.message ?? 'Could not sign in')
-      router.replace(next && next.startsWith('/') && !next.startsWith('//') ? next : '/')
+      router.replace(safeNext(next))
       router.refresh()
     })
   }

@@ -105,8 +105,8 @@ Queries are `(ctx, input?) => Promise<…>`; commands are used with `execute(ctx
 `orgSetTerminologyPack {pack: unknown | null, revert?}` (validated with `previewImport`; keeps the previous pack for revert), `orgSetTerminologyOverrides {overrides}` (replaces the whole map).
 `MODULE_KEYS`: priorities scorecard issues todos headlines meetings vision chart agents.
 
-**people** — `listPeople(ctx)`, `getPerson(ctx, id)`, `listMembershipsForUser(db, userId)`, `linkUserByEmail(db, {id, email})` (sign-up hook; links pending people).
-Commands: `peopleAdd {name, email, role?, timezone?}` (admin; links an existing account by email), `peopleUpdateRole {personId, role}`, `peopleUpdate {personId, name?, timezone?, avatarUrl?, reminderSchedule?}` (self or admin), `peopleRemove {personId}` (soft; last owner protected).
+**people** — `listPeople(ctx)`, `getPerson(ctx, id)`, `listMembershipsForUser(db, userId)`, `getInvite(db, token)` (public details of a pending invite or null), `acceptInvite(db, token, userId)` (the ONLY way an account is linked to an invited person; single use, 14-day expiry; throws `not_found` for bad/used/expired tokens, `conflict` if the account is already a member).
+Commands: `peopleAdd {name, email, role?, timezone?}` (admin; creates a pending person and returns a one-time `inviteToken`, never links an account by email; result is redacted from `request_log`), `peopleCreateInvite {personId}` (admin; reissues `{inviteToken, expiresAt}` for someone who has not joined), `peopleUpdateRole {personId, role}`, `peopleUpdate {personId, name?, timezone?, avatarUrl?, reminderSchedule?}` (self or admin), `peopleRemove {personId}` (soft; last owner protected).
 
 **teams** — `listTeams(ctx): (Team & { members })[]`, `getTeam(ctx, id)`, `listTeamsForPerson(ctx, personId)`.
 Commands (admin): `teamsCreate {name, parentTeamId?, leaderId?, isLeadership?, memberIds?}`, `teamsUpdate {teamId, ...}`, `teamsDelete {teamId}`, `teamsAddMember {teamId, personId, role?: 'lead'|'member'}` (upserts), `teamsRemoveMember {teamId, personId}`.
@@ -142,7 +142,7 @@ Dates: `date` columns are strings (`mode: 'string'`), events are `timestamptz` (
 | auth.ts | `user`, `session`, `account`, `verification` (Better Auth; text ids) |
 | people.ts | `people` (`person_role`) |
 | teams.ts | `teams`, `team_members` (`team_member_role`: lead/member) |
-| agents.ts | `agents` (`agent_status`), `api_keys`, `oauth_clients`, `oauth_tokens` |
+| agents.ts | `agents` (`agent_status`), `api_keys`, `oauth_clients`, `oauth_codes`, `oauth_tokens` |
 | vision.ts | `vision_plans` (`vision_scope`), `vision_revisions` (`revision_status`: draft/published/archived; `content jsonb { sections }`) |
 | chart.ts | `charts`, `chart_revisions`, `seats` (`linked_priority_id` for open seats) |
 | priorities.ts | `priorities` (`priority_level`, `priority_status`), `milestones` |
@@ -285,9 +285,9 @@ Keys are `"METHOD /path/:param"`. Errors: `MotionError` -> `{ error: { code, mes
 5. Run `pnpm -w typecheck`, `pnpm -w test`, and `pnpm --filter @motion/web build`.
 
 ## 12. Known limits of the foundation
-- No RLS policies yet (isolation is enforced in core: every query uses `scoped`/`org_id`); realtime adapters, email sending, `MOTION_TERMINOLOGY_PACKS` preinstall and OAuth are not implemented (tables exist).
+- No RLS policies yet (isolation is enforced in core: every query uses `scoped`/`org_id`); realtime adapters, email sending and `MOTION_TERMINOLOGY_PACKS` preinstall are not implemented. MCP OAuth lives in `agents/oauth.ts` (`registerOAuthClient`, `approveAuthorization`, `exchangeAuthorizationCode`, `refreshOAuthToken`, `authenticateOAuthToken`); `agents.revoke` revokes the tokens.
 - `approvals.decide` can only re-execute commands registered in `@motion/core`; the seeded pending approval (`vision.propose_change`) becomes approvable once the vision area defines that command.
-- Org slug rename, org deletion and invitation emails are not implemented.
+- Org slug rename, org deletion are not implemented. Invitation emails are sent only when SMTP is configured (the invite link is always shown in Members settings).
 
 ## Areas: priorities, scorecard, vision, chart
 

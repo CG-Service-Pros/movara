@@ -11,21 +11,53 @@ Two servers, same code (`apps/mcp/src/server.ts`):
 | Standalone | `pnpm --filter @motion/mcp start` -> `http://localhost:3333/mcp` | Same database, own process (`DATABASE_URL`, `PORT`) |
 | stdio | `pnpm --filter @motion/mcp start:stdio` | Local clients that spawn a process |
 
-## 1. Get an API key
+## 1. Choose how the client authenticates
 
-Settings -> Agents -> create an agent (owner + scopes) -> issue a key (`mk_live_…`, shown once). The key can only narrow
-the agent's scopes. Demo key (seeded demo org only): `mk_live_demo_ops_agent_0000000000000000`.
+| Method | Use for | How |
+|---|---|---|
+| **OAuth 2.1** (recommended) | Claude Desktop, Claude Code, ChatGPT custom connectors, Cursor: anything that supports remote MCP with sign-in | Add `https://<host>/mcp`; the client opens a Motion sign-in + consent page. No key to copy. |
+| **API key** (`mk_live_…`) | n8n, scripts, servers, clients without OAuth, stdio | Settings -> Agents -> create an agent -> issue a key (shown once). |
+
+Both work on the same `/mcp` endpoint (the token prefix tells them apart: `mo_at_…` is OAuth, `mk_live_…` is a key) and both resolve to a
+Motion **agent** with scopes, approvals, audit and idempotency. Demo key (seeded demo org only): `mk_live_demo_ops_agent_0000000000000000`.
+
+### How OAuth works here
+
+- Motion is its own authorization server (no Better Auth OAuth plugin is shipped in better-auth 1.7; the code lives in
+  `packages/core/src/agents/oauth.ts`). Discovery: `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource`
+  (a request to `/mcp` without credentials answers `401` with a `WWW-Authenticate: Bearer resource_metadata=…` header).
+- Clients register themselves (dynamic client registration, `POST /api/auth/oauth2/register`), then run authorization code + PKCE (S256 only)
+  at `/oauth/authorize`. You sign in to Motion, **pick the organization** and **tick the scopes** the client gets, and press Allow.
+- The first consent creates an **agent** in that org (name = the client's name, owner = you, client = "`<client> · OAuth`"). It shows up in
+  Settings -> Agents like any other agent; later consents from the same client reuse it. You can lower its scopes there at any time.
+- **Revoking the agent in Settings immediately revokes its OAuth tokens** (access and refresh). Pausing it blocks them until resumed.
+- Access tokens last 1 hour; refresh tokens 30 days and rotate on every use. Authorization codes are single use and expire after 10 minutes.
+- `APP_URL` (or `BETTER_AUTH_URL`) must be the public URL users and clients reach, since it is published in the metadata. Behind a proxy use `https://`.
+  The `/mcp` route is served by the web app; the standalone MCP server (`:3333`) accepts the same tokens but does not host the consent screen.
 
 ## 2. Connect
 
+**Claude Desktop** (Settings -> Connectors -> Add custom connector), **ChatGPT** (Settings -> Connectors -> Advanced -> Developer mode -> Create,
+MCP server URL; ChatGPT custom connectors need a public `https://` URL, e.g. a tunnel while testing) and **Cursor** (`.cursor/mcp.json`):
+
+1. Enter the URL `https://<host>/mcp` (leave client id / secret empty: the client registers itself) and authentication **OAuth**.
+2. A browser window opens at Motion. Sign in, choose the organization, adjust the scopes, **Allow**.
+3. The client lists the tools. Start with `org_overview`.
+
 **Claude Code**
+
+```bash
+claude mcp add --transport http motion https://<host>/mcp     # then run /mcp inside Claude Code and choose "Authenticate"
+```
+
+With an API key instead of OAuth:
 
 ```bash
 claude mcp add --transport http motion http://localhost:3000/mcp \
   --header "Authorization: Bearer mk_live_…"
 ```
 
-**Claude Desktop / Cursor** (`claude_desktop_config.json` / `.cursor/mcp.json`). Either remote HTTP:
+**Claude Desktop / Cursor with an API key** (`claude_desktop_config.json` / `.cursor/mcp.json`). Remote HTTP:
 
 ```json
 { "mcpServers": { "motion": { "url": "https://motion.example.com/mcp", "headers": { "Authorization": "Bearer mk_live_…" } } } }
@@ -72,10 +104,9 @@ In n8n use the MCP Client Tool node (endpoint URL, header auth `Authorization: B
 - **Prompts:** `weekly-meeting-prep`, `issue-triage`, `quarterly-planning`, `write-a-good-priority`, `metric-from-hubspot`.
 - Every request updates the agent's `last_seen`.
 
-## 4. Not done yet
+## 4. Limits
 
-- **OAuth 2.1 (PKCE).** Auth today is Bearer API keys only. Next step: Better Auth's `mcp` plugin in `apps/web/src/lib/auth.ts`
-  (needs the plugin's `oauthApplication`, `oauthAccessToken`, `oauthConsent` tables in `packages/db`, or mapping onto the existing
-  `oauth_clients`/`oauth_tokens`), `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` routes, a consent
-  page, then resolving the token to an agent ctx (`ctxForAgent`) in `http-handler.ts`.
+- Dynamic client registration is open (any client can register, but gets nothing until a signed-in person consents). Put the app behind your
+  usual rate limiting if it is exposed publicly.
+- There is no token introspection/revocation endpoint yet: revoke by revoking the agent in Settings -> Agents.
 - Sessions live in process memory; for serverless/multi-instance deployments run the standalone server behind sticky routing.

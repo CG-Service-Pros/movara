@@ -165,5 +165,27 @@ export const MIGRATIONS: { tag: string; folderMillis: number; hash: string; sql:
     "sql": [
       "ALTER TABLE \"metrics\" ADD COLUMN \"description\" text;"
     ]
+  },
+  {
+    "tag": "0002_faithful_pride",
+    "folderMillis": 1793663672006,
+    "hash": "367ec5f2333443a815fd455d4e995aa56c40f28f167549963c60b60e16c1dc1a",
+    "sql": [
+      "CREATE TABLE \"oauth_codes\" (\n\t\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,\n\t\"created_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"created_by_actor\" jsonb,\n\t\"updated_at\" timestamp with time zone DEFAULT now() NOT NULL,\n\t\"updated_by_actor\" jsonb,\n\t\"version\" integer DEFAULT 1 NOT NULL,\n\t\"deleted_at\" timestamp with time zone,\n\t\"org_id\" uuid NOT NULL,\n\t\"agent_id\" uuid NOT NULL,\n\t\"client_id\" text NOT NULL,\n\t\"code_hash\" text NOT NULL,\n\t\"redirect_uri\" text NOT NULL,\n\t\"code_challenge\" text NOT NULL,\n\t\"scopes\" text[] DEFAULT '{}' NOT NULL,\n\t\"expires_at\" timestamp with time zone NOT NULL,\n\t\"used_at\" timestamp with time zone\n);\n",
+      "\nALTER TABLE \"oauth_clients\" ALTER COLUMN \"org_id\" DROP NOT NULL;",
+      "\nALTER TABLE \"oauth_codes\" ADD CONSTRAINT \"oauth_codes_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nALTER TABLE \"oauth_codes\" ADD CONSTRAINT \"oauth_codes_agent_id_agents_id_fk\" FOREIGN KEY (\"agent_id\") REFERENCES \"public\".\"agents\"(\"id\") ON DELETE cascade ON UPDATE no action;",
+      "\nCREATE UNIQUE INDEX \"oauth_codes_hash_uq\" ON \"oauth_codes\" USING btree (\"code_hash\");"
+    ]
+  },
+  {
+    "tag": "0003_exotic_korg",
+    "folderMillis": 1793664581056,
+    "hash": "db4327ece966a348ee778ea0a97d3b3d5eb117e6eb3f7f854a985aa03281ea70",
+    "sql": [
+      "ALTER TABLE \"people\" ADD COLUMN \"invite_token_hash\" text;",
+      "\nALTER TABLE \"people\" ADD COLUMN \"invite_expires_at\" timestamp with time zone;",
+      "\nCREATE UNIQUE INDEX \"people_invite_hash_uq\" ON \"people\" USING btree (\"invite_token_hash\");"
+    ]
   }
 ]

@@ -49,6 +49,7 @@ export function Button({ variant = 'secondary', size = 'md', asChild, loading, d
       disabled={disabled || loading}
       type={asChild ? undefined : (type ?? 'button')}
       aria-busy={loading || undefined}
+      suppressHydrationWarning
       {...props}
     >
       {asChild ? (
