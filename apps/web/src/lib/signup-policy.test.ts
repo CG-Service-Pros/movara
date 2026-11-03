@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decideSignup, inviteTokenFromNext } from './signup-policy'
+import { decideOrgCreation, decideSignup, inviteTokenFromNext } from './signup-policy'
 
 describe('sign-up policy', () => {
   it('is open on a fresh install so the first admin can create the workspace', () => {
@@ -20,5 +20,11 @@ describe('sign-up policy', () => {
     expect(inviteTokenFromNext('/vindex')).toBeNull()
     expect(inviteTokenFromNext('//evil.example/invite/abcdefghijklmnopqrstuvwxyz')).toBeNull()
     expect(inviteTokenFromNext(undefined)).toBeNull()
+  })
+  it('lets only owners create additional organizations once one exists', () => {
+    expect(decideOrgCreation({ env: {}, hasOrganization: false, ownsAnOrganization: false })).toBe(true) // first workspace
+    expect(decideOrgCreation({ env: {}, hasOrganization: true, ownsAnOrganization: true })).toBe(true) // owner adds another company
+    expect(decideOrgCreation({ env: {}, hasOrganization: true, ownsAnOrganization: false })).toBe(false) // invitee: join, don't create
+    expect(decideOrgCreation({ env: { MOVARA_ALLOW_SIGNUP: '1' }, hasOrganization: true, ownsAnOrganization: false })).toBe(true) // multi-tenant
   })
 })

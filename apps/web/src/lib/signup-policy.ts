@@ -25,3 +25,17 @@ export function inviteTokenFromNext(next: string | undefined | null): string | n
   const m = /^\/invite\/([A-Za-z0-9_-]{16,200})$/.exec(next ?? '')
   return m ? m[1]! : null
 }
+
+/**
+ * Who may create an organization. Same bootstrap rule as sign-up (the first account creates the first workspace);
+ * after that only people who already own an organization can add another (e.g. one workspace per company they run).
+ * Everyone else joins organizations by invitation and switches between them. MOVARA_ALLOW_SIGNUP=1 (multi-tenant)
+ * lets any signed-in user create one.
+ */
+export function decideOrgCreation(input: { env: Env; hasOrganization: boolean; ownsAnOrganization: boolean }): boolean {
+  if (openSignupByEnv(input.env)) return true
+  if (!input.hasOrganization) return true
+  return input.ownsAnOrganization
+}
+
+export const ORG_CREATION_MESSAGE = 'Only an owner of an existing organization can create a new one. Ask an admin to invite you instead.'
