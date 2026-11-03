@@ -24,6 +24,7 @@ import {
 } from '@/app/(app)/[org]/scorecard/actions'
 import { createIssuesAction } from '@/app/(app)/[org]/issues/actions'
 import { useCanWrite } from '@/components/shell/shell-context'
+import { useOnChange } from '@/lib/use-on-change'
 
 export type MetricItem = {
   id: string
@@ -71,7 +72,8 @@ export function ScorecardView({
   const [dialog, setDialog] = React.useState<{ metric: MetricItem | null } | null>(openNew ? { metric: null } : null)
   const [settings, setSettings] = React.useState(false)
   const scrollRef = React.useRef<HTMLDivElement>(null)
-  React.useEffect(() => setEdits({}), [metrics])
+  // Fresh server data replaces optimistic edits.
+  useOnChange(metrics, () => setEdits({}))
   React.useEffect(() => {
     if (highlightId) scrollRef.current?.querySelector(`[data-metric-id="${highlightId}"]`)?.scrollIntoView({ block: 'center' })
   }, [highlightId])
@@ -238,7 +240,7 @@ function Cell({ metric, value, status, isNow, editing, prov, onEdit, onCancel, o
 }) {
   const cancelled = React.useRef(false)
   const [draft, setDraft] = React.useState('')
-  React.useEffect(() => { if (editing) { cancelled.current = false; setDraft(value === null ? '' : String(value)) } }, [editing]) // eslint-disable-line react-hooks/exhaustive-deps
+  useOnChange(editing, (e) => { if (e) setDraft(value === null ? '' : String(value)) })
   if (editing) {
     const commit = () => {
       if (cancelled.current) return
@@ -257,7 +259,10 @@ function Cell({ metric, value, status, isNow, editing, prov, onEdit, onCancel, o
         aria-label={`${metric.title} value`}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        onFocus={(e) => e.currentTarget.select()}
+        onFocus={(e) => {
+          cancelled.current = false // a new edit session (the input mounts focused)
+          e.currentTarget.select()
+        }}
         onBlur={commit}
         onKeyDown={(e) => {
           if (e.key === 'Enter') { e.preventDefault(); commit() }
@@ -375,7 +380,7 @@ function SettingsDialog({ open, onOpenChange, orgSlug, scorecard, labels }: { op
   const [interval, setInterval] = React.useState<Interval>(scorecard.interval)
   const [weekStart, setWeekStart] = React.useState(String(scorecard.weekStartDay))
   const [count, setCount] = React.useState(String(scorecard.periodsShown))
-  React.useEffect(() => { if (open) { setInterval(scorecard.interval); setWeekStart(String(scorecard.weekStartDay)); setCount(String(scorecard.periodsShown)) } }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  useOnChange(open, (o) => { if (o) { setInterval(scorecard.interval); setWeekStart(String(scorecard.weekStartDay)); setCount(String(scorecard.periodsShown)) } })
   const n = Math.round(Number(count))
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

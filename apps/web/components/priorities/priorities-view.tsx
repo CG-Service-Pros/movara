@@ -28,6 +28,7 @@ import { DetailSkeleton, PriorityDetail, type DetailApi } from './priority-detai
 import { groupPriorities, PriorityRows, Summary } from './priority-list'
 import { STATUS_CYCLE, type ActionResult, type Labels, type Option, type PriorityDetailData, type PriorityItem, type PStatus, type Tab } from './types'
 import { useCanWrite } from '@/components/shell/shell-context'
+import { useOnChange } from '@/lib/use-on-change'
 
 type Snap = { items: PriorityItem[]; detail: PriorityDetailData | null }
 type Op =
@@ -91,7 +92,7 @@ export function PrioritiesView(props: PrioritiesViewProps) {
   const [sel, setSel] = React.useState<string | null>(props.selectedId)
   const [creating, setCreating] = React.useState(!!props.openNew)
 
-  React.useEffect(() => setSel(props.selectedId), [props.selectedId])
+  useOnChange(props.selectedId, (id) => setSel(id))
 
   const groups = React.useMemo(() => groupPriorities(snap.items, teams, 'Company', 'Individual'), [snap.items, teams])
   const flat = React.useMemo(() => groups.flatMap((g) => g.items), [groups])
@@ -126,8 +127,9 @@ export function PrioritiesView(props: PrioritiesViewProps) {
   )
 
   // Desktop: always have a selection so the detail pane is never empty.
+  // Navigation only: the selection follows the URL (props.selectedId) once it updates.
   React.useEffect(() => {
-    if (!props.selectedId && !sel && flat[0] && window.matchMedia('(min-width: 1024px)').matches) select(flat[0].id)
+    if (!props.selectedId && !sel && flat[0] && window.matchMedia('(min-width: 1024px)').matches) go(url({ id: flat[0].id }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flat.length, props.selectedId])
 

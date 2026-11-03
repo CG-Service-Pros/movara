@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { CoachMode } from '@movara/coach'
+import { useOnChange } from '@/lib/use-on-change'
 
 export type CoachLabels = { priority: string; priorities: string; metrics: string; issues: string; todos: string; meeting: string; vision: string }
 
@@ -38,7 +39,7 @@ export function CoachProvider({ org, coachName, ready: initialReady, canConfigur
   const [ready, setReady] = useState(initialReady)
   const [request, setRequest] = useState<CoachRequest | null>(null)
   const [note, setNote] = useState<string | null>(null)
-  useEffect(() => setReady(initialReady), [initialReady])
+  useOnChange(initialReady, (r) => setReady(r))
 
   const toggle = useCallback(() => setOpen((o) => !o), [])
   const openCoach = useCallback((o: OpenCoachOptions = {}) => {

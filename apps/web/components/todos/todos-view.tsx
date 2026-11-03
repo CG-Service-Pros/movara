@@ -19,6 +19,7 @@ import { cn } from '@movara/ui/cn'
 import { addDaysStr, daysBetween, OwnerPicker, PersonChip, shortDate, SourceChip, useAct, type PersonLite, type SourceInfo, type TeamLite } from '../issues/common'
 import { createTodosAction, deleteTodoAction, setTodoDoneAction, updateTodoAction } from '@/app/(app)/[org]/todos/actions'
 import { useCanWrite } from '@/components/shell/shell-context'
+import { useOnChange } from '@/lib/use-on-change'
 
 export type TodoItem = {
   id: string
@@ -202,7 +203,7 @@ export function NewTodoDialog({
   const [owners, setOwners] = React.useState<string[]>(defaultOwners)
   const [team, setTeam] = React.useState<string>(defaultTeamId ?? 'none')
   const [due, setDue] = React.useState(addDaysStr(today, 7))
-  React.useEffect(() => { if (open) { setTitle(initialTitle ?? ''); setOwners(defaultOwners); setTeam(defaultTeamId ?? 'none'); setDue(addDaysStr(today, 7)) } }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  useOnChange(open, (o) => { if (o) { setTitle(initialTitle ?? ''); setOwners(defaultOwners); setTeam(defaultTeamId ?? 'none'); setDue(addDaysStr(today, 7)) } })
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return

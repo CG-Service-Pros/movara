@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
@@ -35,11 +35,40 @@ const HEAD_BTN = 'h-8 min-w-[116px] px-4'
 /** Footer navigation: clearly sized primary controls. */
 const NAV_BTN = 'h-10 min-w-[140px] gap-2 px-5 text-sm'
 
+/** One shared 250ms clock for the meeting timers. The server snapshot is 0 (timers show the server's numbers). */
+const clock = (() => {
+  let now = 0
+  let timer: ReturnType<typeof setInterval> | undefined
+  const subs = new Set<() => void>()
+  return {
+    subscribe(cb: () => void) {
+      subs.add(cb)
+      if (!timer) {
+        now = Date.now()
+        timer = setInterval(() => {
+          now = Date.now()
+          subs.forEach((f) => f())
+        }, 250)
+      }
+      return () => {
+        subs.delete(cb)
+        if (!subs.size) {
+          clearInterval(timer)
+          timer = undefined
+        }
+      }
+    },
+    get: () => now,
+    server: () => 0,
+  }
+})()
+
 export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }) {
   const router = useRouter()
   const [b, setB] = useState(initial)
-  const [now, setNow] = useState<number | null>(null)
-  const receivedAt = useRef(0)
+  const now = useSyncExternalStore(clock.subscribe, clock.get, clock.server)
+  // When the current bundle arrived: running timers add (now - receivedAt) to the server's elapsed time.
+  const [receivedAt, setReceivedAt] = useState(() => Date.now())
   const seq = useRef(0)
   const rev = useRef(initial.live.rev)
   const meetingId = initial.live.meetingId
@@ -48,17 +77,9 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
   const { live } = b
 
   const apply = useCallback((next: Bundle) => {
-    receivedAt.current = Date.now()
     rev.current = next.live.rev
+    setReceivedAt(Date.now())
     setB(next)
-  }, [])
-
-  // Clock: ticks every 250ms once mounted (SSR renders the server snapshot).
-  useEffect(() => {
-    receivedAt.current = Date.now()
-    setNow(Date.now())
-    const t = setInterval(() => setNow(Date.now()), 250)
-    return () => clearInterval(t)
   }, [])
 
   const act: Act = useCallback(
@@ -108,8 +129,14 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
   useEffect(() => {
     if (joined.current || !b.me || (live.status !== 'live' && live.status !== 'paused')) return
     joined.current = true
-    if (!live.presence.some((p) => p.id === b.me!.id)) void act({ k: 'join' })
-  }, [b.me, live.status, live.presence, act])
+    if (live.presence.some((p) => p.id === b.me!.id)) return
+    // Presence join: no optimistic patch, so call the action directly and apply its result when it resolves.
+    seq.current++
+    void meetingAction(slug, meetingId, { k: 'join' }).then((res) => {
+      seq.current++
+      if (res.ok) apply(res.bundle)
+    })
+  }, [b.me, live.status, live.presence, slug, meetingId, apply])
 
   useEffect(() => {
     if (ended) router.refresh()
@@ -122,7 +149,7 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
   const idx = live.sectionIndex
   const sectionElapsed = (i: number) => {
     const s = sections[i]!
-    return s.elapsedMs + (s.running && now ? now - receivedAt.current : 0)
+    return s.elapsedMs + (s.running && now ? Math.max(0, now - receivedAt) : 0)
   }
   const totalElapsed = sections.reduce((sum, _s, i) => sum + sectionElapsed(i), 0)
   const plannedMs = sections.reduce((sum, s) => sum + s.minutes * 60_000, 0)

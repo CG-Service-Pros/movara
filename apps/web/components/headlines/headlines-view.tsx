@@ -19,6 +19,7 @@ import { cn } from '@movara/ui/cn'
 import { ageLabel, OwnerPicker, PersonChip, useAct, type PersonLite, type TeamLite } from '../issues/common'
 import { cascadeHeadlineAction, deleteHeadlineAction, postHeadlineAction, reviewHeadlineAction } from '@/app/(app)/[org]/headlines/actions'
 import { useCanWrite } from '@/components/shell/shell-context'
+import { useOnChange } from '@/lib/use-on-change'
 
 type Kind = 'customer' | 'employee' | 'general'
 export type HeadlineItem = { id: string; text: string; kind: Kind; ownerId: string | null; teamId: string | null; createdAt: string; reviewedAt: string | null; cascaded: boolean; cascadedFromId: string | null; actorAgent: boolean }
@@ -102,7 +103,7 @@ function PostDialog({ open, onOpenChange, orgSlug, people, teams, defaultTeamId,
   const [kind, setKind] = React.useState<Kind>('general')
   const [team, setTeam] = React.useState(defaultTeamId)
   const [owners, setOwners] = React.useState<string[]>([meId])
-  React.useEffect(() => { if (open) { setText(''); setKind('general'); setTeam(defaultTeamId); setOwners([meId]) } }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  useOnChange(open, (o) => { if (o) { setText(''); setKind('general'); setTeam(defaultTeamId); setOwners([meId]) } })
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>

@@ -11,6 +11,7 @@ import { previewImport, TermOverrides, type TerminologyPack } from '@movara/term
 import { getCtx } from '@/lib/ctx'
 import { inviteUrl, sendInviteEmail } from '@/lib/invite'
 import { fetchPack, PackFetchError, parseJson, parseNpmSpec, type PackSource } from '@/lib/terminology-import'
+import { forgetOrgRouteCache } from '@/lib/org-404-check'
 
 export type ActionResult<T = undefined> = { ok: true; data?: T; pending?: boolean } | { ok: false; error: string }
 
@@ -21,6 +22,7 @@ async function run<T>(slug: string, paths: string[], fn: (ctx: Ctx) => Promise<{
     const r = await fn(ctx)
     if (!r.ok) return { ok: true, pending: true }
     if (layout) revalidatePath(`/${slug}`, 'layout')
+    forgetOrgRouteCache(slug)
     for (const p of paths) revalidatePath(`/${slug}/settings/${p}`)
     return { ok: true, data: r.data as T }
   } catch (e) {
