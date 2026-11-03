@@ -225,3 +225,16 @@ describe('cross-org isolation', () => {
     expect(apprs.items).toHaveLength(0)
   })
 })
+
+describe('person-confirmed agent actions (built-in Coach confirm cards)', () => {
+  it('runs a gated command directly when the person confirmed it, but still enforces scopes', async () => {
+    const { ctx, addAgent } = await seedTestOrg(db)
+    const agent = await addAgent('Coach-like', ['read', 'write:todos'])
+    const r = await execute({ ...agent.ctx, confirmedByPerson: true }, makeTeam, { name: 'Confirmed team' }, { requestId: 'confirmed-1' })
+    expect(r.ok).toBe(true)
+    expect((await listTeams(ctx)).some((t) => t.name === 'Confirmed team')).toBe(true)
+    expect((await listApprovals(ctx, { status: 'pending' })).items).toHaveLength(0)
+    const readOnly = await addAgent('Reader', ['read'])
+    await expect(execute({ ...readOnly.ctx, confirmedByPerson: true }, makeTeam, { name: 'Nope team' })).rejects.toMatchObject({ code: 'forbidden_scope' })
+  })
+})

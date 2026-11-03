@@ -7,6 +7,8 @@ import { PageHeader } from '@movara/ui/page-header'
 import { cn } from '@movara/ui/cn'
 import { Captured, Owner, Tick } from './parts'
 import { fmtDate, fmtDay, fmtTime } from './format'
+import { MeetingCaptures } from '@/components/capture/meeting-captures'
+import type { CaptureItemView, CaptureLabels, CaptureNoteView, PersonOpt } from '@/components/capture/types'
 import type { Bundle } from './types'
 
 function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: 'success' }) {
@@ -20,7 +22,9 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
 }
 
 /** Read-only recap of an ended meeting. */
-export function MeetingSummary({ slug, b }: { slug: string; b: Bundle }) {
+export type SummaryCapture = { notes: CaptureNoteView[]; items: CaptureItemView[]; people: PersonOpt[]; canDecide: boolean; labels?: CaptureLabels }
+
+export function MeetingSummary({ slug, b, capture }: { slug: string; b: Bundle; capture?: SummaryCapture }) {
   const { live } = b
   const st = live.stats
   const L = (k: string, form: 's' | 'p' = 's') => (b.labels[k]?.[form] ?? k).toLowerCase()
@@ -55,6 +59,8 @@ export function MeetingSummary({ slug, b }: { slug: string; b: Bundle }) {
             <Stat label={`${b.labels.todo?.p} done`} value={`${st?.todosDone ?? 0}/${st?.todosTotal ?? 0}`} sub="last week's completion" />
             <Stat label={`New ${L('todo', 'p')}`} value={String(st?.newTodoCount ?? newTodos.length)} sub={`${st?.attendeeCount ?? present.length} of ${st?.invitedCount ?? live.attendees.length} attended`} />
           </div>
+
+          {capture && (capture.notes.length > 0 || capture.items.length > 0) && <MeetingCaptures slug={slug} {...capture} className="mt-6" />}
 
           {live.summary && (
             <section className="mt-6">

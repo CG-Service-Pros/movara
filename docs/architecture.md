@@ -100,7 +100,7 @@ same list to the model. Identity: every org lazily gets one `builtin_coach` agen
 person chats, Coach acts through `coachCtxFor(personCtx)`: actor = Coach `onBehalfOf` the person, role = the person's role, so it can never do more
 than that person and the audit log shows who asked. Provider configuration lives in `org_ai_settings` (OpenAI or any OpenAI-compatible endpoint;
 the API key is encrypted at rest with a key derived from `MOVARA_ENCRYPTION_KEY` or `BETTER_AUTH_SECRET` and never returned); token usage is
-recorded in `ai_usage` and a monthly limit is enforced before each call. The engine and UI live in the web app on top of `@movara/core`'s `ai` and `coach` areas.
+recorded in `ai_usage` and a monthly limit is enforced before each call. The engine is `packages/coach` (`@movara/coach`: agent loop of at most 8 tool steps; read tools run automatically, every write waits for a confirm card; OpenAI Responses API, Chat Completions for `openai_compatible`; `MOVARA_AI_MOCK=1` swaps in a deterministic fake model); routes are `apps/web/app/api/coach/*` (SSE) and the panel is `apps/web/components/coach`.
 
 ## Meeting-notes capture
 

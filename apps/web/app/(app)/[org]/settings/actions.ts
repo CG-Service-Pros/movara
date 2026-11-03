@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import {
-  agentsCreate, agentsRevoke, agentsRevokeApiKey, agentsUpdate, agentsUpdateScopes, approveApproval, declineApproval, execute, getOrg, isMovaraError, issueApiKey,
+  agentsCreate, agentsRevoke, captureSettingsUpdate, getAiClientConfig, getAiSettings, recordUsage, updateAiSettings, type ScopePreset,
+  agentsRevokeApiKey, agentsUpdate, agentsUpdateScopes, approveApproval, declineApproval, execute, getOrg, isMovaraError, issueApiKey,
   orgSetTerminologyOverrides, orgSetTerminologyPack, orgUpdateBranding, orgUpdateCalendar, orgUpdateGeneral, orgUpdateModules, peopleAdd, peopleCreateInvite, peopleRemove, peopleUpdateRole, requireRole,
   type Ctx,
 } from '@movara/core'
@@ -136,11 +137,64 @@ export async function removeMember(slug: string, personId: string) {
 }
 
 // ---- Agents & keys -------------------------------------------------------------------------
-export async function createAgent(slug: string, input: { name: string; client?: string; ownerPersonId?: string }) {
+export async function createAgent(slug: string, input: { name: string; client?: string; ownerPersonId?: string; preset?: ScopePreset }) {
   return run(slug, ['agents', 'keys'], (ctx) => execute(ctx, agentsCreate, { ...input, client: input.client || undefined }), true)
 }
 export async function updateAgentScopes(slug: string, agentId: string, scopes: string[]) {
   return run(slug, ['agents'], (ctx) => execute(ctx, agentsUpdateScopes, { agentId, scopes: scopes as never }))
+}
+export async function setAgentPreset(slug: string, agentId: string, preset: ScopePreset) {
+  return run(slug, ['agents'], (ctx) => execute(ctx, agentsUpdateScopes, { agentId, preset }))
+}
+export async function setCaptureAutoAccept(slug: string, autoAcceptFromAgents: boolean) {
+  return run(slug, ['agents'], (ctx) => execute(ctx, captureSettingsUpdate, { autoAcceptFromAgents }))
+}
+
+// ---- Coach / AI ----------------------------------------------------------------------------
+export type CoachInput = Parameters<typeof updateAiSettings>[1]
+
+export async function saveCoachSettings(slug: string, input: CoachInput): Promise<ActionResult> {
+  try {
+    const ctx = await getCtx(slug)
+    await updateAiSettings(ctx, input)
+    revalidatePath(`/${slug}/settings/coach`)
+    revalidatePath(`/${slug}`, 'layout')
+    return { ok: true }
+  } catch (e) {
+    if (isMovaraError(e)) return { ok: false, error: e.message }
+    throw e
+  }
+}
+
+/** Tiny request with the saved config. Mock mode (MOVARA_AI_MOCK=1) succeeds without network. */
+export async function testCoachConnection(slug: string): Promise<ActionResult<{ message: string }>> {
+  try {
+    const ctx = await getCtx(slug)
+    await getAiSettings(ctx) // admin only
+    const mock = process.env.MOVARA_AI_MOCK === '1'
+    if (mock) {
+      await recordUsage(ctx, { feature: 'coach', model: 'mock', inputTokens: 12, outputTokens: 2, costEstimateUsd: 0 })
+      revalidatePath(`/${slug}/settings/coach`)
+      return { ok: true, data: { message: 'Mock mode: connection simulated, no request was sent.' } }
+    }
+    const cfg = await getAiClientConfig(ctx)
+    const base = (cfg.baseUrl ?? 'https://api.openai.com/v1').replace(/\/+$/, '')
+    const res = await fetch(`${base}/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${cfg.apiKey}` },
+      body: JSON.stringify({ model: cfg.model, messages: [{ role: 'user', content: 'Reply with the single word: ok' }], max_completion_tokens: 16 }),
+      signal: AbortSignal.timeout(20_000),
+    })
+    const body = (await res.json().catch(() => null)) as { error?: { message?: string }; usage?: { prompt_tokens?: number; completion_tokens?: number } } | null
+    if (!res.ok) return { ok: false, error: `The provider answered ${res.status}: ${body?.error?.message ?? res.statusText}`.slice(0, 300) }
+    await recordUsage(ctx, { feature: 'coach', model: cfg.model, inputTokens: body?.usage?.prompt_tokens ?? 0, outputTokens: body?.usage?.completion_tokens ?? 0 })
+    revalidatePath(`/${slug}/settings/coach`)
+    return { ok: true, data: { message: `Connected. ${cfg.model} answered.` } }
+  } catch (e) {
+    if (isMovaraError(e)) return { ok: false, error: e.message }
+    if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'TypeError')) return { ok: false, error: e.name === 'TimeoutError' ? 'The provider did not answer within 20 seconds.' : `Could not reach the provider: ${(e.cause as Error | undefined)?.message ?? e.message}` }
+    throw e
+  }
 }
 export async function setAgentStatus(slug: string, agentId: string, status: 'active' | 'paused') {
   return run(slug, ['agents'], (ctx) => execute(ctx, agentsUpdate, { agentId, status }))

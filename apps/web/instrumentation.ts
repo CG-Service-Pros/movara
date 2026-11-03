@@ -9,4 +9,8 @@ export async function register() {
   const { configureEmail } = await import('./src/lib/email')
   const mode = configureEmail()
   console.log(`[movara] recap email: ${mode}`)
+  // Meeting-notes extraction (to-dos, issues, headlines, decisions). The extractor checks each org's AI configuration at call time.
+  const { setNotesExtractor } = await import('@movara/core')
+  const { createNotesExtractor } = await import('@movara/coach')
+  setNotesExtractor(createNotesExtractor())
 }

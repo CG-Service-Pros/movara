@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getAgent, getPerson, hasRole, listApiKeys, actingPersonId } from '@movara/core'
+import { SCOPE_PRESET_KEYS, presetScopes, getAgent, getPerson, hasRole, listApiKeys, actingPersonId } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { AgentDetail } from '@/components/settings/agent-detail'
 import { SettingsBody } from '@/components/settings/ui'
@@ -19,9 +19,10 @@ export default async function AgentPage({ params }: { params: Promise<{ org: str
         <AgentDetail
           slug={slug}
           canManage={canManage}
+          presetScopes={Object.fromEntries(SCOPE_PRESET_KEYS.map((k) => [k, presetScopes(k)]))}
           mcpUrl={`${await appUrl()}/mcp`}
           agent={{
-            id: agent.id, name: agent.name, client: agent.client, owner: owner.name, status: agent.status, lastSeenAt: agent.lastSeenAt?.toISOString() ?? null, scopes: agent.scopes,
+            id: agent.id, name: agent.name, client: agent.client, owner: owner.name, status: agent.status, lastSeenAt: agent.lastSeenAt?.toISOString() ?? null, scopes: agent.scopes, preset: agent.preset,
             keys: keys.map((k) => ({ id: k.id, name: k.name, prefix: k.prefix, createdAt: k.createdAt.toISOString(), lastUsedAt: k.lastUsedAt?.toISOString() ?? null, revokedAt: k.revokedAt?.toISOString() ?? null, expiresAt: k.expiresAt?.toISOString() ?? null })),
           }}
         />

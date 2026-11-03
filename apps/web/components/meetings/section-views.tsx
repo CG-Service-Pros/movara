@@ -13,6 +13,7 @@ import { StatusGlyph } from '@movara/ui/status-glyph'
 import { Switch } from '@movara/ui/switch'
 import { toast } from '@movara/ui/toaster'
 import { fmtDate } from './format'
+import { PasteNotes } from './paste-notes'
 import { Captured, Empty, Hint, List, Owner, SectionTitle, Tick, type Act } from './parts'
 import type { Bundle } from './types'
 
@@ -311,6 +312,10 @@ export function WrapUpView({ b, act, onEnd, endDay }: { b: Bundle; act: Act; onE
     <>
       <SectionTitle>{b.labels.wrap_up?.s}</SectionTitle>
       <Hint>Recap what was decided, share one message with the company, then rate the meeting.</Hint>
+      <div className="mt-3 flex items-center gap-2 text-sm text-body">
+        <PasteNotes meetingId={live.meetingId} />
+        <span className="text-xs text-faint">Scribe: paste Granola or Plaud notes to turn them into items to review.</span>
+      </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-[1.4fr_1fr]">
         <div className="rounded-xl bg-surface p-4 shadow-[0_0_0_1px_var(--m-line)]">

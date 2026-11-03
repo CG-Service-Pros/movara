@@ -14,7 +14,7 @@ type Actored = { createdByActor?: { type: 'person' | 'agent'; id: string } | nul
 export async function loadBundle(ctx: Ctx, meetingId: string, live?: LiveState): Promise<Bundle> {
   const ls = live ?? (await getLiveState(ctx, meetingId))!
   const teamId = ls.teamId
-  const [org, terms, people, agents, teams] = await Promise.all([getOrg(ctx), getTerms(ctx), listPeople(ctx), listAgents(ctx, { includeRevoked: true }), listTeams(ctx)])
+  const [org, terms, people, agents, teams] = await Promise.all([getOrg(ctx), getTerms(ctx), listPeople(ctx), listAgents(ctx, { includeRevoked: true, includeBuiltin: true }), listTeams(ctx)])
   const personName = new Map(people.map((p) => [p.id, p.name]))
   const agentName = new Map(agents.map((a) => [a.id, a.name]))
   const by = (r: Actored): Provenance => {

@@ -3,7 +3,7 @@ import type { ModuleKey } from '@movara/db'
 
 export type IconKey =
   | 'home' | 'todos' | 'meeting' | 'priorities' | 'scorecard' | 'issues' | 'headlines' | 'vision' | 'chart' | 'agents' | 'settings'
-  | 'general' | 'brand' | 'terminology' | 'modules' | 'calendar' | 'members' | 'keys' | 'audit' | 'approvals'
+  | 'general' | 'brand' | 'terminology' | 'modules' | 'calendar' | 'members' | 'keys' | 'audit' | 'approvals' | 'inbox'
 
 export type NavItem = {
   key: string
@@ -29,13 +29,14 @@ export type NavTeam = { id: string; name: string; isLeadership: boolean }
  * omitted. Per-team items carry `?team=<teamId>`: feature pages read that search param
  * (default: the person's first team, the leadership team if they are on it).
  */
-export function buildNav(o: { org: string; terms: Terms; teams: NavTeam[]; modules: Record<ModuleKey, boolean>; pendingApprovals?: number }): NavSection[] {
+export function buildNav(o: { org: string; terms: Terms; teams: NavTeam[]; modules: Record<ModuleKey, boolean>; pendingApprovals?: number; pendingCaptures?: number }): NavSection[] {
   const { org, terms: T, teams, modules: m } = o
   const base = `/${org}`
   const sections: NavSection[] = []
 
   const top: NavItem[] = [{ key: 'home', label: 'Home', href: base, icon: 'home', exact: true }]
   if (m.todos) top.push({ key: 'todos', label: `My ${T.t('todo', 'plural').toLowerCase()}`, href: `${base}/todos`, icon: 'todos' })
+  top.push({ key: 'inbox', label: 'Inbox', href: `${base}/inbox`, icon: 'inbox', badge: o.pendingCaptures })
   sections.push({ key: 'top', items: top })
 
   for (const team of teams) {

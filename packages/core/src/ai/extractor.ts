@@ -4,6 +4,8 @@
  * notes and reports `extracted: false`.
  */
 
+import type { Ctx } from '../ctx'
+
 export type CaptureItemsInput = {
   todos?: { title: string; owner?: string | null; dueDate?: string | null; description?: string | null }[]
   issues?: { title: string; owner?: string | null; description?: string | null; longTerm?: boolean }[]
@@ -20,12 +22,18 @@ export type NotesExtractorInput = {
 
 export type ExtractedItems = Required<CaptureItemsInput>
 
-/** Must not throw for "nothing found" (return empty arrays). Throwing is tolerated: capture keeps the notes and reports the error. */
-export type NotesExtractor = (input: NotesExtractorInput) => Promise<ExtractedItems>
+/**
+ * Must not throw for "nothing found" (return empty arrays). Return `null` when extraction is not available for this org
+ * (AI not configured): capture then behaves as if no extractor were registered. Throwing is tolerated: capture keeps the
+ * notes and reports the error. `ctx` is the capturing actor's context (the extractor derives what it needs from it).
+ */
+export type NotesExtractor = (input: NotesExtractorInput, ctx: Ctx) => Promise<ExtractedItems | null>
 
-let current: NotesExtractor | null = null
+/** Kept on globalThis: Next bundles instrumentation and route handlers separately, so a module-level variable would not be shared. */
+const slot = globalThis as typeof globalThis & { __movaraNotesExtractor?: NotesExtractor | null }
+
 /** Register (or clear with null) the process-wide extractor. */
 export const setNotesExtractor = (fn: NotesExtractor | null): void => {
-  current = fn
+  slot.__movaraNotesExtractor = fn
 }
-export const getNotesExtractor = (): NotesExtractor | null => current
+export const getNotesExtractor = (): NotesExtractor | null => slot.__movaraNotesExtractor ?? null

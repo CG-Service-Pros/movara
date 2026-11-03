@@ -74,6 +74,7 @@ const scopesOf = (c: Command<any, any>): Scope[] => (Array.isArray(c.scope) ? c.
 
 function needsApproval(cmd: Command<any, any>, ctx: Ctx, input: unknown): boolean {
   if (ctx.actor.type !== 'agent') return false
+  if (ctx.confirmedByPerson) return false
   if (scopesOf(cmd).includes('admin')) return true
   const r = cmd.requiresApprovalForAgents
   return typeof r === 'function' ? r(input) : !!r

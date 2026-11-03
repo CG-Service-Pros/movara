@@ -9,7 +9,9 @@ import { decryptSecret, encryptSecret } from './crypto'
 import { assertWithinTokenLimit } from './usage'
 
 export const AI_PROVIDERS = ['openai', 'openai_compatible'] as const
-export const REASONING_EFFORTS = ['minimal', 'low', 'medium', 'high'] as const
+export const REASONING_EFFORTS = ['none', 'low', 'medium', 'high'] as const
+/** Older rows may hold 'minimal'; GPT-5.6-class models use 'none'. */
+const normalizeEffort = (v: string | null | undefined): ReasoningEffort => (v === 'minimal' ? 'none' : (REASONING_EFFORTS as readonly string[]).includes(v ?? '') ? (v as ReasoningEffort) : 'low')
 export type AiProvider = (typeof AI_PROVIDERS)[number]
 export type ReasoningEffort = (typeof REASONING_EFFORTS)[number]
 
@@ -41,7 +43,7 @@ const view = (r: Row | undefined): AiSettingsView => ({
   provider: (r?.provider as AiProvider) ?? 'openai',
   baseUrl: r?.baseUrl ?? null,
   model: r?.model ?? DEFAULT_AI_MODEL,
-  reasoningEffort: (r?.reasoningEffort as ReasoningEffort) ?? 'low',
+  reasoningEffort: normalizeEffort(r?.reasoningEffort),
   monthlyTokenLimit: r?.monthlyTokenLimit ?? null,
   coachName: r?.coachName ?? DEFAULT_COACH_NAME,
   coachPersonality: r?.coachPersonality ?? DEFAULT_COACH_PERSONALITY,
@@ -165,7 +167,7 @@ export async function getAiClientConfig(ctx: Ctx, opts: { checkLimit?: boolean }
     baseUrl: r.baseUrl,
     apiKey: decryptSecret({ ciphertext: r.apiKeyCiphertext, iv: r.apiKeyIv, tag: r.apiKeyTag }),
     model: r.model,
-    reasoningEffort: r.reasoningEffort as ReasoningEffort,
+    reasoningEffort: normalizeEffort(r.reasoningEffort),
     monthlyTokenLimit: r.monthlyTokenLimit,
     coachName: r.coachName,
     coachPersonality: r.coachPersonality,

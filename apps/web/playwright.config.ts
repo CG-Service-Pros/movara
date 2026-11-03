@@ -36,6 +36,8 @@ export default defineConfig({
       BETTER_AUTH_URL: BASE,
       APP_URL: BASE,
       MOVARA_SEED_DEMO: '1',
+      // Coach uses a deterministic fake model (no network, no key).
+      MOVARA_AI_MOCK: '1',
       NEXT_TELEMETRY_DISABLED: '1',
     },
   },

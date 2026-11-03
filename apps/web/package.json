@@ -12,6 +12,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@movara/coach": "workspace:*",
     "@movara/core": "workspace:*",
     "@movara/db": "workspace:*",
     "@movara/mcp": "workspace:*",

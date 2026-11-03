@@ -29,13 +29,14 @@ apps/mcp            MCP server (node), also mountable from web at /mcp
 packages/config     tsconfig bases, shared vitest config
 packages/db         drizzle schema (src/schema/*.ts, one file per area), client factory, migrations, seed
 packages/core       domain: commands/queries per area (src/<area>/*.ts), ctx, runner, audit, approvals, scopes, quarter math
+packages/coach      Coach engine (agent loop on the MCP tool registry, OpenAI Responses / Chat Completions, notes extractor, mock model for tests)
 packages/terminology  term keys, pack schema, resolver, Standard pack (exists)
 packages/ui         design-system primitives (Tailwind + Radix where needed)
 packs/eos           community EOS pack (data only)
 ```
 
 Package names: `@movara/web`, `@movara/mcp`, `@movara/db`, `@movara/core`,
-`@movara/terminology`, `@movara/ui`, `@movara/config`. Internal packages are consumed as
+`@movara/terminology`, `@movara/coach`, `@movara/ui`, `@movara/config`. Internal packages are consumed as
 TypeScript source (`"exports": { ".": "./src/index.ts", "./*": "./src/*.ts" }`). Next uses
 `transpilePackages`.
 

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { Kbd } from '@movara/ui/kbd'
 import { cn } from '@movara/ui/cn'
+import { CoachButton } from '@/components/coach/coach-button'
 import { openCommandPalette } from './command-palette'
 import { NavIcon } from './icons'
 import { hrefOf, type NavItem, type NavSection } from './nav'
@@ -49,6 +50,7 @@ export function SidebarNav({ sections, switcher, onNavigate, className }: { sect
         <span>Search</span>
         <Kbd className="ml-auto">⌘K</Kbd>
       </button>
+      <CoachButton onNavigate={onNavigate} className="-mt-3.5" />
       {sections.map((s) => (
         <div key={s.key} className="flex flex-col gap-px">
           {s.label && <div className="flex h-[22px] items-center px-2 text-2xs font-[550] text-faint">{s.label}</div>}

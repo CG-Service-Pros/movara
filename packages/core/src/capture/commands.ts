@@ -253,12 +253,14 @@ export async function captureMeetingNotes(ctx: Ctx, input: CaptureNotesInput) {
       const cal = await orgCalendar(ctx)
       const orgPeople = await ctx.db.select({ id: people.id, name: people.name, email: people.email }).from(people).where(scoped(people, ctx))
       try {
-        const out: ExtractedItems = await extractor({
+        const out: ExtractedItems | null = await extractor({
           notes: rest.notesMarkdown ?? '', transcript: rest.transcript ?? undefined, people: orgPeople,
           meeting: { title: l.series.name, date: new Intl.DateTimeFormat('en-CA', { timeZone: cal.timezone || 'UTC' }).format(l.meeting.scheduledAt), team: team?.name ?? '' },
-        })
-        items = captureItemsSchema.parse(out)
-        extracted = true
+        }, ctx)
+        if (out) {
+          items = captureItemsSchema.parse(out)
+          extracted = true
+        }
       } catch (e) {
         extractionError = (e instanceof Error ? e.message : String(e)).slice(0, 500)
       }

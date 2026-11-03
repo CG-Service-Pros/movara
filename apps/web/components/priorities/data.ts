@@ -1,14 +1,15 @@
 import 'server-only'
-import { getPriority, listActivity, listAgents, listPeople, type Ctx, type Terms } from '@movara/core'
+import { getCoachProfile, getPriority, listActivity, listAgents, listPeople, type Ctx, type Terms } from '@movara/core'
 import { buildActivityItems, type ActivityItem, type AuditEventLike } from '@/components/shell/activity-feed'
 import type { PriorityDetailData, PLevel, PStatus } from './types'
 
 /** People and agents of the org as id -> name maps (for provenance lines). */
 export async function actorDirectory(ctx: Ctx) {
-  const [people, agents] = await Promise.all([listPeople(ctx), listAgents(ctx, { includeRevoked: true })])
+  const [people, agents, coach] = await Promise.all([listPeople(ctx), listAgents(ctx, { includeRevoked: true, includeBuiltin: true }), getCoachProfile(ctx)])
   return {
     people: Object.fromEntries(people.map((p) => [p.id, p.name])),
-    agents: Object.fromEntries(agents.map((a) => [a.id, a.name])),
+    // The built-in Coach shows under the name the org gave it.
+    agents: Object.fromEntries(agents.map((a) => [a.id, a.kind === 'builtin_coach' ? coach.coachName : a.name])),
   }
 }
 

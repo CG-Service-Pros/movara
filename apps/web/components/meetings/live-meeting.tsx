@@ -13,7 +13,10 @@ import { Facepile } from '@movara/ui/facepile'
 import { Kbd } from '@movara/ui/kbd'
 import { Tip } from '@movara/ui/tooltip'
 import { toast } from '@movara/ui/toaster'
+import { CoachStrip } from '@/components/coach/coach-strip'
+import { useCoachNote } from '@/components/coach/coach-provider'
 import { meetingAction, type MeetingOp } from '@/app/(app)/[org]/meetings/[id]/actions'
+import { meetingNote, sectionCoach } from './coach-note'
 import { fmtClock, fmtDay, fmtLength } from './format'
 import { IdsView } from './ids-view'
 import { Tick, type Act } from './parts'
@@ -165,6 +168,8 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
   }
 
   const kind = KINDS[sections[idx]?.term ?? ''] ?? 'generic'
+  const coachHint = running && !dayBreak ? sectionCoach(b, kind) : null
+  useCoachNote(running ? meetingNote(b, sectionLabel(sections[idx]?.term ?? ''), kind) : null)
   const prevIdx = idx > 0 && dayAt(idx - 1) === dayAt(idx) ? idx - 1 : null
   const nextIdx = idx + 1 < sections.length ? idx + 1 : null
   const lastOfDay = multiDay && nextIdx !== null && dayAt(nextIdx) !== dayAt(idx)
@@ -293,6 +298,7 @@ export function LiveMeeting({ slug, initial }: { slug: string; initial: Bundle }
           )}
           <div className="min-h-0 flex-1 overflow-auto" data-testid="section-body">
             <div className="mx-auto w-full max-w-[1100px] px-4 pb-10 pt-6 sm:px-8" key={`${sections[idx]?.term}-${idx}`}>
+              {coachHint && <CoachStrip className="mb-4" label={coachHint.label} prompt={coachHint.prompt} mode={coachHint.mode} />}
               {live.status === 'scheduled' ? (
                 <ReadyToStart b={b} />
               ) : dayBreak ? (

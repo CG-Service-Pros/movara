@@ -49,6 +49,11 @@ export type Ctx = {
   scopes: Scope[] | 'all'
   /** People: their role. Agents: the role of the person they act for (the owner). */
   role: Role
+  /**
+   * Set only for the built-in Coach after the person it acts for approved the exact change
+   * on a confirm card. That approval replaces the agent approval queue (role checks still apply).
+   */
+  confirmedByPerson?: boolean
 }
 
 export const hasScope = (ctx: Ctx, scope: Scope): boolean =>

@@ -1,5 +1,5 @@
 import { hashPassword } from 'better-auth/crypto'
-import { eq } from 'drizzle-orm'
+import { and, desc, eq, isNotNull } from 'drizzle-orm'
 import type { Db } from './client'
 import { hashApiKey, newId } from './ids'
 import * as s from './schema'
@@ -36,7 +36,10 @@ export async function seedIfEmpty(db: Db) {
 /** Idempotent: does nothing when the "vindex" org already exists. */
 export async function seedDemo(db: Db): Promise<{ created: boolean; orgId: string }> {
   const existing = await db.select({ id: s.orgs.id }).from(s.orgs).where(eq(s.orgs.slug, 'vindex')).limit(1)
-  if (existing[0]) return { created: false, orgId: existing[0].id }
+  if (existing[0]) {
+    await seedCaptureDemo(db, existing[0].id)
+    return { created: false, orgId: existing[0].id }
+  }
 
   const orgId = newId()
   const passwordHash = await hashPassword(DEMO_LOGIN.password)
@@ -94,7 +97,7 @@ export async function seedDemo(db: Db): Promise<{ created: boolean; orgId: strin
     const agentActor = (id: string, onBehalfOf: string): ActorJson => ({ type: 'agent', id, onBehalfOf })
     await tx.insert(s.agents).values([
       { ...c, id: A.ops, name: 'Ops Agent', ownerPersonId: P.oscar, client: 'Claude Code · MCP', scopes: ['read', 'write:todos', 'write:issues', 'write:priorities', 'write:headlines'], lastSeenAt: at('2026-11-02T13:50:00Z') },
-      { ...c, id: A.notes, name: 'Notes Agent', ownerPersonId: P.maya, client: 'Meeting notes · MCP', scopes: ['read', 'write:todos', 'write:issues', 'write:meetings', 'propose:vision'], lastSeenAt: at('2026-11-02T13:58:00Z') },
+      { ...c, id: A.notes, name: 'Notes Agent', ownerPersonId: P.maya, client: 'Meeting notes · MCP', scopes: ['read', 'write:todos', 'write:issues', 'write:meetings', 'capture:meetings', 'propose:vision'], lastSeenAt: at('2026-11-02T13:58:00Z') },
       { ...c, id: A.sales, name: 'Sales Agent', ownerPersonId: P.theo, client: 'HubSpot workflow · API', scopes: ['read', 'write:metrics'], lastSeenAt: at('2026-11-02T12:55:00Z') },
     ])
     await tx.insert(s.apiKeys).values({ ...c, id: newId(), agentId: A.ops, name: 'Demo key', prefix: DEMO_API_KEY.slice(0, 16), keyHash: hashApiKey(DEMO_API_KEY) })
@@ -292,5 +295,57 @@ export async function seedDemo(db: Db): Promise<{ created: boolean; orgId: strin
     ])
   })
 
+  await seedCaptureDemo(db, orgId)
   return { created: true, orgId }
+}
+
+// ---- Meeting-notes capture demo ------------------------------------------------------------
+const GRANOLA_NOTES = `## Leadership weekly: Oct 26
+
+**Summary.** Cleared the Q3 invoicing backlog and agreed to run the security review and SSO setup in parallel so pilots are not blocked.
+
+### Decisions
+- Security review and SSO setup run in parallel for the three pilot customers.
+- Pilots start the week of Nov 9, even if the SOC 2 letter is still in flight.
+
+### Action items
+- **Oscar:** send the pilot terms to the three pilot customers.
+- **Maya:** draft the seven-day partner onboarding checklist.
+- **Theo:** confirm SSO scope with the first pilot customer.
+
+### Risks
+- Invoicing export is still manual; one more cycle before it is automated.
+- The SOC 2 letter may slip a week.
+`
+
+/** Idempotent: one Granola capture with four pending proposals on the last ended meeting (skips when the org already has notes). */
+export async function seedCaptureDemo(db: Db, orgId: string): Promise<void> {
+  const already = await db.select({ id: s.meetingNotes.id }).from(s.meetingNotes).where(eq(s.meetingNotes.orgId, orgId)).limit(1)
+  if (already[0]) return
+  const people = await db.select().from(s.people).where(eq(s.people.orgId, orgId))
+  const oscar = people.find((p) => p.role === 'owner')
+  const maya = people.find((p) => p.name.startsWith('Maya'))
+  if (!oscar) return
+  const ended = await db.select({ id: s.meetings.id, seriesId: s.meetings.seriesId }).from(s.meetings).where(and(eq(s.meetings.orgId, orgId), isNotNull(s.meetings.endedAt))).orderBy(desc(s.meetings.endedAt))
+  const meeting = ended[0]
+  if (!meeting) return
+  const [series] = await db.select({ teamId: s.meetingSeries.teamId }).from(s.meetingSeries).where(eq(s.meetingSeries.id, meeting.seriesId)).limit(1)
+  const agent = (await db.select().from(s.agents).where(eq(s.agents.orgId, orgId))).find((a) => a.name === 'Notes Agent')
+  const actor: ActorJson = agent ? { type: 'agent', id: agent.id, onBehalfOf: agent.ownerPersonId } : { type: 'person', id: oscar.id }
+  const when = at('2026-10-26T14:40:00Z')
+  const c = { orgId, createdByActor: actor, updatedByActor: actor, createdAt: when, updatedAt: when }
+  const notesId = newId()
+  await db.insert(s.meetingNotes).values({
+    ...c, id: notesId, meetingId: meeting.id, sourceApp: 'granola', sourceUrl: 'https://notes.granola.ai/d/demo-leadership-weekly',
+    title: 'Leadership weekly', notesMarkdown: GRANOLA_NOTES, capturedByActor: actor,
+    transcript: 'Maya: Let us start with invoicing. Oscar: The backlog is cleared. Maya: Good. On pilots, can security and SSO run in parallel? ...',
+  })
+  const teamId = series?.teamId ?? null
+  const item = (kind: 'todo' | 'issue' | 'headline' | 'decision', payload: typeof s.captureItems.$inferInsert['payload']) => ({ ...c, id: newId(), meetingId: meeting.id, notesId, kind, payload: { teamId, ...payload }, status: 'proposed' as const })
+  await db.insert(s.captureItems).values([
+    item('todo', { title: 'Send the pilot terms to the three pilot customers', ownerRef: 'me', resolvedOwnerId: oscar.id, dueDate: '2026-11-06' }),
+    item('todo', { title: 'Draft the seven-day partner onboarding checklist', ownerRef: 'Maya', resolvedOwnerId: maya?.id ?? null, dueDate: '2026-11-09' }),
+    item('issue', { title: 'Invoicing export is still manual', ownerRef: null, resolvedOwnerId: null, description: 'One more cycle before it is automated.' }),
+    item('decision', { title: 'Run the security review and SSO setup in parallel for the three pilots' }),
+  ])
 }

@@ -10,25 +10,28 @@ import { Input } from '@movara/ui/input'
 import { Segmented } from '@movara/ui/segmented'
 import { Switch } from '@movara/ui/switch'
 import { toast } from '@movara/ui/toaster'
-import { issueKey, revokeAgent, revokeKey, setAgentStatus, updateAgentScopes } from '@/app/(app)/[org]/settings/actions'
-import { Mono, Panel, Section, ago, fmtDate } from './ui'
+import { issueKey, revokeAgent, revokeKey, setAgentPreset, setAgentStatus, updateAgentScopes } from '@/app/(app)/[org]/settings/actions'
+import { PRESET_INFO, presetLabel, type PresetChoice } from './presets'
+import { Mono, NativeSelect, Panel, Section, ago, fmtDate } from './ui'
 import { useSave } from './use-save'
 
 export const SCOPE_INFO: { scope: string; label: string; description: string; gated?: string }[] = [
   { scope: 'read', label: 'Read', description: 'See everything the owner can see.' },
+  { scope: 'write:own_todos', label: 'Write own to-dos', description: 'Create and complete only the owner’s own to-dos.' },
   { scope: 'write:todos', label: 'Write to-dos', description: 'Create, edit and complete to-dos.' },
   { scope: 'write:issues', label: 'Write issues', description: 'Create, rank and solve issues.' },
   { scope: 'write:headlines', label: 'Write headlines', description: 'Share and review headlines.' },
   { scope: 'write:metrics', label: 'Write metrics', description: 'Record scorecard values and create metrics.' },
   { scope: 'write:priorities', label: 'Write priorities', description: 'Create priorities, set status and milestones.', gated: 'Deletes need approval' },
   { scope: 'write:meetings', label: 'Write meetings', description: 'Run meetings, capture notes and ratings.' },
+  { scope: 'capture:meetings', label: 'Capture meeting notes', description: 'Push notes and action items into meetings; items wait for review.' },
   { scope: 'propose:vision', label: 'Propose vision changes', description: 'Draft changes to the vision plan.', gated: 'Needs approval' },
   { scope: 'propose:chart', label: 'Propose chart changes', description: 'Draft changes to the accountability chart.', gated: 'Needs approval' },
   { scope: 'admin', label: 'Admin', description: 'Packs, members and agents. Every action waits for a person.', gated: 'Needs approval' },
 ]
 
 export type AgentDetailData = {
-  id: string; name: string; client: string | null; owner: string; status: string; lastSeenAt: string | null; scopes: string[]
+  id: string; name: string; client: string | null; owner: string; status: string; lastSeenAt: string | null; scopes: string[]; preset: string | null
   keys: { id: string; name: string | null; prefix: string; createdAt: string; lastUsedAt: string | null; revokedAt: string | null; expiresAt: string | null }[]
 }
 
@@ -66,7 +69,9 @@ function ConnectSnippets({ mcpUrl, apiKey }: { mcpUrl: string; apiKey: string })
   )
 }
 
-export function AgentDetail({ slug, agent, mcpUrl, canManage }: { slug: string; agent: AgentDetailData; mcpUrl: string; canManage: boolean }) {
+export const NOTES_INSTRUCTION = 'After each meeting, push the Granola notes and action items to the matching Movara meeting using meeting_capture_notes; assign to-dos to me unless someone else is named.'
+
+export function AgentDetail({ slug, agent, mcpUrl, canManage, presetScopes }: { slug: string; agent: AgentDetailData; mcpUrl: string; canManage: boolean; presetScopes: Record<string, string[]> }) {
   const { save, pending } = useSave()
   const [scopes, setScopes] = useState(new Set(agent.scopes))
   const [keyOpen, setKeyOpen] = useState(false)
@@ -74,12 +79,21 @@ export function AgentDetail({ slug, agent, mcpUrl, canManage }: { slug: string; 
   const [issued, setIssued] = useState<string | null>(null)
   const [confirmRevoke, setConfirmRevoke] = useState(false)
   const active = agent.status !== 'revoked'
+  const [preset, setPreset] = useState<string>(agent.preset ?? 'custom')
+
+  function choosePreset(p: PresetChoice) {
+    setPreset(p)
+    if (p === 'custom') return
+    setScopes(new Set(presetScopes[p]))
+    save(() => setAgentPreset(slug, agent.id, p), `Preset set to ${presetLabel(p)}`)
+  }
 
   function toggle(scope: string, on: boolean) {
     const next = new Set(scopes)
     if (on) next.add(scope)
     else next.delete(scope)
     setScopes(next)
+    setPreset('custom')
     save(() => updateAgentScopes(slug, agent.id, [...next]), 'Scopes updated')
   }
 
@@ -98,6 +112,7 @@ export function AgentDetail({ slug, agent, mcpUrl, canManage }: { slug: string; 
           <div className="text-lg font-semibold tracking-tight text-ink">{agent.name}</div>
           <div className="text-sm text-body">{agent.client ?? 'No client set'} · owned by {agent.owner} · last seen {ago(agent.lastSeenAt)}</div>
         </div>
+        <Badge tone={agent.preset ? 'accent' : 'neutral'}>{presetLabel(agent.preset)}</Badge>
         <Badge tone={agent.status === 'active' ? 'success' : agent.status === 'paused' ? 'warning' : 'danger'} className="capitalize">{agent.status}</Badge>
         {canManage && active && (
           <Button loading={pending} onClick={() => save(() => setAgentStatus(slug, agent.id, agent.status === 'active' ? 'paused' : 'active'), agent.status === 'active' ? 'Agent paused' : 'Agent resumed')}>
@@ -106,7 +121,34 @@ export function AgentDetail({ slug, agent, mcpUrl, canManage }: { slug: string; 
         )}
       </div>
 
-      <Section title="Scopes" description="What this agent may do. An API key can only narrow these, never widen them.">
+      {agent.preset === 'notes_integration' && active && (
+        <Section title="Connect your notes app" description="Granola and Plaud do not talk to Movara directly. Your AI agent reads the notes and pushes them here.">
+          <div className="flex flex-col gap-4 rounded-xl bg-surface p-4 shadow-panel" data-testid="notes-helper">
+            <ol className="flex list-decimal flex-col gap-3 pl-5 text-base text-body marker:font-[600] marker:text-faint">
+              <li>
+                Connect your agent (Claude, ChatGPT, n8n…) to the MCP endpoint <Mono>{mcpUrl}</Mono>. Sign in with OAuth, or{' '}
+                {canManage ? <button type="button" className="font-[550] text-accent-text hover:underline" onClick={() => { setIssued(null); setKeyOpen(true) }}>issue an API key</button> : 'use an API key'} for this agent.
+              </li>
+              <li>
+                Give your agent this standing instruction:
+                <div className="mt-2 flex items-start gap-2 rounded-lg bg-canvas p-3">
+                  <p className="min-w-0 flex-1 text-sm leading-relaxed text-ink" data-testid="notes-instruction">{NOTES_INSTRUCTION}</p>
+                  <CopyButton text={NOTES_INSTRUCTION} />
+                </div>
+              </li>
+              <li>Review what it sends in your <a href={`/${slug}/inbox`} className="font-[550] text-accent-text hover:underline">Inbox</a>. Nothing is created until you accept it.</li>
+            </ol>
+          </div>
+        </Section>
+      )}
+
+      <Section title="Scopes" description="What this agent may do. An API key can only narrow these, never widen them." actions={
+        <label className="flex items-center gap-2 text-sm text-body">Preset
+          <NativeSelect aria-label="Preset" value={preset} disabled={!canManage || !active || pending} onChange={(e) => choosePreset(e.target.value as PresetChoice)}>
+            {PRESET_INFO.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+          </NativeSelect>
+        </label>
+      }>
         <Panel data-testid="scopes">
           {SCOPE_INFO.map((s) => (
             <div key={s.scope} className="flex items-center gap-4 px-4 py-2.5">

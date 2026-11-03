@@ -94,7 +94,7 @@ export default async function HomePage({ params }: { params: Promise<{ org: stri
 
   return (
     <Page title="Home" meta={<span className="text-body">My week</span>}>
-      <div className="w-full px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+      <div className="@container w-full px-4 pb-10 pt-6 sm:px-6 lg:px-8">
         <header className="mb-6">
           <p className="text-sm text-body">
             {dateLine} · Week {mw.week.week} of {mw.week.of} · {quarterLabel(mw.quarter)}
@@ -104,11 +104,11 @@ export default async function HomePage({ params }: { params: Promise<{ org: stri
           </h2>
         </header>
 
-        {modules.meetings && <div className="mb-5 lg:hidden">{meetingCard}</div>}
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="flex min-w-0 flex-col gap-5 2xl:grid 2xl:grid-cols-2 2xl:content-start 2xl:items-start">
+        {modules.meetings && <div className="mb-5 @min-[880px]:hidden">{meetingCard}</div>}
+        <div className="grid gap-5 @min-[880px]:grid-cols-[minmax(0,1fr)_340px] @min-[1400px]:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="flex min-w-0 flex-col gap-5 @min-[1400px]:grid @min-[1400px]:grid-cols-2 @min-[1400px]:content-start @min-[1400px]:items-start">
             {modules.priorities && (
-              <Section className="2xl:col-span-2" title={`My ${P.toLowerCase()}`} meta={mw.priorities.length ? mw.priorities.length : undefined} href={`${base}/priorities?tab=mine`} flush>
+              <Section className="@min-[1400px]:col-span-2" title={`My ${P.toLowerCase()}`} meta={mw.priorities.length ? mw.priorities.length : undefined} href={`${base}/priorities?tab=mine`} flush>
                 {mw.priorities.length === 0 ? (
                   <Muted>No {P.toLowerCase()} are assigned to you this quarter.</Muted>
                 ) : (
@@ -154,7 +154,7 @@ export default async function HomePage({ params }: { params: Promise<{ org: stri
           </div>
 
           <div className="flex min-w-0 flex-col gap-5">
-            {modules.meetings && <div className="max-lg:hidden">{meetingCard}</div>}
+            {modules.meetings && <div className="@max-[879px]:hidden">{meetingCard}</div>}
 
             <Suspense
               fallback={

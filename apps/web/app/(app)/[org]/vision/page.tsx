@@ -12,6 +12,7 @@ import { ProposalsBanner } from '@/components/vision/proposals-banner'
 import { fmtShortDate, normalizeSections, type RevisionLite, type VisionLabels } from '@/components/vision/shared'
 import { VisionDocument } from '@/components/vision/vision-doc'
 import { VisionEditor } from '@/components/vision/vision-editor'
+import { BuildWithCoach } from '@/components/vision/build-with-coach'
 import { StartDraftButton, VisionViewActions } from '@/components/vision/vision-view-actions'
 
 export default async function VisionPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ rev?: string; edit?: string }> }) {
@@ -57,7 +58,7 @@ export default async function VisionPage({ params, searchParams }: { params: Pro
           icon={<NavIcon name="vision" size={18} />}
           title="Start your vision plan"
           description={terms.term('vision_plan').description ?? 'Where the company is going and how it gets there, on one page.'}
-          action={hasRole(ctx, 'member') ? <StartDraftButton slug={slug} label="Start your vision plan" /> : undefined}
+          action={hasRole(ctx, 'member') ? <div className="flex items-center gap-2"><StartDraftButton slug={slug} label="Start your vision plan" /><BuildWithCoach /></div> : undefined}
         />
       </Page>
     )
@@ -79,7 +80,7 @@ export default async function VisionPage({ params, searchParams }: { params: Pro
     )
   }
 
-  const [revs, pending, ppl, ags] = await Promise.all([listVisionRevisions(ctx), listApprovals(ctx, { status: 'pending', limit: 200 }), listPeople(ctx), listAgents(ctx, { includeRevoked: true })])
+  const [revs, pending, ppl, ags] = await Promise.all([listVisionRevisions(ctx), listApprovals(ctx, { status: 'pending', limit: 200 }), listPeople(ctx), listAgents(ctx, { includeRevoked: true, includeBuiltin: true })])
   const pendingCount = pending.items.filter((a) => a.action.startsWith('vision.')).length
   const names: Record<string, string> = {}
   for (const p of ppl) names[p.id] = p.name
@@ -125,7 +126,12 @@ export default async function VisionPage({ params, searchParams }: { params: Pro
       <Page
         title={labels.vision}
         meta={<Badge tone={viewingOld ? 'warning' : 'neutral'}>{versionText}</Badge>}
-        actions={<VisionViewActions slug={slug} revisions={revisions} currentId={rev.id} hasDraft={!!view.draft} canEdit={hasRole(ctx, 'member')} />}
+        actions={
+          <div className="flex items-center gap-2">
+            {hasRole(ctx, 'member') && <BuildWithCoach />}
+            <VisionViewActions slug={slug} revisions={revisions} currentId={rev.id} hasDraft={!!view.draft} canEdit={hasRole(ctx, 'member')} />
+          </div>
+        }
         data-print-hide
         bodyClassName="px-6 py-5"
       >
