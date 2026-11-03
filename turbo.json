@@ -2,7 +2,11 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "dev": { "cache": false, "persistent": true },
-    "build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**", "dist/**"] },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["APP_URL", "BETTER_AUTH_URL", "BETTER_AUTH_SECRET", "DATABASE_URL", "MOVARA_ALLOW_SIGNUP", "MOVARA_SEED_DEMO", "MOVARA_TERMINOLOGY_PACKS"]
+    },
     "typecheck": { "dependsOn": ["^typecheck"] },
     "lint": {},
     "test": {}
