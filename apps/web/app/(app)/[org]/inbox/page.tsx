@@ -10,7 +10,7 @@ import { captureLabels, loadPeopleAndAgents } from '@/components/capture/load'
 import { itemView, noteView } from '@/components/capture/types'
 import { getOrgContext } from '@/lib/ctx'
 
-const DOCS = 'https://github.com/movara-app/movara/blob/main/docs/mcp-setup.md'
+const DOCS = 'https://github.com/OscarH30/movara/blob/main/docs/mcp-setup.md'
 
 export default async function InboxPage({ params }: { params: Promise<{ org: string }> }) {
   const { org: slug } = await params

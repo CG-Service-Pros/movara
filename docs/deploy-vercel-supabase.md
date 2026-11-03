@@ -22,7 +22,7 @@ Reference cloud setup: Supabase provides PostgreSQL, Vercel hosts the Next.js ap
 From your machine, once, and again after each upgrade that includes new migrations:
 
 ```bash
-git clone https://github.com/movara-app/movara.git && cd movara
+git clone https://github.com/OscarH30/movara.git && cd movara
 pnpm install
 DATABASE_URL='<direct or session-pooler connection string>' pnpm db:migrate
 ```

@@ -6,12 +6,12 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/movara-app/movara.git",
+    "url": "git+https://github.com/OscarH30/movara.git",
     "directory": "packages/terminology"
   },
-  "homepage": "https://github.com/movara-app/movara/tree/main/packages/terminology",
+  "homepage": "https://github.com/OscarH30/movara/tree/main/packages/terminology",
   "bugs": {
-    "url": "https://github.com/movara-app/movara/issues"
+    "url": "https://github.com/OscarH30/movara/issues"
   },
   "keywords": [
     "movara",

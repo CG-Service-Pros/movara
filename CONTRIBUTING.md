@@ -7,7 +7,7 @@ Thanks for helping. Movara is Apache-2.0 licensed; by contributing you agree you
 Requirements: Node 22 (see `.nvmrc`) and pnpm 10 (`corepack enable`).
 
 ```bash
-git clone https://github.com/movara-app/movara.git && cd movara
+git clone https://github.com/OscarH30/movara.git && cd movara
 pnpm install
 pnpm dev            # http://localhost:3000, embedded PGlite, demo data seeded
 ```
