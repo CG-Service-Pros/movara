@@ -1,4 +1,4 @@
-import { headlines } from '@motion/db'
+import { headlines } from '@movara/db'
 import type { Ctx } from '../ctx'
 import { base } from '../helpers'
 import { assertPeople, assertTeam, ownersOrSelf } from '../issues/internal'

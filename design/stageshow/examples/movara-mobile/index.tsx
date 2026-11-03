@@ -1,15 +1,15 @@
 import { Avatar, Check, Phone, Stage } from '../../kit'
-import { AgentMark } from '../_motion/shared'
-import '../_motion/motion.css'
+import { AgentMark } from '../_movara/shared'
+import '../_movara/movara.css'
 import './mobile.css'
 
-// Motion on a phone: "My week" is what a person needs between meetings. Report
+// Movara on a phone: "My week" is what a person needs between meetings. Report
 // my numbers before the meeting, tick my to-dos, see my priorities. A still,
 // pinned from the top and running off the bottom.
 
-export default function MotionMobile() {
+export default function MovaraMobile() {
   return (
-    <Stage width={460} height={620} fidelity="realistic" className="motion kmo">
+    <Stage width={460} height={620} fidelity="realistic" className="movara kmo">
       {() => (
         <Phone width={360} className="kmo-phone">
           <div className="kmo-app">

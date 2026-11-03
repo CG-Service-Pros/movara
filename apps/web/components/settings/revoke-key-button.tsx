@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@motion/ui/button'
+import { Button } from '@movara/ui/button'
 import { revokeKey } from '@/app/(app)/[org]/settings/actions'
 import { useSave } from './use-save'
 

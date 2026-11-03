@@ -1,7 +1,7 @@
 import {
   chartAddSeat, chartAssignPeople, chartCreateDraft, chartDeleteSeat, chartDiscardDraft, chartMoveSeat, chartProposeChange, chartPublish, chartReorderSeats, chartSetAssistingAgents,
   chartUpdateSeat, execute, getChart, getChartRevision, listChartRevisions,
-} from '@motion/core'
+} from '@movara/core'
 import { fromExecute } from '../respond'
 import type { HandlerMap } from '../types'
 

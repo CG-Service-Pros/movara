@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { auditEvents, orgs, people, teamMembers, teams, user, type Db } from '@motion/db'
+import { auditEvents, orgs, people, teamMembers, teams, user, type Db } from '@movara/db'
 import { ctxForPerson, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { newId } from '../helpers'
 
 export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,38})[a-z0-9]$/
@@ -38,14 +38,14 @@ export const createOrgInput = z.object({
  */
 export async function createOrg(db: Db, rawInput: z.input<typeof createOrgInput>): Promise<{ org: typeof orgs.$inferSelect; ctx: Ctx }> {
   const parsed = createOrgInput.safeParse(rawInput)
-  if (!parsed.success) throw new MotionError('validation', parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '), { issues: parsed.error.issues })
+  if (!parsed.success) throw new MovaraError('validation', parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '), { issues: parsed.error.issues })
   const input = parsed.data
-  if (RESERVED_SLUGS.has(input.slug)) throw new MotionError('validation', 'That URL name is reserved')
+  if (RESERVED_SLUGS.has(input.slug)) throw new MovaraError('validation', 'That URL name is reserved')
 
   const [u] = await db.select().from(user).where(eq(user.id, input.ownerUserId)).limit(1)
-  if (!u) throw new MotionError('not_found', 'User not found')
+  if (!u) throw new MovaraError('not_found', 'User not found')
   const [taken] = await db.select({ id: orgs.id }).from(orgs).where(eq(orgs.slug, input.slug)).limit(1)
-  if (taken) throw new MotionError('conflict', 'That URL name is already taken')
+  if (taken) throw new MovaraError('conflict', 'That URL name is already taken')
 
   const orgId = newId()
   const personId = newId()

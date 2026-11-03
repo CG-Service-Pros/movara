@@ -2,11 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import {
-  agentsCreate, agentsRevoke, agentsRevokeApiKey, agentsUpdate, agentsUpdateScopes, approveApproval, declineApproval, execute, getOrg, isMotionError, issueApiKey,
+  agentsCreate, agentsRevoke, agentsRevokeApiKey, agentsUpdate, agentsUpdateScopes, approveApproval, declineApproval, execute, getOrg, isMovaraError, issueApiKey,
   orgSetTerminologyOverrides, orgSetTerminologyPack, orgUpdateBranding, orgUpdateCalendar, orgUpdateGeneral, orgUpdateModules, peopleAdd, peopleCreateInvite, peopleRemove, peopleUpdateRole, requireRole,
   type Ctx,
-} from '@motion/core'
-import { previewImport, TermOverrides, type TerminologyPack } from '@motion/terminology'
+} from '@movara/core'
+import { previewImport, TermOverrides, type TerminologyPack } from '@movara/terminology'
 import { getCtx } from '@/lib/ctx'
 import { inviteUrl, sendInviteEmail } from '@/lib/invite'
 import { fetchPack, PackFetchError, parseJson, parseNpmSpec, type PackSource } from '@/lib/terminology-import'
@@ -23,7 +23,7 @@ async function run<T>(slug: string, paths: string[], fn: (ctx: Ctx) => Promise<{
     for (const p of paths) revalidatePath(`/${slug}/settings/${p}`)
     return { ok: true, data: r.data as T }
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     if (e instanceof PackFetchError) return { ok: false, error: e.message }
     throw e
   }
@@ -75,7 +75,7 @@ export async function previewPack(slug: string, input: { kind: 'npm' | 'url' | '
     const p = previewImport(raw, await currentPack(ctx))
     if (!p.ok) {
       const first = p.errors.slice(0, 3).map((i) => `${i.path.join('.') || 'pack'}: ${i.message}`).join('; ')
-      return { ok: false, error: `Not a valid Motion pack. ${first}` }
+      return { ok: false, error: `Not a valid Movara pack. ${first}` }
     }
     return {
       ok: true,
@@ -88,7 +88,7 @@ export async function previewPack(slug: string, input: { kind: 'npm' | 'url' | '
     }
   } catch (e) {
     if (e instanceof PackFetchError) return { ok: false, error: e.message }
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }

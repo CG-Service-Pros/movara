@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { agents, approvals } from '@motion/db'
+import { agents, approvals } from '@movara/db'
 import { actingPersonId, ctxForAgent, hasRole } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { found, scoped, touch } from '../helpers'
 import { defineCommand, execute, getCommand } from '../runner'
 
@@ -18,10 +18,10 @@ export const approvalsDecide = defineCommand({
   minRole: 'member',
   input: z.object({ approvalId: z.uuid(), decision: z.enum(['approve', 'decline']), note: z.string().max(500).optional() }),
   run: async (ctx, input) => {
-    if (ctx.actor.type !== 'person') throw new MotionError('forbidden', 'Only people can decide approvals')
+    if (ctx.actor.type !== 'person') throw new MovaraError('forbidden', 'Only people can decide approvals')
     const [a] = await ctx.db.select().from(approvals).where(scoped(approvals, ctx, eq(approvals.id, input.approvalId))).limit(1)
     const approval = found(a, 'Approval')
-    if (approval.status !== 'pending') throw new MotionError('conflict', `Approval is already ${approval.status}`)
+    if (approval.status !== 'pending') throw new MovaraError('conflict', `Approval is already ${approval.status}`)
 
     const requester = approval.requestedByActor
     let isAgentOwner = false
@@ -29,13 +29,13 @@ export const approvalsDecide = defineCommand({
       const [ag] = await ctx.db.select({ owner: agents.ownerPersonId }).from(agents).where(eq(agents.id, requester.id)).limit(1)
       isAgentOwner = ag?.owner === actingPersonId(ctx)
     }
-    if (!hasRole(ctx, 'admin') && !isAgentOwner) throw new MotionError('forbidden', 'Only an admin or the requesting agent\'s owner can decide')
+    if (!hasRole(ctx, 'admin') && !isAgentOwner) throw new MovaraError('forbidden', 'Only an admin or the requesting agent\'s owner can decide')
 
     let result: unknown = null
     if (input.decision === 'approve') {
       const cmd = getCommand(approval.action)
-      if (!cmd) throw new MotionError('validation', `Unknown command "${approval.action}"`)
-      if (requester.type !== 'agent') throw new MotionError('validation', 'Only agent requests can be approved')
+      if (!cmd) throw new MovaraError('validation', `Unknown command "${approval.action}"`)
+      if (requester.type !== 'agent') throw new MovaraError('validation', 'Only agent requests can be approved')
       const agentCtx = await ctxForAgent(ctx.db, ctx.orgId, requester.id)
       const r = await execute(agentCtx, cmd, approval.payload, { skipApproval: true, approvalId: approval.id, approvedBy: ctx.actor })
       result = r.ok ? (cmd.redactResult ? { redacted: true, entity: r.entity } : { data: r.data, entity: r.entity, auditId: r.auditId }) : null

@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getIssue, listIssues } from '@motion/core'
+import { getIssue, listIssues } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { IssuesView } from '@/components/issues/issues-view'
 import { IssuesSkeleton } from '@/components/issues/issues-skeleton'

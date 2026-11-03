@@ -2,14 +2,14 @@
 
 import { Check, Copy, KeyRound, ShieldAlert } from 'lucide-react'
 import { useState } from 'react'
-import { AgentMark } from '@motion/ui/agent-mark'
-import { Badge } from '@motion/ui/badge'
-import { Button } from '@motion/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@motion/ui/dialog'
-import { Input } from '@motion/ui/input'
-import { Segmented } from '@motion/ui/segmented'
-import { Switch } from '@motion/ui/switch'
-import { toast } from '@motion/ui/toaster'
+import { AgentMark } from '@movara/ui/agent-mark'
+import { Badge } from '@movara/ui/badge'
+import { Button } from '@movara/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@movara/ui/dialog'
+import { Input } from '@movara/ui/input'
+import { Segmented } from '@movara/ui/segmented'
+import { Switch } from '@movara/ui/switch'
+import { toast } from '@movara/ui/toaster'
 import { issueKey, revokeAgent, revokeKey, setAgentStatus, updateAgentScopes } from '@/app/(app)/[org]/settings/actions'
 import { Mono, Panel, Section, ago, fmtDate } from './ui'
 import { useSave } from './use-save'
@@ -51,8 +51,8 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
 
 function ConnectSnippets({ mcpUrl, apiKey }: { mcpUrl: string; apiKey: string }) {
   const [tab, setTab] = useState<'code' | 'desktop'>('code')
-  const code = `claude mcp add --transport http motion ${mcpUrl} \\\n  --header "Authorization: Bearer ${apiKey}"`
-  const desktop = JSON.stringify({ mcpServers: { motion: { command: 'npx', args: ['-y', 'mcp-remote', mcpUrl, '--header', `Authorization: Bearer ${apiKey}`] } } }, null, 2)
+  const code = `claude mcp add --transport http movara ${mcpUrl} \\\n  --header "Authorization: Bearer ${apiKey}"`
+  const desktop = JSON.stringify({ mcpServers: { movara: { command: 'npx', args: ['-y', 'mcp-remote', mcpUrl, '--header', `Authorization: Bearer ${apiKey}`] } } }, null, 2)
   const text = tab === 'code' ? code : desktop
   return (
     <div className="flex flex-col gap-2">

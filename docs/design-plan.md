@@ -1,13 +1,13 @@
-# Motion — Design plan
+# Movara — Design plan
 
 *Working name. Date: 2026-11-02.*
 
-Motion is an open-source operating system for running a company on a quarterly rhythm:
+Movara is an open-source operating system for running a company on a quarterly rhythm:
 vision, quarterly priorities, a weekly scorecard, issues, to-dos and a weekly meeting.
 It is **agent-first**: anything a person can do, an agent can do through the MCP server,
 and the UI always shows who did it.
 
-Mockups: `design/stageshow/examples/motion-*` (React + the Stageshow kit). Stills are in
+Mockups: `design/stageshow/examples/movara-*` (React + the Stageshow kit). Stills are in
 `design/stageshow/shots/`. Run `cd design/stageshow && npm run dev` to play them.
 
 ## 1. Principles
@@ -43,7 +43,7 @@ Mockups: `design/stageshow/examples/motion-*` (React + the Stageshow kit). Still
 | Icons | Lucide, 15px, stroke 1.7 | one set, one size |
 | Dark mode | same tokens, surfaces step lighter for depth | ships at v1 |
 
-The source of truth for these is `design/stageshow/examples/_motion/motion.css`. It will
+The source of truth for these is `design/stageshow/examples/_movara/movara.css`. It will
 become the app's Tailwind theme and CSS variables.
 
 ## 3. Information architecture
@@ -71,16 +71,16 @@ The labels in this tree come from the active **terminology pack**.
 
 | Mockup | Story it tells | Notes |
 |---|---|---|
-| `motion-priorities` | Home of a team's quarter: progress summary, priority list, detail pane. An agent ticks a milestone over MCP and the change lands everywhere. | List + detail split, milestone meters, an activity feed with agent provenance |
-| `motion-terms` | Settings → Terminology. Switching Standard → EOS renames the sidebar, the page and the agent tools at once. | Packs: Standard (default), EOS, Custom (edit each term) |
-| `motion-scorecard` | A sales agent records this week's number from HubSpot via `record_metric_values`; the cell goes from Missing to on track and the count rolls. | Off-track cells tinted; missing values explicit; agent-written values marked |
-| `motion-meeting` | Live weekly meeting in issue-solving: agenda rail with timers, the focused issue, a to-do captured by the notes agent, Mark solved. | Meeting mode, Identify · Discuss · Solve stepper, ranked queue |
-| `motion-pack-import` | Settings → Terminology → Import pack: type an npm name, preview what changes, apply. | Data only, no code runs; attribution shown |
-| `motion-agents` | Connected agents: scopes per agent, an approval request from the Notes Agent, audit log, MCP endpoint. | Human-in-the-loop for consequential changes |
-| `motion-vision` | The Vision plan as one page, long view and this year. The agent-proposed goal shows its provenance. | Published revisions, drafts, PDF |
-| `motion-chart` | Accountability chart: seats with responsibilities, an open seat linked to its hiring priority, an agent assisting a seat. | Chart / list views, drafts |
-| `motion-mobile` | "My week" on a phone: next meeting, report numbers, to-dos. | Mobile web/PWA first |
-| `motion-dark` | The Priorities screen in dark theme. | Same tokens by role |
+| `movara-priorities` | Home of a team's quarter: progress summary, priority list, detail pane. An agent ticks a milestone over MCP and the change lands everywhere. | List + detail split, milestone meters, an activity feed with agent provenance |
+| `movara-terms` | Settings → Terminology. Switching Standard → EOS renames the sidebar, the page and the agent tools at once. | Packs: Standard (default), EOS, Custom (edit each term) |
+| `movara-scorecard` | A sales agent records this week's number from HubSpot via `record_metric_values`; the cell goes from Missing to on track and the count rolls. | Off-track cells tinted; missing values explicit; agent-written values marked |
+| `movara-meeting` | Live weekly meeting in issue-solving: agenda rail with timers, the focused issue, a to-do captured by the notes agent, Mark solved. | Meeting mode, Identify · Discuss · Solve stepper, ranked queue |
+| `movara-pack-import` | Settings → Terminology → Import pack: type an npm name, preview what changes, apply. | Data only, no code runs; attribution shown |
+| `movara-agents` | Connected agents: scopes per agent, an approval request from the Notes Agent, audit log, MCP endpoint. | Human-in-the-loop for consequential changes |
+| `movara-vision` | The Vision plan as one page, long view and this year. The agent-proposed goal shows its provenance. | Published revisions, drafts, PDF |
+| `movara-chart` | Accountability chart: seats with responsibilities, an open seat linked to its hiring priority, an agent assisting a seat. | Chart / list views, drafts |
+| `movara-mobile` | "My week" on a phone: next meeting, report numbers, to-dos. | Mobile web/PWA first |
+| `movara-dark` | The Priorities screen in dark theme. | Same tokens by role |
 
 ## 5. Customization (settings)
 
@@ -111,4 +111,4 @@ reference deployment, with Docker Compose for self-hosting.
 
 Onboarding (create org, import pack, invite team, connect first agent), Home (My week on
 desktop), Issues list, meeting history and summary, the planning-session agenda, empty
-states, and a frame-by-frame motion review of the animated mockups.
+states, and a frame-by-frame movara review of the animated mockups.

@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
-import { issues } from '@motion/db'
-import { MotionError } from '../errors'
+import { issues } from '@movara/db'
+import { MovaraError } from '../errors'
 import type { Ctx } from '../ctx'
 import { assertVersion, found, scoped, touch } from '../helpers'
 import { addToLiveMeetings, bumpLiveRev } from '../meetings/live'
@@ -67,7 +67,7 @@ export const issueSetRank = defineCommand({
   run: async (ctx, input, h) => {
     const before = await load(ctx, input.issueId)
     assertVersion(before, h.expectedVersion)
-    if (before.status !== 'open') throw new MotionError('conflict', 'Only open issues can be ranked')
+    if (before.status !== 'open') throw new MovaraError('conflict', 'Only open issues can be ranked')
     const siblings = await ctx.db
       .select()
       .from(issues)
@@ -92,7 +92,7 @@ export const issueSolve = defineCommand({
     const before = await load(ctx, input.issueId)
     assertVersion(before, h.expectedVersion)
     if (before.status === 'solved') return { data: before, entity: { type: 'issue', id: before.id } }
-    if (before.status !== 'open') throw new MotionError('conflict', 'Only open issues can be solved; reopen it first')
+    if (before.status !== 'open') throw new MovaraError('conflict', 'Only open issues can be solved; reopen it first')
     return save(ctx, before, { status: 'solved', solvedAt: new Date() })
   },
 })
@@ -117,7 +117,7 @@ export const issueDrop = defineCommand({
     const before = await load(ctx, input.issueId)
     assertVersion(before, h.expectedVersion)
     if (before.status === 'dropped') return { data: before, entity: { type: 'issue', id: before.id } }
-    if (before.status !== 'open') throw new MotionError('conflict', 'Only open issues can be dropped')
+    if (before.status !== 'open') throw new MovaraError('conflict', 'Only open issues can be dropped')
     return save(ctx, before, { status: 'dropped' })
   },
 })

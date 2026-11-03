@@ -29,20 +29,20 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.32.2
         version: 1.32.2(zod@4.6.7)
-      '@motion/core':
+      '@movara/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@motion/db':
+      '@movara/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@motion/terminology':
+      '@movara/terminology':
         specifier: workspace:*
         version: link:../../packages/terminology
       zod:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@motion/config':
+      '@movara/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -60,19 +60,19 @@ importers:
 
   apps/web:
     dependencies:
-      '@motion/core':
+      '@movara/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@motion/db':
+      '@movara/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@motion/mcp':
+      '@movara/mcp':
         specifier: workspace:*
         version: link:../mcp
-      '@motion/terminology':
+      '@movara/terminology':
         specifier: workspace:*
         version: link:../../packages/terminology
-      '@motion/ui':
+      '@movara/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@radix-ui/react-checkbox':
@@ -148,7 +148,7 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@motion/config':
+      '@movara/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@playwright/test':
@@ -183,10 +183,10 @@ importers:
 
   packages/core:
     dependencies:
-      '@motion/db':
+      '@movara/db':
         specifier: workspace:*
         version: link:../db
-      '@motion/terminology':
+      '@movara/terminology':
         specifier: workspace:*
         version: link:../terminology
       date-fns:
@@ -202,7 +202,7 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@motion/config':
+      '@movara/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -220,7 +220,7 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.5.14
         version: 0.5.14
-      '@motion/terminology':
+      '@movara/terminology':
         specifier: workspace:*
         version: link:../terminology
       better-auth:
@@ -239,7 +239,7 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@motion/config':
+      '@movara/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -264,7 +264,7 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@motion/config':
+      '@movara/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -325,7 +325,7 @@ importers:
         specifier: ^3.7.0
         version: 3.7.0
     devDependencies:
-      '@motion/config':
+      '@movara/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':

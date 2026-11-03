@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { execute, getMetric, isMotionError, metricRecordValues, metricStatus, todoComplete, todoUncomplete } from '@motion/core'
+import { execute, getMetric, isMovaraError, metricRecordValues, metricStatus, todoComplete, todoUncomplete } from '@movara/core'
 import { getCtx } from '@/lib/ctx'
 
 export type HomeActionResult<T = undefined> = { ok: true; data?: T; message?: string } | { ok: false; error: string }
@@ -19,7 +19,7 @@ export async function setTodoDoneAction(slug: string, todoId: string, done: bool
     refresh(slug)
     return r.ok ? { ok: true } : { ok: true, message: 'Sent for approval' }
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }
@@ -34,7 +34,7 @@ export async function recordMetricAction(slug: string, metricId: string, periodS
     const m = await getMetric(ctx, metricId)
     return { ok: true, data: { status: metricStatus(m, value) } }
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }

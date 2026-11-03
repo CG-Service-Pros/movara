@@ -1,8 +1,8 @@
 'use client'
 
 import { BarChart3 } from 'lucide-react'
-import { Button } from '@motion/ui/button'
-import { EmptyState } from '@motion/ui/empty-state'
+import { Button } from '@movara/ui/button'
+import { EmptyState } from '@movara/ui/empty-state'
 import { useAct, type TeamLite } from '../issues/common'
 import { createScorecardAction } from '@/app/(app)/[org]/scorecard/actions'
 

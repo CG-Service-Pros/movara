@@ -2,7 +2,7 @@ import 'server-only'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
-import { account, session, user, verification } from '@motion/db'
+import { account, session, user, verification } from '@movara/db'
 import { resolveAuthSecret } from './auth-secret'
 import { getDb } from './db'
 
@@ -20,12 +20,12 @@ function build(db: Awaited<ReturnType<typeof getDb>>) {
 }
 
 type Auth = ReturnType<typeof build>
-const g = globalThis as unknown as { __motionAuth?: Promise<Auth> }
+const g = globalThis as unknown as { __movaraAuth?: Promise<Auth> }
 
 /** The Better Auth instance (created lazily once the database is ready). */
 export function getAuth(): Promise<Auth> {
-  return (g.__motionAuth ??= getDb().then(build).catch((e) => {
-    g.__motionAuth = undefined
+  return (g.__movaraAuth ??= getDb().then(build).catch((e) => {
+    g.__movaraAuth = undefined
     throw e
   }))
 }

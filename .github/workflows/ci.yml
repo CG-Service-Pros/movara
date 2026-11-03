@@ -41,7 +41,7 @@ jobs:
         run: pnpm test
 
       - name: Build web
-        run: pnpm --filter @motion/web... build
+        run: pnpm --filter @movara/web... build
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -50,10 +50,10 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Chromium
-        run: pnpm --filter @motion/web exec playwright install --with-deps chromium
+        run: pnpm --filter @movara/web exec playwright install --with-deps chromium
 
       - name: E2E (Playwright, PGlite dev server)
-        run: pnpm --filter @motion/web e2e
+        run: pnpm --filter @movara/web e2e
 
       - name: Upload Playwright report
         if: failure()

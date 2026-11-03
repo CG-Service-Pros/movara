@@ -13,8 +13,8 @@ import {
   chartSetAssistingAgents,
   chartUpdateSeat,
   execute,
-  isMotionError,
-} from '@motion/core'
+  isMovaraError,
+} from '@movara/core'
 import { getCtx } from '@/lib/ctx'
 
 export type ActionResult<T = undefined> = { ok: true; needsApproval?: boolean; data?: T } | { ok: false; error: string }
@@ -26,7 +26,7 @@ async function run<T>(slug: string, fn: (ctx: Awaited<ReturnType<typeof getCtx>>
     revalidatePath(`/${slug}/chart`)
     return r
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }

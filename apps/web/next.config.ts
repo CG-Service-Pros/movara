@@ -47,7 +47,7 @@ const securityHeaders = [
 ]
 
 const config: NextConfig = {
-  transpilePackages: ['@motion/ui', '@motion/core', '@motion/db', '@motion/terminology', '@motion/mcp'],
+  transpilePackages: ['@movara/ui', '@movara/core', '@movara/db', '@movara/terminology', '@movara/mcp'],
   // PGlite ships WASM + data files and postgres-js is node-only: keep them out of the bundle
   // (they are still traced into the standalone output with their runtime files).
   serverExternalPackages: ['@electric-sql/pglite', 'postgres', 'nodemailer'],

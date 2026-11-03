@@ -1,6 +1,6 @@
-import { StatusGlyph } from '@motion/ui/status-glyph'
-import { StatusPill } from '@motion/ui/status-pill'
-import { cn } from '@motion/ui/cn'
+import { StatusGlyph } from '@movara/ui/status-glyph'
+import { StatusPill } from '@movara/ui/status-pill'
+import { cn } from '@movara/ui/cn'
 import type { PStatus } from './types'
 
 /** Map a priority status to the design-system status shape. Not done and dropped get distinct marks. */

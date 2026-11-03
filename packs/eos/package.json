@@ -1,15 +1,15 @@
 {
-  "name": "@motion-community/pack-eos",
+  "name": "@movara-community/pack-eos",
   "version": "1.0.0",
-  "description": "EOS terminology pack for Motion (community, unofficial; not affiliated with EOS Worldwide).",
+  "description": "EOS terminology pack for Movara (community, unofficial; not affiliated with EOS Worldwide).",
   "main": "pack.json",
   "files": [
     "pack.json",
     "README.md"
   ],
   "keywords": [
-    "motion",
-    "motion-pack",
+    "movara",
+    "movara-pack",
     "terminology",
     "eos",
     "rocks",
@@ -17,16 +17,16 @@
   ],
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@motion/terminology": ">=0.1.0"
+    "@movara/terminology": ">=0.1.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OscarCGPro/motion.git",
+    "url": "git+https://github.com/OscarH30/movara.git",
     "directory": "packs/eos"
   },
-  "homepage": "https://github.com/OscarCGPro/motion/tree/main/packs/eos",
+  "homepage": "https://github.com/OscarH30/movara/tree/main/packs/eos",
   "bugs": {
-    "url": "https://github.com/OscarCGPro/motion/issues"
+    "url": "https://github.com/OscarH30/movara/issues"
   },
   "publishConfig": {
     "access": "public"

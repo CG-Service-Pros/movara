@@ -1,4 +1,4 @@
-import { actingPersonId, listHeadlines } from '@motion/core'
+import { actingPersonId, listHeadlines } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { HeadlinesView } from '@/components/headlines/headlines-view'
 import { peopleAndTeams } from '@/components/issues/server'

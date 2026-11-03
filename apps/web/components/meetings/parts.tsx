@@ -2,9 +2,9 @@
 
 import type { ReactNode } from 'react'
 import { Check } from 'lucide-react'
-import { AgentMark } from '@motion/ui/agent-mark'
-import { Avatar } from '@motion/ui/avatar'
-import { cn } from '@motion/ui/cn'
+import { AgentMark } from '@movara/ui/agent-mark'
+import { Avatar } from '@movara/ui/avatar'
+import { cn } from '@movara/ui/cn'
 import type { MeetingOp } from '@/app/(app)/[org]/meetings/[id]/actions'
 import type { ActionResult, Bundle, Provenance } from './types'
 

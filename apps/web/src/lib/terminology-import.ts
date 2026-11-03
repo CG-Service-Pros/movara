@@ -57,9 +57,9 @@ export async function fetchPack(source: PackSource): Promise<unknown> {
 
 export type PreinstalledEntry = { spec: string; source: 'npm' | 'file'; pack?: unknown; error?: string }
 
-/** Packs listed in MOTION_TERMINOLOGY_PACKS (comma-separated npm names or absolute file paths), loaded on demand. */
+/** Packs listed in MOVARA_TERMINOLOGY_PACKS (comma-separated npm names or absolute file paths), loaded on demand. */
 export async function loadPreinstalledPacks(): Promise<PreinstalledEntry[]> {
-  const specs = (process.env.MOTION_TERMINOLOGY_PACKS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  const specs = (process.env.MOVARA_TERMINOLOGY_PACKS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
   return Promise.all(
     specs.map(async (spec): Promise<PreinstalledEntry> => {
       try {

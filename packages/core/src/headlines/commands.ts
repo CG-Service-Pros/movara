@@ -1,8 +1,8 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
-import { headlines } from '@motion/db'
+import { headlines } from '@movara/db'
 import type { Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
 import { assertPeople, assertTeam } from '../issues/internal'
 import { addToLiveMeetings, bumpLiveRev } from '../meetings/live'
@@ -77,7 +77,7 @@ export const headlineCascade = defineCommand({
     const src = await load(ctx, input.headlineId)
     const origin = src.cascadedFromId ?? src.id
     const teamIds = [...new Set(input.teamIds)].filter((t) => t !== src.teamId)
-    if (!teamIds.length) throw new MotionError('validation', 'Choose at least one team other than the headline\'s own team')
+    if (!teamIds.length) throw new MovaraError('validation', 'Choose at least one team other than the headline\'s own team')
     for (const t of teamIds) await assertTeam(ctx, t)
     const existing = await ctx.db
       .select({ teamId: headlines.teamId })

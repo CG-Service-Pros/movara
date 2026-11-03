@@ -3,7 +3,7 @@
 import { Check, ChevronDown, LogOut, Moon, Plus, Settings, Sun } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@motion/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@movara/ui/dropdown-menu'
 import { authClient } from '@/lib/auth-client'
 
 export type OrgSwitcherProps = {
@@ -25,7 +25,7 @@ export function OrgSwitcher({ orgSlug, wordmark, logoLight, logoDark, orgs, user
     const next = theme === 'dark' ? 'light' : 'dark'
     setTheme(next)
     document.documentElement.dataset.theme = next
-    document.cookie = `motion-theme=${next}; path=/; max-age=31536000; samesite=lax`
+    document.cookie = `movara-theme=${next}; path=/; max-age=31536000; samesite=lax`
   }
 
   return (

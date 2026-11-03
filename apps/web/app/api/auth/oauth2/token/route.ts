@@ -1,4 +1,4 @@
-import { exchangeAuthorizationCode, isOAuthError, OAuthError, refreshOAuthToken } from '@motion/core'
+import { exchangeAuthorizationCode, isOAuthError, OAuthError, refreshOAuthToken } from '@movara/core'
 import { getDb } from '@/lib/db'
 import { json, preflight } from '@/lib/oauth'
 

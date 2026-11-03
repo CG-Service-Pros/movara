@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { people, user, newId, type DbHandle } from '@motion/db'
-import { STANDARD_PACK } from '@motion/terminology'
+import { people, user, newId, type DbHandle } from '@movara/db'
+import { STANDARD_PACK } from '@movara/terminology'
 import {
   createOrg, execute, getOrg, getOrgBySlug, getTerms, createTerms, acceptInvite, getInvite, peopleCreateInvite, listMembershipsForUser, listPeople, listTeams, listTeamsForPerson, listAudit,
   orgSetTerminologyOverrides, orgSetTerminologyPack, orgUpdateBranding, orgUpdateCalendar, orgUpdateModules, orgUpdateSettings, orgUpdateGeneral,

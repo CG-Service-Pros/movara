@@ -1,4 +1,4 @@
-import { getOrg, getTerms } from '@motion/core'
+import { getOrg, getTerms } from '@movara/core'
 import type { HandlerMap } from '../types'
 
 /** REST handlers for the org area. Keys: "METHOD /path/:param" relative to /api/v1. */

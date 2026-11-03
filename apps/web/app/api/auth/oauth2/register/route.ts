@@ -1,4 +1,4 @@
-import { isOAuthError, registerOAuthClient } from '@motion/core'
+import { isOAuthError, registerOAuthClient } from '@movara/core'
 import { getDb } from '@/lib/db'
 import { json, preflight } from '@/lib/oauth'
 

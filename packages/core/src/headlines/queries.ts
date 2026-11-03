@@ -1,5 +1,5 @@
 import { desc, eq, isNotNull, isNull, type SQL } from 'drizzle-orm'
-import { headlines } from '@motion/db'
+import { headlines } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
 import { found, scoped } from '../helpers'
 

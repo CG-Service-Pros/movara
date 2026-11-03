@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, inArray, lt, lte, or, sql } from 'drizzle-orm'
-import { auditEvents, milestones } from '@motion/db'
+import { auditEvents, milestones } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
 import { decodeCursor, encodeCursor } from '../helpers'
 

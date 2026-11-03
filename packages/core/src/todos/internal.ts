@@ -1,5 +1,5 @@
-import type { Source } from '@motion/db'
-import { todos } from '@motion/db'
+import type { Source } from '@movara/db'
+import { todos } from '@movara/db'
 import { addDays, todayIn } from '../calendar'
 import type { Ctx } from '../ctx'
 import { base } from '../helpers'

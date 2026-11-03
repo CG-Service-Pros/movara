@@ -1,5 +1,5 @@
 import { and, asc, eq, inArray } from 'drizzle-orm'
-import { people, teamMembers, teams } from '@motion/db'
+import { people, teamMembers, teams } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
 import { found, scoped } from '../helpers'
 

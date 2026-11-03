@@ -2,9 +2,9 @@
 
 import { Check, X } from 'lucide-react'
 import { useState } from 'react'
-import { Badge } from '@motion/ui/badge'
-import { Button } from '@motion/ui/button'
-import { Input } from '@motion/ui/input'
+import { Badge } from '@movara/ui/badge'
+import { Button } from '@movara/ui/button'
+import { Input } from '@movara/ui/input'
 import { decideApproval } from '@/app/(app)/[org]/settings/actions'
 import { ActorChip, type ActorLike, type NameMap } from './actor'
 import { Panel, Section, ago } from './ui'

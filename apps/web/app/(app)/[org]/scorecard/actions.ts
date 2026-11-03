@@ -1,6 +1,6 @@
 'use server'
 
-import { execute, metricArchive, metricCreate, metricRecordValues, metricReorder, metricUpdate, scorecardCreate, scorecardUpdateSettings } from '@motion/core'
+import { execute, metricArchive, metricCreate, metricRecordValues, metricReorder, metricUpdate, scorecardCreate, scorecardUpdateSettings } from '@movara/core'
 import { runAction, type ActionResult } from '@/components/issues/action'
 
 const paths = ['scorecard', 'issues']

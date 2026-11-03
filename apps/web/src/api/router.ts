@@ -1,4 +1,4 @@
-import { authenticateApiKey, MotionError } from '@motion/core'
+import { authenticateApiKey, MovaraError } from '@movara/core'
 import { getDb } from '@/lib/db'
 import { handlers } from './handlers'
 import { errorResponse, json } from './respond'
@@ -17,7 +17,7 @@ export function rateLimited(bucket: string, max: number, windowMs = 60_000, now 
   if (hits.size > 5000) for (const [k, v] of hits) if (!v.some((t) => now - t < windowMs)) hits.delete(k)
   return list.length > max
 }
-const RATE_PER_MIN = Number(process.env.MOTION_API_RATE_LIMIT ?? 600)
+const RATE_PER_MIN = Number(process.env.MOVARA_API_RATE_LIMIT ?? 600)
 const AUTH_FAIL_PER_MIN = 30
 const clientAddress = (r: Request) => (r.headers.get('x-forwarded-for')?.split(',')[0] ?? r.headers.get('x-real-ip') ?? 'unknown').trim()
 
@@ -65,7 +65,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
     try {
       ctx = await authenticateApiKey(db, token.trim())
     } catch (e) {
-      if (e instanceof MotionError && (e.code === 'forbidden' || e.code === 'not_found')) {
+      if (e instanceof MovaraError && (e.code === 'forbidden' || e.code === 'not_found')) {
         if (rateLimited(`authfail:${clientAddress(request)}`, AUTH_FAIL_PER_MIN)) return json({ error: { code: 'rate_limited', message: 'Too many requests' } }, 429, { 'Retry-After': '60' })
         return json({ error: { code: 'forbidden', message: 'Invalid or revoked API key' } }, 401, { 'WWW-Authenticate': 'Bearer' })
       }
@@ -102,11 +102,11 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       json: async () => {
         try {
           const text = await request.text()
-          if (text.length > MAX_BODY_BYTES) throw new MotionError('validation', 'Request body too large')
+          if (text.length > MAX_BODY_BYTES) throw new MovaraError('validation', 'Request body too large')
           return JSON.parse(text)
         } catch (e) {
-          if (e instanceof MotionError) throw e
-          throw new MotionError('validation', 'Request body must be valid JSON')
+          if (e instanceof MovaraError) throw e
+          throw new MovaraError('validation', 'Request body must be valid JSON')
         }
       },
     }

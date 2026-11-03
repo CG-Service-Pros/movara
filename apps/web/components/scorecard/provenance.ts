@@ -1,5 +1,5 @@
 import 'server-only'
-import { listAgents, listPeople, requireRead, type Ctx, type ScorecardMetric } from '@motion/core'
+import { listAgents, listPeople, requireRead, type Ctx, type ScorecardMetric } from '@movara/core'
 
 export type Provenance = { agent: boolean; name: string; onBehalfOf: string | null; at: string }
 

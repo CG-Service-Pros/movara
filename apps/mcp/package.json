@@ -1,5 +1,5 @@
 {
-  "name": "@motion/mcp",
+  "name": "@movara/mcp",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "./*": "./src/*.ts"
   },
   "bin": {
-    "motion-mcp": "./src/stdio.ts"
+    "movara-mcp": "./src/stdio.ts"
   },
   "scripts": {
     "dev": "tsx watch src/http.ts",
@@ -21,13 +21,13 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "@motion/core": "workspace:*",
-    "@motion/db": "workspace:*",
-    "@motion/terminology": "workspace:*",
+    "@movara/core": "workspace:*",
+    "@movara/db": "workspace:*",
+    "@movara/terminology": "workspace:*",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@motion/config": "workspace:*",
+    "@movara/config": "workspace:*",
     "@types/node": "^22",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",

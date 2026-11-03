@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@motion/ui/cn'
+import { cn } from '@movara/ui/cn'
 import { NavIcon } from './icons'
 import type { NavSection } from './nav'
 import { Badge2 } from './sidebar'

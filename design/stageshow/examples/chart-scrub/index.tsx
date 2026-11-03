@@ -17,7 +17,7 @@ import './scrub.css'
 // - One stroke. The pointer runs the line in a single eased move (a path
 //   along the points, not hop after hop), and the day under it updates as it
 //   goes; a run of short moves reads as stuttering.
-// - The readout is discrete, the motion is not: the value is always a real
+// - The readout is discrete, the movara is not: the value is always a real
 //   day (the nearest one), while the hairline sits at the pointer and the
 //   dot rides the drawn curve under it, read off the line's own path. A dot
 //   snapping day to day trails the hand.

@@ -1,4 +1,4 @@
-import { listAudit, listPriorities, listTodos, type Ctx, type Terms } from '@motion/core'
+import { listAudit, listPriorities, listTodos, type Ctx, type Terms } from '@movara/core'
 import { ActivityFeed, buildActivityItems, type AuditEventLike } from '@/components/shell/activity-feed'
 import { actorDirectory } from '@/components/priorities/data'
 import { Muted, Section } from './section'

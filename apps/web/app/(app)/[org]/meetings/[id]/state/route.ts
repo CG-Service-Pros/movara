@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getLiveState, isMotionError, meetingHeartbeat } from '@motion/core'
+import { getLiveState, isMovaraError, meetingHeartbeat } from '@movara/core'
 import { loadBundle } from '@/components/meetings/bundle'
 import { getCtx } from '@/lib/ctx'
 
@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     if (!live) return new NextResponse(null, { status: 204 })
     return NextResponse.json(await loadBundle(ctx, id, live), { headers: { 'cache-control': 'no-store' } })
   } catch (e) {
-    if (isMotionError(e)) return NextResponse.json({ error: e.message, code: e.code }, { status: e.code === 'not_found' ? 404 : 400 })
+    if (isMovaraError(e)) return NextResponse.json({ error: e.message, code: e.code }, { status: e.code === 'not_found' ? 404 : 400 })
     throw e
   }
 }
@@ -29,7 +29,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ org: s
   try {
     return NextResponse.json({ ok: await meetingHeartbeat(ctx, id) })
   } catch (e) {
-    if (isMotionError(e)) return NextResponse.json({ error: e.message }, { status: 400 })
+    if (isMovaraError(e)) return NextResponse.json({ error: e.message }, { status: 400 })
     throw e
   }
 }

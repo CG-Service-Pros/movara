@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { Toaster } from '@motion/ui/toaster'
+import { Toaster } from '@movara/ui/toaster'
 import { CommandPalette } from './command-palette'
 import { MobileNav } from './mobile-nav'
 import type { NavSection, PaletteItem } from './nav'
@@ -7,7 +7,7 @@ import type { OrgSwitcherProps } from './org-switcher'
 import { Sidebar } from './sidebar'
 
 /**
- * The app frame (matches the motion-priorities mockup): sidebar on the canvas, content in an
+ * The app frame (matches the movara-priorities mockup): sidebar on the canvas, content in an
  * inset white panel, the org accent applied as --accent, a toaster and the ⌘K palette.
  * Below 768px the sidebar becomes a hamburger sheet.
  */

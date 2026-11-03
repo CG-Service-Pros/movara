@@ -1,8 +1,8 @@
 import { and, eq, isNull, sql, type SQL } from 'drizzle-orm'
 import type { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core'
-import { newId } from '@motion/db'
+import { newId } from '@movara/db'
 import type { Ctx } from './ctx'
-import { MotionError } from './errors'
+import { MovaraError } from './errors'
 
 export { newId }
 
@@ -33,7 +33,7 @@ export const softDelete = (table: { version: AnyPgColumn }, ctx: Ctx) => ({ ...t
 /** Optimistic concurrency: throw `conflict` (with the current state) when the caller's expectedVersion is stale. */
 export function assertVersion(current: { version: number }, expectedVersion: number | undefined): void {
   if (expectedVersion !== undefined && current.version !== expectedVersion) {
-    throw new MotionError('conflict', `Stale write: expected version ${expectedVersion}, current is ${current.version}`, { current })
+    throw new MovaraError('conflict', `Stale write: expected version ${expectedVersion}, current is ${current.version}`, { current })
   }
 }
 
@@ -59,12 +59,12 @@ export function decodeCursor(cursor: string): { at: Date; id: string } {
     if (!id || Number.isNaN(at.getTime())) throw new Error()
     return { at, id }
   } catch {
-    throw new MotionError('validation', 'Invalid cursor')
+    throw new MovaraError('validation', 'Invalid cursor')
   }
 }
 
 /** Get a single row or throw not_found. */
 export function found<T>(row: T | undefined | null, what = 'Record'): T {
-  if (!row) throw new MotionError('not_found', `${what} not found`)
+  if (!row) throw new MovaraError('not_found', `${what} not found`)
   return row
 }

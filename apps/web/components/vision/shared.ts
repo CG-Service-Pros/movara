@@ -1,4 +1,4 @@
-import type { VisionSections } from '@motion/core'
+import type { VisionSections } from '@movara/core'
 
 /** Plain data the vision components share (serializable across the server/client boundary). */
 export type VisionLabels = {

@@ -1,6 +1,6 @@
 import { Avatar, Collapse, Count, Stage, Window, type Act } from '../../kit'
-import { AgentMark } from '../_motion/shared'
-import '../_motion/motion.css'
+import { AgentMark } from '../_movara/shared'
+import '../_movara/movara.css'
 import './scorecard.css'
 
 // The scorecard, filled in by an agent. A sales agent connected over MCP
@@ -45,9 +45,9 @@ async function script(a: Act<S>) {
   await a.wait(3000)
 }
 
-export default function MotionScorecard() {
+export default function MovaraScorecard() {
   return (
-    <Stage width={800} height={424} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" className="motion ksc">
+    <Stage width={800} height={424} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" className="movara ksc">
       {(s) => {
         const onTrack = 3 + (s.done ? 1 : 0)
         return (

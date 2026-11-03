@@ -1,5 +1,5 @@
 import 'server-only'
-import { getHeadline, getIssue, getMetric, getPriority, getTodo, listPeople, listTeams, listMeetings, type Ctx } from '@motion/core'
+import { getHeadline, getIssue, getMetric, getPriority, getTodo, listPeople, listTeams, listMeetings, type Ctx } from '@movara/core'
 
 export type SourceRef = { type: string; id: string } | null
 

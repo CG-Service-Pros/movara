@@ -12,12 +12,12 @@ export const HTTP_STATUS: Record<ErrorCode, number> = {
 }
 
 /** The one error type core throws. `details` is JSON-safe extra info (e.g. the current state on a conflict). */
-export class MotionError extends Error {
+export class MovaraError extends Error {
   readonly code: ErrorCode
   readonly details?: unknown
   constructor(code: ErrorCode, message: string, details?: unknown) {
     super(message)
-    this.name = 'MotionError'
+    this.name = 'MovaraError'
     this.code = code
     this.details = details
   }
@@ -29,4 +29,4 @@ export class MotionError extends Error {
   }
 }
 
-export const isMotionError = (e: unknown): e is MotionError => e instanceof MotionError
+export const isMovaraError = (e: unknown): e is MovaraError => e instanceof MovaraError

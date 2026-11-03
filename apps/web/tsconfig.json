@@ -1,5 +1,5 @@
 {
-  "extends": "@motion/config/tsconfig.nextjs.json",
+  "extends": "@movara/config/tsconfig.nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

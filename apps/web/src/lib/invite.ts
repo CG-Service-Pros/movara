@@ -1,5 +1,5 @@
 import 'server-only'
-import { getEmailSender } from '@motion/core'
+import { getEmailSender } from '@movara/core'
 
 /** Absolute invite link for a token (APP_URL, falling back to BETTER_AUTH_URL / localhost). */
 export function inviteUrl(token: string, env: NodeJS.ProcessEnv = process.env): string {
@@ -13,8 +13,8 @@ export async function sendInviteEmail(m: { to: string; name: string; orgName: st
   try {
     await getEmailSender().send({
       to: [m.to],
-      subject: `You're invited to ${m.orgName} on Motion`,
-      text: `Hi ${m.name},\n\nYou have been invited to ${m.orgName} on Motion. Accept the invitation (single use, expires in 14 days):\n${m.link}\n`,
+      subject: `You're invited to ${m.orgName} on Movara`,
+      text: `Hi ${m.name},\n\nYou have been invited to ${m.orgName} on Movara. Accept the invitation (single use, expires in 14 days):\n${m.link}\n`,
     })
     return true
   } catch {

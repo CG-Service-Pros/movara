@@ -1,9 +1,9 @@
 import { and, asc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm'
 import { todayIn } from '../calendar'
 import { z } from 'zod'
-import { agents, headlines, issues, meetings, metrics, orgs, people, priorities, todos, type ActorJson } from '@motion/db'
+import { agents, headlines, issues, meetings, metrics, orgs, people, priorities, todos, type ActorJson } from '@movara/db'
 import { requireRole, requireScope, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { base, found, scoped, softDelete, touch } from '../helpers'
 import { dateSchema, insertIssues, sourceSchema } from '../issues/internal'
 import { insertHeadlines } from '../headlines/internal'
@@ -16,7 +16,7 @@ import { findLiveMeetingIds } from './live'
 import { createNextOccurrence } from './series'
 import { loadMeeting, requireLive, saveState, startTimer, stopTimer, type Loaded } from './state'
 import type { MeetingStats, PresenceEntry } from './types'
-import { meetingSeries } from '@motion/db'
+import { meetingSeries } from '@movara/db'
 
 const meetingId = z.uuid()
 const out = (l: Loaded, after: Record<string, unknown> | null = null) => ({
@@ -59,9 +59,9 @@ export const meetingStart = defineCommand({
       id = near ? near.id : (await createNextOccurrence(ctx, series!, now)).meeting.id
     }
     const l = await loadMeeting(ctx, id, true)
-    if (l.meeting.endedAt) throw new MotionError('conflict', 'The meeting has ended')
-    if (l.meeting.startedAt) throw new MotionError('conflict', 'The meeting has already started')
-    if ((await findLiveMeetingIds(ctx, [l.series.teamId])).length) throw new MotionError('conflict', 'Another meeting of this team is already live')
+    if (l.meeting.endedAt) throw new MovaraError('conflict', 'The meeting has ended')
+    if (l.meeting.startedAt) throw new MovaraError('conflict', 'The meeting has already started')
+    if ((await findLiveMeetingIds(ctx, [l.series.teamId])).length) throw new MovaraError('conflict', 'Another meeting of this team is already live')
     const s = l.state
     s.agenda = l.series.agenda
     s.sectionIndex = 0
@@ -135,7 +135,7 @@ export const meetingNextSection = defineCommand({
   run: async (ctx, input) => {
     const l = await loadMeeting(ctx, input.meetingId, true)
     requireLive(l.meeting)
-    if (l.state.sectionIndex >= l.state.agenda.length - 1) throw new MotionError('conflict', 'This is the last section; end the meeting')
+    if (l.state.sectionIndex >= l.state.agenda.length - 1) throw new MovaraError('conflict', 'This is the last section; end the meeting')
     goToSection(l, l.state.sectionIndex + 1, new Date())
     await saveState(ctx, l)
     return out(l, { sectionIndex: l.state.sectionIndex })
@@ -149,7 +149,7 @@ export const meetingSetSection = defineCommand({
   run: async (ctx, input) => {
     const l = await loadMeeting(ctx, input.meetingId, true)
     requireLive(l.meeting)
-    if (input.index >= l.state.agenda.length) throw new MotionError('validation', `Section index out of range (0..${l.state.agenda.length - 1})`)
+    if (input.index >= l.state.agenda.length) throw new MovaraError('validation', `Section index out of range (0..${l.state.agenda.length - 1})`)
     if (input.index !== l.state.sectionIndex) goToSection(l, input.index, new Date())
     await saveState(ctx, l)
     return out(l, { sectionIndex: l.state.sectionIndex })
@@ -264,11 +264,11 @@ export const idsFocus = defineCommand({
     requireLive(l.meeting)
     const ids = l.state.idsState
     const picks = [...new Set(input.issueIds)].filter((i) => !ids.discussedIssueIds.includes(i))
-    if (picks.length > l.state.settings.focusIssueCount) throw new MotionError('validation', `At most ${l.state.settings.focusIssueCount} focus issues`)
+    if (picks.length > l.state.settings.focusIssueCount) throw new MovaraError('validation', `At most ${l.state.settings.focusIssueCount} focus issues`)
     if (picks.length) {
       const rows = await ctx.db.select().from(issues).where(scoped(issues, ctx, inArray(issues.id, picks)))
-      if (rows.length !== picks.length) throw new MotionError('not_found', 'Issue not found')
-      if (rows.some((r) => r.status !== 'open')) throw new MotionError('conflict', 'Only open issues can be discussed')
+      if (rows.length !== picks.length) throw new MovaraError('not_found', 'Issue not found')
+      if (rows.some((r) => r.status !== 'open')) throw new MovaraError('conflict', 'Only open issues can be discussed')
     }
     l.state.focusIssueIds = [...l.state.focusIssueIds.filter((i) => ids.discussedIssueIds.includes(i)), ...picks]
     if (ids.currentIssueId && !picks.includes(ids.currentIssueId)) ids.currentIssueId = null
@@ -289,7 +289,7 @@ export const idsStart = defineCommand({
     const ids = l.state.idsState
     const pending = l.state.focusIssueIds.filter((i) => !ids.discussedIssueIds.includes(i))
     const issueId = input.issueId ?? pending[0]
-    if (!issueId || !pending.includes(issueId)) throw new MotionError('conflict', 'Pick focus issues first (ids.focus), then start one that has not been discussed')
+    if (!issueId || !pending.includes(issueId)) throw new MovaraError('conflict', 'Pick focus issues first (ids.focus), then start one that has not been discussed')
     ids.currentIssueId = issueId
     ids.status = 'discussing'
     ids.step = 'discuss'
@@ -312,11 +312,11 @@ export const idsResolve = defineCommand({
     requireLive(l.meeting)
     const s = l.state
     const ids = s.idsState
-    if (!s.focusIssueIds.includes(input.issueId)) throw new MotionError('conflict', 'The issue is not a focus issue of this meeting')
-    if (ids.discussedIssueIds.includes(input.issueId)) throw new MotionError('conflict', 'The issue was already resolved in this meeting')
+    if (!s.focusIssueIds.includes(input.issueId)) throw new MovaraError('conflict', 'The issue is not a focus issue of this meeting')
+    if (ids.discussedIssueIds.includes(input.issueId)) throw new MovaraError('conflict', 'The issue was already resolved in this meeting')
     const [issue] = await ctx.db.select().from(issues).where(scoped(issues, ctx, eq(issues.id, input.issueId))).limit(1)
     found(issue, 'Issue')
-    if (issue!.status !== 'open') throw new MotionError('conflict', 'Only open issues can be resolved')
+    if (issue!.status !== 'open') throw new MovaraError('conflict', 'Only open issues can be resolved')
     const todoIds: string[] = []
     for (const t of input.todos ?? []) {
       const [row] = await insertTodos(ctx, { title: t.title, ownerIds: [t.ownerId], dueDate: t.dueDate, teamId: l.series.teamId, source: { type: 'issue', id: input.issueId } })
@@ -344,7 +344,7 @@ export const idsSetStep = defineCommand({
   run: async (ctx, input) => {
     const l = await loadMeeting(ctx, input.meetingId, true)
     requireLive(l.meeting)
-    if (input.step !== 'identify' && !l.state.idsState.currentIssueId) throw new MotionError('conflict', 'Start discussing an issue first (ids.start)')
+    if (input.step !== 'identify' && !l.state.idsState.currentIssueId) throw new MovaraError('conflict', 'Start discussing an issue first (ids.start)')
     l.state.idsState.step = input.step
     await saveState(ctx, l)
     return out(l, { step: input.step })
@@ -376,7 +376,7 @@ export const meetingRate = defineCommand({
   scope: 'write:meetings',
   input: z.object({ meetingId, score: z.number().int().min(1).max(10) }),
   run: async (ctx, input) => {
-    if (ctx.actor.type !== 'person') throw new MotionError('forbidden', 'Only people can rate a meeting')
+    if (ctx.actor.type !== 'person') throw new MovaraError('forbidden', 'Only people can rate a meeting')
     const l = await loadMeeting(ctx, input.meetingId, true)
     requireLive(l.meeting)
     await saveState(ctx, l, { ratings: { ...l.meeting.ratings, [ctx.actor.id]: input.score } })
@@ -553,7 +553,7 @@ export const meetingEnd = defineCommand({
         const n = await createNextOccurrence(ctx, l.series)
         nextMeeting = { id: n.meeting.id, scheduledAt: n.meeting.scheduledAt.toISOString() }
       } catch (e) {
-        if (!(e instanceof MotionError)) throw e
+        if (!(e instanceof MovaraError)) throw e
       }
     }
     return {

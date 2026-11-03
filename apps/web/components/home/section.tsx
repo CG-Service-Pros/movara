@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { Card, CardBody, CardHeader, CardTitle } from '@motion/ui/card'
+import { Card, CardBody, CardHeader, CardTitle } from '@movara/ui/card'
 
 /** A titled Home card with an optional count and "view all" link. */
 export function Section({ title, meta, href, linkLabel = 'View all', children, flush }: { title: ReactNode; meta?: ReactNode; href?: string; linkLabel?: string; children: ReactNode; flush?: boolean }) {

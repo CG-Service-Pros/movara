@@ -1,6 +1,6 @@
 'use server'
 
-import { execute, todoComplete, todoCreate, todoDelete, todoUncomplete, todoUpdate } from '@motion/core'
+import { execute, todoComplete, todoCreate, todoDelete, todoUncomplete, todoUpdate } from '@movara/core'
 import { runAction, type ActionResult } from '@/components/issues/action'
 
 const paths = ['todos', 'issues', 'meetings']

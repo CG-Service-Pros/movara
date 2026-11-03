@@ -1,4 +1,4 @@
-import { hasRole, listPeople } from '@motion/core'
+import { hasRole, listPeople } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { MembersPanel } from '@/components/settings/members-panel'
 import { SettingsBody } from '@/components/settings/ui'

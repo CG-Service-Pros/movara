@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Switch } from '@motion/ui/switch'
+import { Switch } from '@movara/ui/switch'
 import { updateModules } from '@/app/(app)/[org]/settings/actions'
 import { Panel } from './ui'
 import { useSave } from './use-save'

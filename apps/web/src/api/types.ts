@@ -1,4 +1,4 @@
-import type { Ctx, ExecuteResult } from '@motion/core'
+import type { Ctx, ExecuteResult } from '@movara/core'
 
 /** What a REST handler receives. `ctx` is already authenticated (API key -> agent Ctx). */
 export type ApiRequest = {
@@ -10,7 +10,7 @@ export type ApiRequest = {
   requestId?: string
   /** If-Match header (integer) -> pass as `expectedVersion` to execute(). */
   expectedVersion?: number
-  /** Parsed JSON body (throws a validation MotionError on invalid JSON). */
+  /** Parsed JSON body (throws a validation MovaraError on invalid JSON). */
   json(): Promise<unknown>
   request: Request
 }

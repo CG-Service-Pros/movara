@@ -42,7 +42,7 @@ async function script(a: Act<S>) {
   a.mark('ready')
   a.put({ ready: true, t: 38 })
   await a.wait(2000)
-  // The list loses what the loop added in one motion; the closed row's
+  // The list loses what the loop added in one movara; the closed row's
   // status and timer go back where nobody sees them
   a.put({ open: false })
   await a.wait(700)

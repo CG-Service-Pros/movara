@@ -1,4 +1,4 @@
 {
-  "extends": "@motion/config/tsconfig.react.json",
+  "extends": "@movara/config/tsconfig.react.json",
   "include": ["src", "*.d.ts"]
 }

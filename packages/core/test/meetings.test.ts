@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { DbHandle } from '@motion/db'
-import { STANDARD_PACK } from '@motion/terminology'
+import type { DbHandle } from '@movara/db'
+import { STANDARD_PACK } from '@movara/terminology'
 import {
   endMeeting, execute, getLiveState, getMeeting, getMeetingSeries, getTodo, idsFocus, idsResolve, idsStart, issueCreate, listHeadlines, listIssues, listMeetingHistory, listMeetingSeries,
   listMeetings, listMeetingTemplates, listTeams, listTodos, meetingCapture, meetingDropToIssue, meetingHeartbeat, meetingJoin, meetingLeave, meetingNextSection, meetingPause, meetingRate,

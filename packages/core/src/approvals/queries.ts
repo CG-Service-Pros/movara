@@ -1,5 +1,5 @@
 import { and, desc, eq, lt, or, sql } from 'drizzle-orm'
-import { approvals } from '@motion/db'
+import { approvals } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
 import { decodeCursor, encodeCursor, found, scoped } from '../helpers'
 

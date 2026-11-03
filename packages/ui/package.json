@@ -1,5 +1,5 @@
 {
-  "name": "@motion/ui",
+  "name": "@movara/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -37,7 +37,7 @@
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@motion/config": "workspace:*",
+    "@movara/config": "workspace:*",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

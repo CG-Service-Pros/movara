@@ -8,5 +8,5 @@ export async function register() {
   }
   const { configureEmail } = await import('./src/lib/email')
   const mode = configureEmail()
-  console.log(`[motion] recap email: ${mode}`)
+  console.log(`[movara] recap email: ${mode}`)
 }

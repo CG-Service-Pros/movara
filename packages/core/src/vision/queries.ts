@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray } from 'drizzle-orm'
-import { approvals, visionPlans, visionRevisions } from '@motion/db'
+import { approvals, visionPlans, visionRevisions } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { found, scoped } from '../helpers'
 import type { Goal, VisionSections } from './schema'
 
@@ -68,5 +68,5 @@ export async function listVisionRevisions(ctx: Ctx, input: { teamId?: string } =
 }
 
 export function requireDraft(rev: VisionRevisionRow) {
-  if (rev.status !== 'draft') throw new MotionError('conflict', `Revision is ${rev.status}; only drafts can be edited`)
+  if (rev.status !== 'draft') throw new MovaraError('conflict', `Revision is ${rev.status}; only drafts can be edited`)
 }

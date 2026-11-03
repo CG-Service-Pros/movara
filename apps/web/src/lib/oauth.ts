@@ -1,5 +1,5 @@
 import 'server-only'
-import { SCOPES } from '@motion/core'
+import { SCOPES } from '@movara/core'
 
 /** Public origin of the app (no trailing slash). Same precedence as the Better Auth config. */
 export function appUrl(): string {
@@ -42,7 +42,7 @@ export function protectedResourceMetadata() {
     authorization_servers: [e.issuer],
     scopes_supported: [...SCOPES],
     bearer_methods_supported: ['header'],
-    resource_name: 'Motion MCP',
+    resource_name: 'Movara MCP',
   }
 }
 

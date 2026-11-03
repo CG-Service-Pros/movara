@@ -38,7 +38,7 @@ const AgendaItem = z.object({ term: z.enum(TERM_KEYS), minutes: z.number().int()
 
 export const TerminologyPack = z.object({
   $schema: z.string().optional(),
-  /** Reverse-DNS or npm-style id, unique per pack: "motion.standard", "community.eos". */
+  /** Reverse-DNS or npm-style id, unique per pack: "movara.standard", "community.eos". */
   id: z.string().regex(/^[a-z0-9][a-z0-9._-]{2,63}$/),
   name: z.string().min(1).max(60),
   version: z.string().regex(/^\d+\.\d+\.\d+$/),

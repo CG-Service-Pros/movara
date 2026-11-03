@@ -1,6 +1,6 @@
-import { Avatar } from '@motion/ui/avatar'
-import { AgentMark } from '@motion/ui/agent-mark'
-import { cn } from '@motion/ui/cn'
+import { Avatar } from '@movara/ui/avatar'
+import { AgentMark } from '@movara/ui/agent-mark'
+import { cn } from '@movara/ui/cn'
 import type { SeatDTO } from './types'
 
 export function PeopleLine({ people }: { people: SeatDTO['people'] }) {

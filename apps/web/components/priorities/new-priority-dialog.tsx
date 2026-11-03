@@ -1,12 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import { Button } from '@motion/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@motion/ui/dialog'
-import { Field } from '@motion/ui/field'
-import { Input } from '@motion/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@motion/ui/select'
-import { Textarea } from '@motion/ui/textarea'
+import { Button } from '@movara/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@movara/ui/dialog'
+import { Field } from '@movara/ui/field'
+import { Input } from '@movara/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@movara/ui/select'
+import { Textarea } from '@movara/ui/textarea'
 import type { Labels, Option, PLevel } from './types'
 
 export type NewPriorityInput = { title: string; ownerId: string | null; teamId: string | null; level: PLevel; dueDate: string | null; milestones: string[] }

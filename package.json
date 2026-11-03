@@ -1,5 +1,5 @@
 {
-  "name": "motion",
+  "name": "movara",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.0",
@@ -7,14 +7,14 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "turbo run dev --filter=@motion/web",
+    "dev": "turbo run dev --filter=@movara/web",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "db:generate": "pnpm --filter @motion/db db:generate",
-    "db:migrate": "pnpm --filter @motion/db db:migrate",
-    "db:seed": "pnpm --filter @motion/db db:seed",
-    "db:reset": "pnpm --filter @motion/db db:reset"
+    "db:generate": "pnpm --filter @movara/db db:generate",
+    "db:migrate": "pnpm --filter @movara/db db:migrate",
+    "db:seed": "pnpm --filter @movara/db db:seed",
+    "db:reset": "pnpm --filter @movara/db db:reset"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

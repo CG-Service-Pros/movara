@@ -1,6 +1,6 @@
 {
   "$schema": "../schema/terminology-pack.schema.json",
-  "id": "motion.standard",
+  "id": "movara.standard",
   "name": "Standard",
   "version": "1.0.0",
   "locale": "en",

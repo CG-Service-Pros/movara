@@ -1,5 +1,5 @@
-import type { Terms } from '@motion/core'
-import type { ModuleKey } from '@motion/db'
+import type { Terms } from '@movara/core'
+import type { ModuleKey } from '@movara/db'
 
 export type IconKey =
   | 'home' | 'todos' | 'meeting' | 'priorities' | 'scorecard' | 'issues' | 'headlines' | 'vision' | 'chart' | 'agents' | 'settings'

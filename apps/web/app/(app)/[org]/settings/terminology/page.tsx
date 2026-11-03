@@ -1,5 +1,5 @@
-import { hasRole, terminologyHistoryOf } from '@motion/core'
-import { previewImport, TERM_KEYS, STANDARD_PACK, resolveTerm } from '@motion/terminology'
+import { hasRole, terminologyHistoryOf } from '@movara/core'
+import { previewImport, TERM_KEYS, STANDARD_PACK, resolveTerm } from '@movara/terminology'
 import { Page } from '@/components/shell/page'
 import { SettingsBody } from '@/components/settings/ui'
 import { TerminologyPanel, type Preinstalled, type TermRow } from '@/components/settings/terminology-panel'

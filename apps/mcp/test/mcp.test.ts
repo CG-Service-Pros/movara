@@ -6,13 +6,13 @@ import { ResourceUpdatedNotificationSchema } from '@modelcontextprotocol/sdk/typ
 import {
   execute, getLiveState, listTeams, meetingSeriesCreate, metricCreate, orgSetTerminologyPack, scorecardCreate, priorityCreate, issueCreate,
   type Ctx, type Scope,
-} from '@motion/core'
-import { createTestDb, seedTestOrg } from '@motion/core/testing'
-import type { DbHandle } from '@motion/db'
+} from '@movara/core'
+import { createTestDb, seedTestOrg } from '@movara/core/testing'
+import type { DbHandle } from '@movara/db'
 import { createHash, randomBytes } from 'node:crypto'
-import { agentsRevoke, approveAuthorization, exchangeAuthorizationCode, registerOAuthClient } from '@motion/core'
+import { agentsRevoke, approveAuthorization, exchangeAuthorizationCode, registerOAuthClient } from '@movara/core'
 import { createMcpHttpHandler } from '../src/http-handler'
-import { createMotionMcpServer } from '../src/server'
+import { createMovaraMcpServer } from '../src/server'
 
 let db: DbHandle
 beforeAll(async () => { db = await createTestDb() })
@@ -21,7 +21,7 @@ afterAll(() => db.$close())
 const WRITE_ALL: Scope[] = ['read', 'write:todos', 'write:issues', 'write:headlines', 'write:metrics', 'write:priorities', 'write:meetings', 'propose:vision', 'propose:chart']
 
 async function connect(ctx: Ctx, pollMs = 40) {
-  const server = await createMotionMcpServer({ db, resolveCtx: () => ctx, pollMs })
+  const server = await createMovaraMcpServer({ db, resolveCtx: () => ctx, pollMs })
   const client = new Client({ name: 'test', version: '0.0.0' })
   const [a, b] = InMemoryTransport.createLinkedPair()
   await Promise.all([server.connect(a), client.connect(b)])
@@ -187,7 +187,7 @@ describe('meetings', () => {
 
     const updates: string[] = []
     s.client.setNotificationHandler(ResourceUpdatedNotificationSchema, (n) => { updates.push(n.params.uri) })
-    const uri = `motion://meeting/${meetingId}/live`
+    const uri = `movara://meeting/${meetingId}/live`
 
     const start = await call(s.client, 'meeting_start', { meetingId })
     expect(start.body.ok).toBe(true)
@@ -219,15 +219,15 @@ describe('resources and prompts', () => {
     const s = await setup()
     await execute(s.ctx, priorityCreate, { title: 'Rock one' })
     await execute(s.ctx, issueCreate, { title: 'x' })
-    const ov = JSON.parse(((await s.client.readResource({ uri: 'motion://org/overview' })).contents[0] as { text: string }).text)
+    const ov = JSON.parse(((await s.client.readResource({ uri: 'movara://org/overview' })).contents[0] as { text: string }).text)
     expect(ov.teams.length).toBeGreaterThan(0)
     expect(ov.quarter).toMatch(/^\d{4}-Q[1-4]$/)
-    const q = JSON.parse(((await s.client.readResource({ uri: 'motion://quarter/current' })).contents[0] as { text: string }).text)
+    const q = JSON.parse(((await s.client.readResource({ uri: 'movara://quarter/current' })).contents[0] as { text: string }).text)
     expect(q.summary.total).toBe(1)
-    const sc = await s.client.readResource({ uri: `motion://team/${s.team.id}/scorecard` }).catch((e) => e)
+    const sc = await s.client.readResource({ uri: `movara://team/${s.team.id}/scorecard` }).catch((e) => e)
     expect(sc).toBeDefined()
     const rt = await s.client.listResourceTemplates()
-    expect(rt.resourceTemplates.map((t) => t.uriTemplate)).toEqual(expect.arrayContaining(['motion://team/{id}/scorecard', 'motion://meeting/{id}/live']))
+    expect(rt.resourceTemplates.map((t) => t.uriTemplate)).toEqual(expect.arrayContaining(['movara://team/{id}/scorecard', 'movara://meeting/{id}/live']))
     const prompts = (await s.client.listPrompts()).prompts.map((p) => p.name)
     expect(prompts).toEqual(expect.arrayContaining(['weekly-meeting-prep', 'issue-triage', 'quarterly-planning', 'write-a-good-priority', 'metric-from-hubspot']))
     const p = await s.client.getPrompt({ name: 'write-a-good-priority', arguments: { idea: 'grow' } })
@@ -303,7 +303,7 @@ describe('http handler: OAuth access tokens', () => {
     const ok = await handle(new Request(url, { method: 'POST', headers: { ...hdr, authorization: `Bearer ${s.token}` }, body: initBody }))
     expect(ok.status).toBe(200)
     await ok.text()
-    const { authenticateOAuthToken } = await import('@motion/core')
+    const { authenticateOAuthToken } = await import('@movara/core')
     const agentId = (await authenticateOAuthToken(db, s.token)).actor.id
     const r = await execute(s.ctx, agentsRevoke, { agentId })
     expect(r.ok).toBe(true)

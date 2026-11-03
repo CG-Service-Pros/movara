@@ -48,7 +48,7 @@ type S = {
 
 const initial: S = { arrived: true, reacted: false, thread: false, focus: false, typing: false, draft: '', replied: false }
 
-// Under reduced motion: the finished moment, reacted and replied in the open thread
+// Under reduced movara: the finished moment, reacted and replied in the open thread
 const poster: S = { ...initial, arrived: true, reacted: true, thread: true, replied: true }
 
 const MESSAGE = 'The new onboarding flow is ready for review. Can you take a look before standup?'

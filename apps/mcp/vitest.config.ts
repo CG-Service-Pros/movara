@@ -1,1 +1,1 @@
-export { default } from '@motion/config/vitest'
+export { default } from '@movara/config/vitest'

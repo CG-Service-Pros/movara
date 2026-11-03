@@ -4,10 +4,10 @@ import {
   getVision, headlineCascade, headlinePost, idsFocus, idsResolve, idsStart, issueCreate, issueMove, issueReopen, issueSolve, listApprovals,
   listIssues, listMeetings, listPriorities, listScorecards, listTodos, meetingCapture, meetingNextSection, meetingRate, meetingStart,
   metricCreate, metricRecordValues, milestoneAdd, milestoneToggle, myWeek, orgSetTerminologyPack, prepareMeeting, priorityCreate,
-  prioritySetStatus, search, todoComplete, todoCreate, visionProposeChange, getScorecard, MotionError,
+  prioritySetStatus, search, todoComplete, todoCreate, visionProposeChange, getScorecard, MovaraError,
   type Command, type Ctx, type Scope, type Terms,
-} from '@motion/core'
-import { previewImport } from '@motion/terminology'
+} from '@movara/core'
+import { previewImport } from '@movara/terminology'
 import { compact, paginate, writeResult } from './format'
 import { orgOverview, termsInUse } from './overview'
 
@@ -110,7 +110,7 @@ export function buildTools(terms: Terms): ToolDef[] {
       if (a.scorecardId || a.teamId || a.values.every((v: any) => v.metricId)) return a
       const cards = await listScorecards(ctx)
       if (cards.length === 1) return { ...a, scorecardId: cards[0]!.id }
-      throw new MotionError('validation', `Give scorecardId or teamId (metricTitle needs to know which ${SC})`, { scorecards: cards.map((c) => ({ id: c.id, teamId: c.teamId, teamName: c.teamName })) })
+      throw new MovaraError('validation', `Give scorecardId or teamId (metricTitle needs to know which ${SC})`, { scorecards: cards.map((c) => ({ id: c.id, teamId: c.teamId, teamName: c.teamName })) })
     },
   })
   write('metric_create', metricCreate, `Create a ${M} on a ${SC} with a goal and comparison (gte, lte, between…).`)

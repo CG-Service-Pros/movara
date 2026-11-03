@@ -1,6 +1,6 @@
 import { Bar, Segmented, Stage, Swap, Text, Window, type Act } from '../../kit'
-import { EOS, STANDARD, Sidebar, StatusGlyph, type Terms } from '../_motion/shared'
-import '../_motion/motion.css'
+import { EOS, STANDARD, Sidebar, StatusGlyph, type Terms } from '../_movara/shared'
+import '../_movara/movara.css'
 import './terms.css'
 
 // Terminology packs, the white-label setting that renames the product.
@@ -45,9 +45,9 @@ const ROWS = [
   { s: 'on' as const, w: 98 },
 ]
 
-export default function MotionTerms() {
+export default function MovaraTerms() {
   return (
-    <Stage width={760} height={470} initial={initial} poster={poster} script={script} play="once" cursor={{ at: { x: 700, y: 430 } }} className="motion kt">
+    <Stage width={760} height={470} initial={initial} poster={poster} script={script} play="once" cursor={{ at: { x: 700, y: 430 } }} className="movara kt">
       {(s) => {
         const terms = PACKS[s.pack]!
         return (

@@ -1,11 +1,11 @@
 import { ArrowRight, Bot, Building2, KeyRound, ScrollText, CalendarDays, LayoutGrid, Palette, Type, Users } from 'lucide-react'
 import { Check, Collapse, Field, Segmented, Spinner, Stage, States, Window, type Act } from '../../kit'
-import { I } from '../_motion/shared'
-import '../_motion/motion.css'
+import { I } from '../_movara/shared'
+import '../_movara/movara.css'
 import './import.css'
 
 // Importing a terminology pack. Settings → Terminology, the Import dialog
-// open over it. The admin types the community EOS pack's npm name; Motion
+// open over it. The admin types the community EOS pack's npm name; Movara
 // fetches only its pack.json, validates it, and previews exactly what will
 // change before anything is applied. Apply confirms on the button itself.
 //
@@ -13,7 +13,7 @@ import './import.css'
 // the pack's identity, the term changes, the attribution, the actions.
 
 type S = { typed: string; loading: boolean; preview: boolean; applied: boolean; press: boolean }
-const NAME = '@motion-community/pack-eos'
+const NAME = '@movara-community/pack-eos'
 const initial: S = { typed: '', loading: false, preview: false, applied: false, press: false }
 const poster: S = { typed: NAME, loading: false, preview: true, applied: true, press: false }
 
@@ -68,9 +68,9 @@ function SettingsNav() {
   )
 }
 
-export default function MotionPackImport() {
+export default function MovaraPackImport() {
   return (
-    <Stage width={920} height={560} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" cursor={{ at: { x: 860, y: 500 } }} className="motion ki">
+    <Stage width={920} height={560} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" cursor={{ at: { x: 860, y: 500 } }} className="movara ki">
       {(s) => (
         <Window className="k-window ki-window" sidebar={<SettingsNav />} sidebarWidth={196} lead={<span className="ki-crumb">Terminology</span>} body={{ className: 'ki-body', 'data-crop': true }}>
           <div className="ki-page">
@@ -94,7 +94,7 @@ export default function MotionPackImport() {
             <Collapse open={s.preview}>
               <div className="ki-preview">
                 <div className="ki-pack">
-                  <div className="ki-pack__name">EOS <span>v1.0.0 · Motion community</span></div>
+                  <div className="ki-pack__name">EOS <span>v1.0.0 · Movara community</span></div>
                   <div className="ki-pack__meta">12 terms · 1 meeting template · data only, no code runs</div>
                 </div>
                 <div className="ki-changes">

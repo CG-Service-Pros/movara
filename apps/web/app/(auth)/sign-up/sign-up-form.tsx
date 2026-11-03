@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@motion/ui/button'
-import { Field } from '@motion/ui/field'
-import { Input } from '@motion/ui/input'
+import { Button } from '@movara/ui/button'
+import { Field } from '@movara/ui/field'
+import { Input } from '@movara/ui/input'
 import { authClient } from '@/lib/auth-client'
 import { safeNext } from '@/lib/safe-next'
 

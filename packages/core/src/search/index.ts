@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, gte, ilike, inArray, isNull, notInArray, or, sql, type SQL } from 'drizzle-orm'
-import { headlines, issues, meetings, meetingSeries, metricValues, metrics, milestones, people, priorities, scorecards, todos } from '@motion/db'
+import { headlines, issues, meetings, meetingSeries, metricValues, metrics, milestones, people, priorities, scorecards, todos } from '@movara/db'
 import { currentQuarter, periodStart, todayIn, weekOfQuarter } from '../calendar'
 import { actingPersonId, requireRead, type Ctx } from '../ctx'
 import { scoped } from '../helpers'

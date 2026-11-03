@@ -1,20 +1,20 @@
 {
-  "name": "@motion/terminology",
+  "name": "@movara/terminology",
   "version": "0.1.0",
-  "description": "Terminology packs for Motion: term keys, pack schema (Zod + JSON Schema), resolver and the neutral Standard pack.",
+  "description": "Terminology packs for Movara: term keys, pack schema (Zod + JSON Schema), resolver and the neutral Standard pack.",
   "license": "Apache-2.0",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OscarCGPro/motion.git",
+    "url": "git+https://github.com/OscarH30/movara.git",
     "directory": "packages/terminology"
   },
-  "homepage": "https://github.com/OscarCGPro/motion/tree/main/packages/terminology",
+  "homepage": "https://github.com/OscarH30/movara/tree/main/packages/terminology",
   "bugs": {
-    "url": "https://github.com/OscarCGPro/motion/issues"
+    "url": "https://github.com/OscarH30/movara/issues"
   },
   "keywords": [
-    "motion",
+    "movara",
     "terminology",
     "white-label",
     "mcp",
@@ -67,7 +67,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@motion/config": "workspace:*",
+    "@movara/config": "workspace:*",
     "@types/node": "^22",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",

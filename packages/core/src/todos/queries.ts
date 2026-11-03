@@ -1,5 +1,5 @@
 import { asc, eq, inArray, isNull, lt, ne, sql, type SQL, and } from 'drizzle-orm'
-import { todos } from '@motion/db'
+import { todos } from '@movara/db'
 import { todayIn } from '../calendar'
 import { requireRead, type Ctx } from '../ctx'
 import { found, scoped } from '../helpers'

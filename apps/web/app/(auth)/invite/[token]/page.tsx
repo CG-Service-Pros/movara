@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getInvite } from '@motion/core'
-import { Button } from '@motion/ui/button'
+import { getInvite } from '@movara/core'
+import { Button } from '@movara/ui/button'
 import { AuthCard } from '@/components/shell/auth-card'
 import { getDb } from '@/lib/db'
 import { getSession } from '@/lib/session'
@@ -15,7 +15,7 @@ export default async function InvitePage({ params, searchParams }: { params: Pro
   const invite = await getInvite(await getDb(), token)
   if (!invite) {
     return (
-      <AuthCard title="Invitation unavailable" subtitle="This link is invalid, expired or has already been used. Ask an admin to send you a new one." footer={<Link className="font-[550] text-accent-text hover:underline" href="/">Go to Motion</Link>}>
+      <AuthCard title="Invitation unavailable" subtitle="This link is invalid, expired or has already been used. Ask an admin to send you a new one." footer={<Link className="font-[550] text-accent-text hover:underline" href="/">Go to Movara</Link>}>
         <span />
       </AuthCard>
     )

@@ -1,4 +1,4 @@
-import { cn } from '@motion/ui/cn'
+import { cn } from '@movara/ui/cn'
 import { ActorMark, ProvenanceLine, type ProvenanceActor } from './provenance'
 
 /** One line of an activity feed. Serializable, so server components can build it for client components. */

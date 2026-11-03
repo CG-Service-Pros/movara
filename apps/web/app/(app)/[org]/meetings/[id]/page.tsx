@@ -1,4 +1,4 @@
-import { getMeeting } from '@motion/core'
+import { getMeeting } from '@movara/core'
 import { loadBundle } from '@/components/meetings/bundle'
 import { LiveMeeting } from '@/components/meetings/live-meeting'
 import { MeetingSummary } from '@/components/meetings/summary'

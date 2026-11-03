@@ -1,4 +1,4 @@
-import { myWeek, search, SEARCH_TYPES, type SearchType } from '@motion/core'
+import { myWeek, search, SEARCH_TYPES, type SearchType } from '@movara/core'
 import type { HandlerMap } from '../types'
 
 /** REST handlers for the search area. Keys: "METHOD /path/:param" relative to /api/v1. */

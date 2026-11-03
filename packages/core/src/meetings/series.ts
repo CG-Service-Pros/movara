@@ -1,9 +1,9 @@
 import { and, asc, desc, eq, gte, isNull, type SQL } from 'drizzle-orm'
 import { z } from 'zod'
-import { STANDARD_PACK } from '@motion/terminology'
-import { meetings, meetingSeries, orgs, teamMembers, type AgendaItemJson } from '@motion/db'
+import { STANDARD_PACK } from '@movara/terminology'
+import { meetings, meetingSeries, orgs, teamMembers, type AgendaItemJson } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, found, scoped, touch } from '../helpers'
 import { assertPeople, assertTeam, orgCalendar } from '../issues/internal'
 import { defineCommand } from '../runner'
@@ -43,7 +43,7 @@ export async function createNextOccurrence(ctx: Ctx, series: SeriesRow, at?: Dat
     if (open) return { meeting: open, created: false }
     const cal = await orgCalendar(ctx)
     at = nextOccurrence(series.rrule, series.startTime, cal.timezone ?? 'UTC', now) ?? undefined
-    if (!at) throw new MotionError('validation', 'This series is ad-hoc (no rrule): provide scheduledAt')
+    if (!at) throw new MovaraError('validation', 'This series is ad-hoc (no rrule): provide scheduledAt')
   }
   const [row] = await ctx.db
     .insert(meetings)
@@ -84,7 +84,7 @@ export const meetingSeriesCreate = defineCommand({
       if (!input.templateKey || input.templateKey === 'weekly') templateKey = 'custom'
     } else {
       const t = (await orgTemplates(ctx)).find((x) => x.key === input.templateKey)
-      if (!t) throw new MotionError('validation', `Unknown meeting template "${input.templateKey}"`)
+      if (!t) throw new MovaraError('validation', `Unknown meeting template "${input.templateKey}"`)
       agenda = t.agenda
     }
     const rrule = validateRrule(input.rrule)

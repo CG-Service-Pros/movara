@@ -1,8 +1,8 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { issues, orgs, people, teams, type Source } from '@motion/db'
+import { issues, orgs, people, teams, type Source } from '@movara/db'
 import { actingPersonId, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { base, found, scoped } from '../helpers'
 import type { CalendarSettings } from '../calendar'
 
@@ -15,7 +15,7 @@ export async function assertPeople(ctx: Ctx, ids: string[]): Promise<void> {
   const unique = [...new Set(ids)]
   if (!unique.length) return
   const rows = await ctx.db.select({ id: people.id }).from(people).where(scoped(people, ctx, inArray(people.id, unique)))
-  if (rows.length !== unique.length) throw new MotionError('not_found', 'Person not found')
+  if (rows.length !== unique.length) throw new MovaraError('not_found', 'Person not found')
 }
 
 export async function assertTeam(ctx: Ctx, id: string) {

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { DbHandle } from '@motion/db'
+import type { DbHandle } from '@movara/db'
 import {
   currentQuarter, execute, getOrg, getPriority, listAudit, listPriorities, listTeams, milestoneAdd, milestoneDelete, milestoneReorder, milestoneToggle, milestoneUpdate,
   priorityCascade, priorityCreate, priorityDelete, priorityReorder, prioritySetStatus, prioritiesSummary, priorityUpdate, approveApproval,

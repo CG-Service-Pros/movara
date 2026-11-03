@@ -1,7 +1,7 @@
 import {
   execute, getPriority, listPriorities, milestoneAdd, milestoneDelete, milestoneToggle, milestoneUpdate, priorityCascade, priorityCreate, priorityDelete, prioritiesSummary,
-  prioritySetStatus, priorityUpdate, MotionError,
-} from '@motion/core'
+  prioritySetStatus, priorityUpdate, MovaraError,
+} from '@movara/core'
 import { fromExecute } from '../respond'
 import type { HandlerMap } from '../types'
 
@@ -33,7 +33,7 @@ export const handlers: HandlerMap = {
   'PATCH /milestones/:id': async ({ ctx, params, json, requestId, expectedVersion }) =>
     fromExecute(await execute(ctx, milestoneUpdate, { ...(await body(json)), milestoneId: params.id! } as never, { requestId, expectedVersion })),
   'POST /milestones/:id/toggle': async ({ ctx, params, json, requestId, expectedVersion }) => {
-    const b = await body(json).catch((e) => { if (e instanceof MotionError) return {}; throw e })
+    const b = await body(json).catch((e) => { if (e instanceof MovaraError) return {}; throw e })
     return fromExecute(await execute(ctx, milestoneToggle, { ...b, milestoneId: params.id! } as never, { requestId, expectedVersion }))
   },
   'DELETE /milestones/:id': async ({ ctx, params, requestId, expectedVersion }) => fromExecute(await execute(ctx, milestoneDelete, { milestoneId: params.id! }, { requestId, expectedVersion })),

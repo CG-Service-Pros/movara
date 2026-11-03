@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
-import { meetings, meetingSeries, type MeetingState } from '@motion/db'
+import { meetings, meetingSeries, type MeetingState } from '@movara/db'
 import type { Ctx } from '../ctx'
 import { scoped } from '../helpers'
 import { readState } from './state'

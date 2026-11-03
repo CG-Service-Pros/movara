@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { createTestDb, seedTestOrg } from '@motion/core/testing'
-import type { DbHandle } from '@motion/db'
+import { createTestDb, seedTestOrg } from '@movara/core/testing'
+import type { DbHandle } from '@movara/db'
 
 let db: DbHandle
 vi.mock('@/lib/db', () => ({ getDb: async () => db }))

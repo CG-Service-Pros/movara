@@ -3,8 +3,8 @@ import {
   currentQuarter, todayIn, getHeadline, getLiveState, getMeetingSeries, getMetric, getOrg, getPriority, getScorecard, getTerms, getTodo,
   listAgents, listHeadlines, listIssues, listPeople, listPriorities, listTeams, listTodos,
   type Ctx, type LiveState,
-} from '@motion/core'
-import { TERM_KEYS } from '@motion/terminology'
+} from '@movara/core'
+import { TERM_KEYS } from '@movara/terminology'
 import { formatMetricValue, goalText } from './format'
 import type { BHeadline, BIssue, BTodo, Bundle, Provenance, SourceRef } from './types'
 

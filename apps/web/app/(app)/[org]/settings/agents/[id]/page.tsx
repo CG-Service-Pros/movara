@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getAgent, getPerson, hasRole, listApiKeys, actingPersonId } from '@motion/core'
+import { getAgent, getPerson, hasRole, listApiKeys, actingPersonId } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { AgentDetail } from '@/components/settings/agent-detail'
 import { SettingsBody } from '@/components/settings/ui'

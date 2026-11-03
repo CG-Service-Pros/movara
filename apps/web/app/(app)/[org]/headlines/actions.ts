@@ -1,6 +1,6 @@
 'use server'
 
-import { execute, headlineCascade, headlineDelete, headlineMarkReviewed, headlinePost } from '@motion/core'
+import { execute, headlineCascade, headlineDelete, headlineMarkReviewed, headlinePost } from '@movara/core'
 import { runAction, type ActionResult } from '@/components/issues/action'
 
 const paths = ['headlines', 'meetings']

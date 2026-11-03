@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { DbHandle } from '@motion/db'
+import type { DbHandle } from '@movara/db'
 import {
   agentsCreate, execute, getCommand, headlinePost, issueCreate, listCommands, listTeams, metricCreate, milestoneAdd, orgSetTerminologyOverrides, orgSetTerminologyPack,
   orgUpdateBranding, orgUpdateCalendar, orgUpdateGeneral, orgUpdateModules, peopleAdd, peopleCreateInvite, peopleRemove, peopleUpdate, peopleUpdateRole, priorityCreate, scorecardCreate,

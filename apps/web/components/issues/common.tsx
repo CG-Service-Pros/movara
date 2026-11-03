@@ -2,11 +2,11 @@
 
 import * as React from 'react'
 import { Check, ChevronDown } from 'lucide-react'
-import { toast } from '@motion/ui/toaster'
-import { Avatar } from '@motion/ui/avatar'
-import { AgentMark } from '@motion/ui/agent-mark'
-import { Popover, PopoverContent, PopoverTrigger } from '@motion/ui/popover'
-import { cn } from '@motion/ui/cn'
+import { toast } from '@movara/ui/toaster'
+import { Avatar } from '@movara/ui/avatar'
+import { AgentMark } from '@movara/ui/agent-mark'
+import { Popover, PopoverContent, PopoverTrigger } from '@movara/ui/popover'
+import { cn } from '@movara/ui/cn'
 
 /** Result of a server action built with `runAction`. */
 export type ActionResult = { ok: true; approval?: boolean } | { ok: false; error: string }

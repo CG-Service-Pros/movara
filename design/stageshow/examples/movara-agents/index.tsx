@@ -1,7 +1,7 @@
 import { Copy } from 'lucide-react'
 import { Avatar, Check, Collapse, Stage, States, Toggle, Window, type Act } from '../../kit'
-import { AgentMark, SettingsNav } from '../_motion/shared'
-import '../_motion/motion.css'
+import { AgentMark, SettingsNav } from '../_movara/shared'
+import '../_movara/movara.css'
 import './agents.css'
 
 // Connected agents: each agent is an actor with an owner, a client, scoped
@@ -39,9 +39,9 @@ async function script(a: Act<S>) {
   await a.wait(3000)
 }
 
-export default function MotionAgents() {
+export default function MovaraAgents() {
   return (
-    <Stage width={1000} height={580} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" cursor={{ at: { x: 940, y: 540 } }} className="motion ka">
+    <Stage width={1000} height={580} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" cursor={{ at: { x: 940, y: 540 } }} className="movara ka">
       {(s) => (
         <Window className="k-window ka-window" sidebar={<SettingsNav active="Connected agents" />} sidebarWidth={196} lead={<span className="ka-crumb">Connected agents</span>} toolbar={<span className="k-btn" data-primary>Connect agent</span>} body={{ className: 'ka-body', 'data-crop': true }}>
           <div className="ka-split">
@@ -59,7 +59,7 @@ export default function MotionAgents() {
               <div className="ka-connect">
                 <div className="ka-connect__label">MCP endpoint</div>
                 <div className="ka-connect__url">
-                  <span>vindex.motion.app/mcp</span>
+                  <span>vindex.movara.app/mcp</span>
                   <Copy size={13} strokeWidth={1.8} />
                 </div>
                 <div className="ka-connect__hint">Works with any MCP client: Claude, ChatGPT, Cursor, n8n. Each agent signs in with OAuth and gets its own scopes.</div>

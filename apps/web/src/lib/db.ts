@@ -1,20 +1,20 @@
 import 'server-only'
-import { createDb, migrate, seedIfEmpty, type DbHandle } from '@motion/db'
+import { createDb, migrate, seedIfEmpty, type DbHandle } from '@movara/db'
 
 type State = { db: DbHandle; ready: Promise<void> }
-const g = globalThis as unknown as { __motionDb?: State }
+const g = globalThis as unknown as { __movaraDb?: State }
 
 function init(): State {
   const db = createDb(process.env.DATABASE_URL)
-  const seed = process.env.MOTION_SEED_DEMO ? process.env.MOTION_SEED_DEMO !== '0' : db.$driver === 'pglite'
+  const seed = process.env.MOVARA_SEED_DEMO ? process.env.MOVARA_SEED_DEMO !== '0' : db.$driver === 'pglite'
   const ready = (async () => {
     await migrate(db)
     if (seed) await seedIfEmpty(db)
   })()
   // Do not poison the singleton on failure: allow a retry on the next request.
   ready.catch((e) => {
-    console.error('[motion] database initialization failed', e)
-    g.__motionDb = undefined
+    console.error('[movara] database initialization failed', e)
+    g.__movaraDb = undefined
   })
   return { db, ready }
 }
@@ -25,7 +25,7 @@ function init(): State {
  * Created lazily so `next build` never opens the database.
  */
 export async function getDb(): Promise<DbHandle> {
-  const s = (g.__motionDb ??= init())
+  const s = (g.__movaraDb ??= init())
   await s.ready
   return s.db
 }

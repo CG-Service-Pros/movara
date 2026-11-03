@@ -1,10 +1,10 @@
-/* Motion design tokens as a Tailwind v4 theme.
-   Source of truth: design/stageshow/examples/_motion/motion.css.
+/* Movara design tokens as a Tailwind v4 theme.
+   Source of truth: design/stageshow/examples/_movara/movara.css.
    Light by default, dark through <html data-theme="dark"> (or any wrapper).
    The org accent is overridable by setting --accent (and optionally --accent-dark)
    on a wrapper element: <div style={{ '--accent': '#d9480f' }}>.
 
-   Usage in apps:  @import "tailwindcss"; @import "@motion/ui/theme.css";
+   Usage in apps:  @import "tailwindcss"; @import "@movara/ui/theme.css";
    Utilities: bg-canvas bg-surface bg-raised bg-well border-line border-line-faint
    text-ink (strong) text-body text-faint text-icon text-accent bg-accent bg-accent-soft
    text-accent-text text-success text-danger text-warning bg-success-soft ... rounded-sm/md/lg/xl */

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { SearchX } from 'lucide-react'
-import { EmptyState } from '@motion/ui/empty-state'
+import { EmptyState } from '@movara/ui/empty-state'
 
 /** 404 inside the app shell: unknown pages, ids that do not exist in this org, modules switched off. */
 export default function OrgNotFound() {

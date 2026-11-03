@@ -3,7 +3,7 @@ import {
   meetingCapture, meetingDropToIssue, meetingHeartbeat, meetingJoin, meetingLeave, meetingNextSection, meetingPause, meetingRate, meetingResume, meetingReviewHeadline,
   meetingScheduleNext, meetingSeriesCreate, meetingSeriesUpdate, meetingSetSection, meetingSetSettings, meetingStart, prepareMeeting,
   type Command, type Ctx,
-} from '@motion/core'
+} from '@movara/core'
 import { fromExecute, json } from '../respond'
 import type { ApiRequest, HandlerMap } from '../types'
 

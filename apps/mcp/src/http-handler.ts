@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
-import { ACCESS_TOKEN_PREFIX, authenticateApiKey, authenticateOAuthToken, isMotionError, type Ctx } from '@motion/core'
-import type { Db } from '@motion/db'
-import { createMotionMcpServer } from './server'
+import { ACCESS_TOKEN_PREFIX, authenticateApiKey, authenticateOAuthToken, isMovaraError, type Ctx } from '@movara/core'
+import type { Db } from '@movara/db'
+import { createMovaraMcpServer } from './server'
 
 type Session = { transport: WebStandardStreamableHTTPServerTransport; actorId: string; orgId: string; lastUsed: number }
 
@@ -27,7 +27,7 @@ const rpcError = (status: number, code: number, message: string, headers: Record
 
 const unauthorized = (message: string, resourceMetadata?: string, invalid = true) =>
   rpcError(401, -32001, message, {
-    'www-authenticate': `Bearer realm="motion"${invalid ? ', error="invalid_token"' : ''}${resourceMetadata ? `, resource_metadata="${resourceMetadata}"` : ''}`,
+    'www-authenticate': `Bearer realm="movara"${invalid ? ', error="invalid_token"' : ''}${resourceMetadata ? `, resource_metadata="${resourceMetadata}"` : ''}`,
   })
 
 export const bearerOf = (req: Request): string | null => {
@@ -58,7 +58,7 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions) {
     try {
       ctx = key.startsWith(ACCESS_TOKEN_PREFIX) ? await authenticateOAuthToken(db, key) : await authenticateApiKey(db, key)
     } catch (e) {
-      if (isMotionError(e)) return unauthorized(e.message, rm)
+      if (isMovaraError(e)) return unauthorized(e.message, rm)
       throw e
     }
 
@@ -88,7 +88,7 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions) {
     transport.onclose = () => {
       if (transport.sessionId) sessions.delete(transport.sessionId)
     }
-    const server = await createMotionMcpServer({ db, resolveCtx: () => ctx, pollMs: opts.pollMs })
+    const server = await createMovaraMcpServer({ db, resolveCtx: () => ctx, pollMs: opts.pollMs })
     await server.connect(transport)
     return transport.handleRequest(req, { parsedBody: body })
   }
@@ -96,6 +96,6 @@ export function createMcpHttpHandler(opts: McpHttpHandlerOptions) {
 
 /** One handler per process (survives Next dev HMR). */
 export function sharedMcpHttpHandler(getDb: () => Promise<Db>, opts: Omit<McpHttpHandlerOptions, 'getDb'> = {}) {
-  const g = globalThis as unknown as { __motionMcpHandler?: ReturnType<typeof createMcpHttpHandler> }
-  return (g.__motionMcpHandler ??= createMcpHttpHandler({ getDb, ...opts }))
+  const g = globalThis as unknown as { __movaraMcpHandler?: ReturnType<typeof createMcpHttpHandler> }
+  return (g.__movaraMcpHandler ??= createMcpHttpHandler({ getDb, ...opts }))
 }

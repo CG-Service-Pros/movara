@@ -1,5 +1,5 @@
 {
-  "extends": "@motion/config/tsconfig.base.json",
+  "extends": "@movara/config/tsconfig.base.json",
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,

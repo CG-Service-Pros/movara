@@ -1,9 +1,9 @@
 import { desc, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
-import { milestones, people, priorities, teams } from '@motion/db'
+import { milestones, people, priorities, teams } from '@movara/db'
 import { currentQuarter } from '../calendar'
 import { actingPersonId, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, changedFields, found, scoped, softDelete, touch } from '../helpers'
 import { getOrg } from '../org'
 import { defineCommand } from '../runner'
@@ -31,11 +31,11 @@ async function nextSort(ctx: Ctx, quarter: string): Promise<number> {
 }
 /** Parent must exist in the org and must not create a cycle. */
 async function checkParent(ctx: Ctx, priorityId: string | null, parentId: string) {
-  if (priorityId && parentId === priorityId) throw new MotionError('validation', 'A priority cannot be its own parent')
+  if (priorityId && parentId === priorityId) throw new MovaraError('validation', 'A priority cannot be its own parent')
   let cursor: string | null = parentId
   for (let i = 0; i < 20 && cursor; i++) {
     const p = await loadPriority(ctx, cursor)
-    if (priorityId && p.id === priorityId) throw new MotionError('validation', 'Parent link would create a cycle')
+    if (priorityId && p.id === priorityId) throw new MovaraError('validation', 'Parent link would create a cycle')
     cursor = p.parentPriorityId
   }
 }
@@ -148,7 +148,7 @@ export const priorityReorder = defineCommand({
   input: z.object({ quarter: quarterSchema, priorityIds: z.array(z.uuid()).min(1).max(200) }),
   run: async (ctx, input) => {
     const rows = await ctx.db.select({ id: priorities.id }).from(priorities).where(scoped(priorities, ctx, eq(priorities.quarter, input.quarter), inArray(priorities.id, input.priorityIds)))
-    if (rows.length !== new Set(input.priorityIds).size) throw new MotionError('not_found', 'Priority not found in this quarter')
+    if (rows.length !== new Set(input.priorityIds).size) throw new MovaraError('not_found', 'Priority not found in this quarter')
     for (const [i, id] of input.priorityIds.entries()) {
       await ctx.db.update(priorities).set({ sort: i, ...touch(priorities, ctx) }).where(scoped(priorities, ctx, eq(priorities.id, id)))
     }
@@ -245,7 +245,7 @@ export const milestoneReorder = defineCommand({
     const have = new Set(rows.map((r) => r.id))
     const want = new Set(input.milestoneIds)
     if (want.size !== input.milestoneIds.length || have.size !== want.size || ![...want].every((id) => have.has(id))) {
-      throw new MotionError('validation', 'milestoneIds must list every milestone of the priority exactly once')
+      throw new MovaraError('validation', 'milestoneIds must list every milestone of the priority exactly once')
     }
     for (const [i, id] of input.milestoneIds.entries()) {
       await ctx.db.update(milestones).set({ sort: i, ...touch(milestones, ctx) }).where(scoped(milestones, ctx, eq(milestones.id, id)))

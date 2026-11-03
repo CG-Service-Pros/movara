@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { metricValues, metrics, priorities, scorecards, newId, type DbHandle } from '@motion/db'
+import { metricValues, metrics, priorities, scorecards, newId, type DbHandle } from '@movara/db'
 import { currentQuarter, execute, getOrg, headlinePost, issueCreate, listTeams, meetingSeriesCreate, myWeek, search, todayIn, periodStart, todoCreate, base } from '../src'
 import { createTestDb, seedTestOrg } from '../src/testing'
 

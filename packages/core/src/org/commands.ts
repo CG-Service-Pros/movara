@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { orgs, MODULE_KEYS, type Branding } from '@motion/db'
-import { TermOverrides, TERM_KEYS, previewImport, TerminologyPack } from '@motion/terminology'
+import { orgs, MODULE_KEYS, type Branding } from '@movara/db'
+import { TermOverrides, TERM_KEYS, previewImport, TerminologyPack } from '@movara/terminology'
 import type { Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, found, touch } from '../helpers'
 import { defineCommand } from '../runner'
 import { TERMINOLOGY_HISTORY_MAX, terminologyHistoryOf } from './queries'
@@ -47,7 +47,7 @@ export const orgUpdateGeneral = defineCommand({
       try {
         new Intl.DateTimeFormat('en', { timeZone: input.timezone })
       } catch {
-        throw new MotionError('validation', 'Unknown timezone')
+        throw new MovaraError('validation', 'Unknown timezone')
       }
     }
     const [after] = await ctx.db.update(orgs).set({ ...input, ...touch(orgs, ctx) }).where(eq(orgs.id, ctx.orgId)).returning()
@@ -156,7 +156,7 @@ export const orgSetTerminologyPack = defineCommand({
     let next: TerminologyPack | null
     let history = terminologyHistoryOf(before)
     if (input.revert) {
-      if (!history.length) throw new MotionError('conflict', 'There is no previous terminology pack to revert to')
+      if (!history.length) throw new MovaraError('conflict', 'There is no previous terminology pack to revert to')
       next = history[history.length - 1] ?? null
       history = history.slice(0, -1)
     } else if (input.pack === null) {
@@ -164,7 +164,7 @@ export const orgSetTerminologyPack = defineCommand({
       if (before.terminologyPack) history = [...history, before.terminologyPack].slice(-TERMINOLOGY_HISTORY_MAX)
     } else {
       const preview = previewImport(input.pack, before.terminologyPack ?? undefined)
-      if (!preview.ok) throw new MotionError('validation', 'Invalid terminology pack', { issues: preview.errors })
+      if (!preview.ok) throw new MovaraError('validation', 'Invalid terminology pack', { issues: preview.errors })
       next = preview.pack
       const same = before.terminologyPack && before.terminologyPack.id === next.id && before.terminologyPack.version === next.version
       if (!same) history = [...history, before.terminologyPack ?? null].slice(-TERMINOLOGY_HISTORY_MAX)
@@ -198,7 +198,7 @@ export const orgSetTerminologyOverrides = defineCommand({
     const before = await load(ctx)
     assertVersion(before, h.expectedVersion)
     const keys = Object.keys(input.overrides)
-    for (const k of keys) if (!(TERM_KEYS as readonly string[]).includes(k)) throw new MotionError('validation', `Unknown term key: ${k}`)
+    for (const k of keys) if (!(TERM_KEYS as readonly string[]).includes(k)) throw new MovaraError('validation', `Unknown term key: ${k}`)
     const [after] = await ctx.db.update(orgs).set({ terminologyOverrides: input.overrides, ...touch(orgs, ctx) }).where(eq(orgs.id, ctx.orgId)).returning()
     return { data: after!, entity: { type: 'org', id: ctx.orgId }, before: { terminologyOverrides: before.terminologyOverrides }, after: { terminologyOverrides: after!.terminologyOverrides } }
   },

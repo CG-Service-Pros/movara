@@ -20,7 +20,7 @@ export function safeNext(next: string | null | undefined, fallback = '/'): strin
   if (!isSafeForm(cur)) return fallback
   // Final authority: resolve against a dummy origin and require it not to leave.
   try {
-    const base = 'http://motion.invalid'
+    const base = 'http://movara.invalid'
     if (new URL(next, base).origin !== base) return fallback
   } catch {
     return fallback

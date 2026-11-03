@@ -1,10 +1,10 @@
 # Engineering conventions (read before writing code)
 
-Motion is an open-source, agent-first operating system for running a company on a
+Movara is an open-source, agent-first operating system for running a company on a
 quarterly rhythm. Product docs: `docs/architecture.md` (data model, rules),
 `docs/mcp-tools.md` (MCP catalog), `docs/terminology-packs.md`, `docs/design-plan.md`
 (visual system), `docs/build-plan.md` (milestones). Visual reference: the mockups in
-`design/stageshow/examples/motion-*` (React + CSS; tokens in `design/stageshow/examples/_motion/motion.css`;
+`design/stageshow/examples/movara-*` (React + CSS; tokens in `design/stageshow/examples/_movara/movara.css`;
 PNG stills in `design/stageshow/shots/` may be missing; read the TSX/CSS instead).
 
 ## Stack (fixed, do not swap)
@@ -14,7 +14,7 @@ PNG stills in `design/stageshow/shots/` may be missing; read the TSX/CSS instead
 | Runtime | Node 22, pnpm 10 workspaces, Turborepo |
 | Language | TypeScript 5 `strict`, ESM everywhere |
 | Web | Next.js 16 App Router, React 19, server components + server actions |
-| Styling | Tailwind CSS v4 (CSS-first `@theme`), tokens from `motion.css`; lucide-react icons (15px, stroke 1.7) |
+| Styling | Tailwind CSS v4 (CSS-first `@theme`), tokens from `movara.css`; lucide-react icons (15px, stroke 1.7) |
 | DB | PostgreSQL via Drizzle ORM. `DATABASE_URL=postgres://…` uses `postgres` (postgres-js). Unset or `pglite://<dir>` uses **PGlite** (embedded, for dev/tests/demo) |
 | Auth | Better Auth (email + password, sessions) with its Drizzle adapter, same database |
 | Validation | Zod 4 |
@@ -34,14 +34,14 @@ packages/ui         design-system primitives (Tailwind + Radix where needed)
 packs/eos           community EOS pack (data only)
 ```
 
-Package names: `@motion/web`, `@motion/mcp`, `@motion/db`, `@motion/core`,
-`@motion/terminology`, `@motion/ui`, `@motion/config`. Internal packages are consumed as
+Package names: `@movara/web`, `@movara/mcp`, `@movara/db`, `@movara/core`,
+`@movara/terminology`, `@movara/ui`, `@movara/config`. Internal packages are consumed as
 TypeScript source (`"exports": { ".": "./src/index.ts", "./*": "./src/*.ts" }`). Next uses
 `transpilePackages`.
 
 ## Core rules
 
-- **Everything goes through `@motion/core`.** UI server actions, REST and MCP call core
+- **Everything goes through `@movara/core`.** UI server actions, REST and MCP call core
   functions. No direct DB writes outside core (reads may use core queries too).
 - **Context:** `type Ctx = { db, orgId, actor: Actor, scopes: Scope[] | 'all' }`, where
   `Actor = { type: 'person' | 'agent', id: string, onBehalfOf?: string }`. People have
@@ -54,7 +54,7 @@ TypeScript source (`"exports": { ".": "./src/index.ts", "./*": "./src/*.ts" }`).
 - **Queries** are plain async functions `(ctx, input) => result`, always filtered by `ctx.orgId`.
 - **Org isolation** is enforced in core: every query and write includes `org_id = ctx.orgId`.
   Tests must cover cross-org access returning not_found.
-- **Errors:** throw `MotionError(code, message)` with code in `not_found | forbidden | forbidden_scope | conflict | validation | needs_approval`.
+- **Errors:** throw `MovaraError(code, message)` with code in `not_found | forbidden | forbidden_scope | conflict | validation | needs_approval`.
 - **IDs:** uuid v7 (`uuidv7` from the `uuid` package) generated in core.
 - **Dates:** store `date` for due dates and periods, `timestamptz` for events. Quarter
   helpers live in `packages/core/src/calendar.ts` (respect org fiscal start and week start).
@@ -69,7 +69,7 @@ TypeScript source (`"exports": { ".": "./src/index.ts", "./*": "./src/*.ts" }`).
 - Area-specific components go in `apps/web/components/<area>/`. Shared app components go in
   `apps/web/components/shell/`. Design-system primitives go in `packages/ui/src/` (one file
   per component). **Do not edit `packages/ui/src/index.ts`.** Import primitives by path:
-  `@motion/ui/button`.
+  `@movara/ui/button`.
 - Server actions live next to their route (`actions.ts`), call core, then `revalidatePath`.
 - Every page renders an empty state. People are shown as circle avatars; **agents are
   rounded squares** with the Bot glyph. Anything written by an agent shows provenance.

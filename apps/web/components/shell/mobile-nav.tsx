@@ -2,8 +2,8 @@
 
 import { Menu, Search } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '@motion/ui/button'
-import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@motion/ui/sheet'
+import { Button } from '@movara/ui/button'
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@movara/ui/sheet'
 import { openCommandPalette } from './command-palette'
 import type { NavSection } from './nav'
 import type { OrgSwitcherProps } from './org-switcher'

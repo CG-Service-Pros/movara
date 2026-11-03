@@ -3,11 +3,11 @@
 import { ArrowRight, Check, FileJson, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useRef, useState, useTransition } from 'react'
-import { Button } from '@motion/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@motion/ui/dialog'
-import { Input } from '@motion/ui/input'
-import { Segmented } from '@motion/ui/segmented'
-import { toast } from '@motion/ui/toaster'
+import { Button } from '@movara/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@movara/ui/dialog'
+import { Input } from '@movara/ui/input'
+import { Segmented } from '@movara/ui/segmented'
+import { toast } from '@movara/ui/toaster'
 import { applyPack, previewPack, type PackPreview } from '@/app/(app)/[org]/settings/actions'
 
 type Tab = 'npm' | 'url' | 'file'
@@ -97,7 +97,7 @@ export function ImportPackDialog({ slug, open, onOpenChange }: { slug: string; o
       <DialogContent className="max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Import terminology pack</DialogTitle>
-          <DialogDescription>Packs are data only. Motion validates the file and shows what changes before anything is applied.</DialogDescription>
+          <DialogDescription>Packs are data only. Movara validates the file and shows what changes before anything is applied.</DialogDescription>
         </DialogHeader>
         <Segmented<Tab>
           aria-label="Pack source"
@@ -113,7 +113,7 @@ export function ImportPackDialog({ slug, open, onOpenChange }: { slug: string; o
               autoFocus
               value={value}
               onChange={(e) => { setValue(e.target.value); setPreview(null); setError(null); setApplied(false) }}
-              placeholder={tab === 'npm' ? '@motion-community/pack-eos' : 'https://example.com/pack.json'}
+              placeholder={tab === 'npm' ? '@movara-community/pack-eos' : 'https://example.com/pack.json'}
             />
             <Button type="submit" disabled={!value.trim()} loading={loading}>Check</Button>
           </form>

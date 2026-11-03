@@ -1,4 +1,4 @@
-import { execute, getScorecard, listScorecards, metricArchive, metricCreate, metricRecordValues, metricUpdate, offTrackMetrics, scorecardCreate, scorecardUpdateSettings } from '@motion/core'
+import { execute, getScorecard, listScorecards, metricArchive, metricCreate, metricRecordValues, metricUpdate, offTrackMetrics, scorecardCreate, scorecardUpdateSettings } from '@movara/core'
 import { fromExecute } from '../respond'
 import type { HandlerMap } from '../types'
 

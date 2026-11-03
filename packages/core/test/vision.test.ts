@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { approvals, newId, people, seedDemo, type DbHandle } from '@motion/db'
+import { approvals, newId, people, seedDemo, type DbHandle } from '@movara/db'
 import {
   approveApproval, ctxForPerson, declineApproval, execute, getVision, getVisionRevision, listApprovals, listVisionRevisions, sectionsOf,
   visionCreateDraft, visionDiscardDraft, visionProposeChange, visionPublish, visionUpdateDraft,

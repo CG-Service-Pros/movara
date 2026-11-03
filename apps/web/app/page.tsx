@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { listMembershipsForUser } from '@motion/core'
+import { listMembershipsForUser } from '@movara/core'
 import { getDb } from '@/lib/db'
 import { getSession } from '@/lib/session'
 

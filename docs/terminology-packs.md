@@ -1,6 +1,6 @@
 # Terminology packs
 
-Every label in Motion comes from a **term key** (`priority`, `metric`, `weekly_meeting`…).
+Every label in Movara comes from a **term key** (`priority`, `metric`, `weekly_meeting`…).
 This covers UI labels, emails, exports, search synonyms and **MCP tool descriptions**.
 A pack maps keys to words. The org's active pack plus its own overrides decide what people
 and agents see.
@@ -13,11 +13,11 @@ resolve(key) = org override  →  active pack  →  Standard pack (always comple
 
 | Package | Contents | Ships with the app |
 |---|---|---|
-| `@motion/terminology` (`packages/terminology`) | Zod schema, JSON Schema, resolver, import preview, the **Standard** pack | Yes |
-| `@motion-community/pack-eos` (`packs/eos`, later its own repo) | EOS terms, the Level 10 template, a trademark attribution | **No**, imported by the org |
+| `@movara/terminology` (`packages/terminology`) | Zod schema, JSON Schema, resolver, import preview, the **Standard** pack | Yes |
+| `@movara-community/pack-eos` (`packs/eos`, later its own repo) | EOS terms, the Level 10 template, a trademark attribution | **No**, imported by the org |
 
 Keeping EOS out of the core repo keeps trademarked terms out of the default product. The
-EOS pack carries an attribution string, which Motion shows in Settings and on exports while
+EOS pack carries an attribution string, which Movara shows in Settings and on exports while
 the pack is active.
 
 ## Pack format (v1)
@@ -26,7 +26,7 @@ the pack is active.
 {
   "id": "community.eos",            // unique; reverse-DNS-ish
   "name": "EOS",
-  "version": "1.0.0",               // semver; Motion offers updates when a newer version is available
+  "version": "1.0.0",               // semver; Movara offers updates when a newer version is available
   "format": 1,                      // pack format version
   "attribution": "EOS® … trademarks of EOS Worldwide …",
   "terms": {
@@ -45,7 +45,7 @@ fall back to Standard.
 
 Three sources, one flow:
 
-1. **npm name**: `@motion-community/pack-eos`. The server fetches the package's `pack.json`
+1. **npm name**: `@movara-community/pack-eos`. The server fetches the package's `pack.json`
    from the registry (or a configured mirror) and does not run any of the package's code.
 2. **URL**: any HTTPS URL that returns pack JSON (GitHub raw, gist, the company's intranet).
 3. **File**: upload a `.json`.
@@ -58,7 +58,7 @@ previous pack is kept for one-click revert.
 Agents can do the same with the MCP tools `terminology_preview_import` and
 `terminology_apply` (an admin scope that requires human confirmation).
 
-Self-hosters can also preinstall packs with `MOTION_TERMINOLOGY_PACKS=@motion-community/pack-eos`.
+Self-hosters can also preinstall packs with `MOVARA_TERMINOLOGY_PACKS=@movara-community/pack-eos`.
 
 ## Custom (per-term overrides)
 

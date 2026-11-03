@@ -5,7 +5,7 @@ import './composed.css'
 
 // The compact output detours around the incoming routes. Keep this one path,
 // rather than drawing separate segments simultaneously. Its arrow follows the
-// real transition completion, including a paused host and reduced motion.
+// real transition completion, including a paused host and reduced movara.
 function UsageDelivery({ path, to, show }: { path: string; to: { x: number; y: number }; show: boolean }) {
   const line = useRef<SVGPathElement>(null), [arrived, setArrived] = useState(false)
   useLayoutEffect(() => {

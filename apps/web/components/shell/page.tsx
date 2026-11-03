@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { cn } from '@motion/ui/cn'
-import { PageHeader, type PageHeaderProps } from '@motion/ui/page-header'
+import { cn } from '@movara/ui/cn'
+import { PageHeader, type PageHeaderProps } from '@movara/ui/page-header'
 
 /**
  * Standard page frame inside the inset panel: a 44px header plus a scrolling body.

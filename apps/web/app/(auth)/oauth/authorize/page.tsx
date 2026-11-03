@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { Bot } from 'lucide-react'
-import { getOAuthClient, listMembershipsForUser, SCOPES } from '@motion/core'
-import { buttonClasses } from '@motion/ui/button'
+import { getOAuthClient, listMembershipsForUser, SCOPES } from '@movara/core'
+import { buttonClasses } from '@movara/ui/button'
 import { AuthCard } from '@/components/shell/auth-card'
 import { getDb } from '@/lib/db'
 import { OAUTH_ENDPOINTS } from '@/lib/oauth'
@@ -68,7 +68,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
         <div className="flex items-center gap-2.5 rounded-md bg-canvas p-2.5">
           <span className="grid size-7 shrink-0 place-items-center rounded-md bg-accent text-white"><Bot size={15} strokeWidth={1.7} /></span>
           <p className="text-sm text-body">
-            <span className="font-[550] text-ink">{client.name}</span> wants to act as an agent in Motion on your behalf. It will appear in Settings, Agents, where you can change its access or revoke it.
+            <span className="font-[550] text-ink">{client.name}</span> wants to act as an agent in Movara on your behalf. It will appear in Settings, Agents, where you can change its access or revoke it.
           </p>
         </div>
 

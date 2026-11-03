@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { people, teamMembers, teams } from '@motion/db'
-import { MotionError } from '../errors'
+import { people, teamMembers, teams } from '@movara/db'
+import { MovaraError } from '../errors'
 import type { Ctx } from '../ctx'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
 import { defineCommand } from '../runner'
@@ -53,7 +53,7 @@ export const teamsUpdate = defineCommand({
     const before = await mustHaveTeam(ctx, input.teamId)
     assertVersion(before, h.expectedVersion)
     if (input.parentTeamId) {
-      if (input.parentTeamId === input.teamId) throw new MotionError('validation', 'A team cannot be its own parent')
+      if (input.parentTeamId === input.teamId) throw new MovaraError('validation', 'A team cannot be its own parent')
       await mustHaveTeam(ctx, input.parentTeamId)
     }
     if (input.leaderId) await mustHavePerson(ctx, input.leaderId)
@@ -72,7 +72,7 @@ export const teamsDelete = defineCommand({
   run: async (ctx, input, h) => {
     const before = await mustHaveTeam(ctx, input.teamId)
     assertVersion(before, h.expectedVersion)
-    if (before.isLeadership) throw new MotionError('conflict', 'The leadership team cannot be deleted')
+    if (before.isLeadership) throw new MovaraError('conflict', 'The leadership team cannot be deleted')
     await ctx.db.update(teams).set(softDelete(teams, ctx)).where(scoped(teams, ctx, eq(teams.id, input.teamId)))
     await ctx.db.update(teamMembers).set(softDelete(teamMembers, ctx)).where(scoped(teamMembers, ctx, eq(teamMembers.teamId, input.teamId)))
     return { data: { id: input.teamId }, entity: { type: 'team', id: input.teamId }, before: { name: before.name }, after: null }

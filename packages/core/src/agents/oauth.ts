@@ -1,14 +1,14 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { and, eq, isNull } from 'drizzle-orm'
-import { agents, newId, oauthClients, oauthCodes, oauthTokens, hashApiKey, type Db } from '@motion/db'
+import { agents, newId, oauthClients, oauthCodes, oauthTokens, hashApiKey, type Db } from '@movara/db'
 import { ctxForAgent, hasRole, SCOPES, type Ctx, type Scope } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { execute } from '../runner'
 import { agentsCreate, agentsUpdateScopes } from './commands'
 
 /**
  * OAuth 2.1 authorization server for MCP clients (authorization code + PKCE S256, dynamic client registration,
- * refresh-token rotation). Every access token belongs to a Motion agent record, so scopes, approvals, audit and
+ * refresh-token rotation). Every access token belongs to a Movara agent record, so scopes, approvals, audit and
  * revocation work exactly like they do for API keys. Tokens and codes are stored as sha256 hashes.
  */
 
@@ -47,7 +47,7 @@ export function isValidRedirectUri(raw: string): boolean {
   return !['javascript:', 'data:', 'file:', 'vbscript:', 'blob:', 'about:'].includes(u.protocol) && /^[a-z][a-z0-9+.-]*:$/.test(u.protocol)
 }
 
-/** Keep only known Motion scopes; default to read-only. */
+/** Keep only known Movara scopes; default to read-only. */
 export function parseScopes(raw: string | string[] | undefined | null): Scope[] {
   const list = Array.isArray(raw) ? raw : (raw ?? '').split(/[\s,]+/).filter(Boolean)
   const known = [...new Set(list)].filter((s): s is Scope => (SCOPES as readonly string[]).includes(s))
@@ -125,11 +125,11 @@ async function agentForConsent(ctx: Ctx, client: OAuthClientRow, scopes: Scope[]
   if (live) {
     const same = live.scopes.length === scopes.length && scopes.every((s) => live.scopes.includes(s))
     if (!same) await execute(ctx, agentsUpdateScopes, { agentId: live.id, scopes })
-    if (live.status === 'paused') throw new MotionError('conflict', 'This connection is paused in Settings -> Agents; resume it first')
+    if (live.status === 'paused') throw new MovaraError('conflict', 'This connection is paused in Settings -> Agents; resume it first')
     return live.id
   }
   const created = await execute(ctx, agentsCreate, { name: client.name, client: `${client.name} · OAuth`, scopes })
-  if (!created.ok) throw new MotionError('needs_approval', 'Creating this agent needs approval')
+  if (!created.ok) throw new MovaraError('needs_approval', 'Creating this agent needs approval')
   await ctx.db.update(agents).set({ oauthClientId: client.clientId }).where(eq(agents.id, created.data.id))
   return created.data.id
 }
@@ -142,13 +142,13 @@ export async function approveAuthorization(
   ctx: Ctx,
   input: { clientId: string; redirectUri: string; codeChallenge: string; scopes: string[] },
 ): Promise<string> {
-  if (ctx.actor.type !== 'person') throw new MotionError('forbidden', 'Only a person can approve a connection')
+  if (ctx.actor.type !== 'person') throw new MovaraError('forbidden', 'Only a person can approve a connection')
   const client = await getOAuthClient(ctx.db, input.clientId)
-  if (!client) throw new MotionError('not_found', 'Unknown client')
-  if (!client.redirectUris.includes(input.redirectUri)) throw new MotionError('validation', 'redirect_uri is not registered for this client')
-  if (!/^[A-Za-z0-9_-]{43,128}$/.test(input.codeChallenge)) throw new MotionError('validation', 'Invalid PKCE code_challenge')
+  if (!client) throw new MovaraError('not_found', 'Unknown client')
+  if (!client.redirectUris.includes(input.redirectUri)) throw new MovaraError('validation', 'redirect_uri is not registered for this client')
+  if (!/^[A-Za-z0-9_-]{43,128}$/.test(input.codeChallenge)) throw new MovaraError('validation', 'Invalid PKCE code_challenge')
   const scopes = parseScopes(input.scopes)
-  if (scopes.includes('admin') && !hasRole(ctx, 'admin')) throw new MotionError('forbidden', "Only an admin can grant the 'admin' scope")
+  if (scopes.includes('admin') && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', "Only an admin can grant the 'admin' scope")
   const agentId = await agentForConsent(ctx, client, scopes)
   const code = newSecret('mo_ac_')
   await ctx.db.insert(oauthCodes).values({
@@ -220,14 +220,14 @@ export async function refreshOAuthToken(db: Db, input: { clientId: string; clien
 
 /** Resolve a `mo_at_…` access token to the agent's Ctx. Throws `forbidden` for unknown/expired/revoked tokens or agents. */
 export async function authenticateOAuthToken(db: Db, token: string): Promise<Ctx> {
-  if (!token.startsWith(ACCESS_TOKEN_PREFIX)) throw new MotionError('forbidden', 'Not an OAuth access token')
+  if (!token.startsWith(ACCESS_TOKEN_PREFIX)) throw new MovaraError('forbidden', 'Not an OAuth access token')
   const [row] = await db
     .select()
     .from(oauthTokens)
     .where(and(eq(oauthTokens.tokenHash, sha(token)), eq(oauthTokens.kind, 'access'), isNull(oauthTokens.deletedAt)))
     .limit(1)
-  if (!row || row.revokedAt || !row.agentId) throw new MotionError('forbidden', 'Invalid or revoked access token')
-  if (row.expiresAt && row.expiresAt.getTime() < Date.now()) throw new MotionError('forbidden', 'Access token expired')
+  if (!row || row.revokedAt || !row.agentId) throw new MovaraError('forbidden', 'Invalid or revoked access token')
+  if (row.expiresAt && row.expiresAt.getTime() < Date.now()) throw new MovaraError('forbidden', 'Access token expired')
   const ctx = await ctxForAgent(db, row.orgId, row.agentId, row.scopes) // denies paused/revoked agents
   await db.update(agents).set({ lastSeenAt: new Date() }).where(eq(agents.id, row.agentId))
   return ctx

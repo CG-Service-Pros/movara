@@ -1,4 +1,4 @@
-import { getMetric, getScorecard, listScorecards } from '@motion/core'
+import { getMetric, getScorecard, listScorecards } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { ScorecardView } from '@/components/scorecard/scorecard-view'
 import { ScorecardEmpty } from '@/components/scorecard/scorecard-empty'

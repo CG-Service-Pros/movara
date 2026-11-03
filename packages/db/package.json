@@ -1,5 +1,5 @@
 {
-  "name": "@motion/db",
+  "name": "@movara/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.14",
-    "@motion/terminology": "workspace:*",
+    "@movara/terminology": "workspace:*",
     "better-auth": "^1.7.15",
     "drizzle-orm": "^0.45.4",
     "postgres": "^4.0.0",
@@ -27,7 +27,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@motion/config": "workspace:*",
+    "@movara/config": "workspace:*",
     "@types/node": "^22",
     "drizzle-kit": "^0.31.11",
     "tsx": "^4.23.15",

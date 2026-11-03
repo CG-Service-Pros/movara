@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { EmptyState } from '@motion/ui/empty-state'
+import { EmptyState } from '@movara/ui/empty-state'
 import { NavIcon } from './icons'
 import type { IconKey } from './nav'
 import { Page } from './page'

@@ -1,4 +1,4 @@
-import type { TerminologyPack, TermOverrides } from '@motion/terminology'
+import type { TerminologyPack, TermOverrides } from '@movara/terminology'
 
 /** Who performed a write. Stored on every row and on audit events. */
 export type ActorJson = { type: 'person' | 'agent'; id: string; onBehalfOf?: string }

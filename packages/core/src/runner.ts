@@ -1,8 +1,8 @@
 import { and, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { approvals, auditEvents, requestLog, type ActorJson, type Db } from '@motion/db'
+import { approvals, auditEvents, requestLog, type ActorJson, type Db } from '@movara/db'
 import { hasRole, hasScope, requireScope, type Ctx, type Role, type Scope } from './ctx'
-import { MotionError } from './errors'
+import { MovaraError } from './errors'
 import { changedFields, newId } from './helpers'
 
 /** What a command's `run` returns. `data` goes to the caller; the rest feeds the audit log. */
@@ -81,7 +81,7 @@ function needsApproval(cmd: Command<any, any>, ctx: Ctx, input: unknown): boolea
 
 /**
  * Run a command: validate -> scope and role checks -> idempotency -> (agent approval gate) ->
- * transaction { run, audit_events row, request_log }. Throws MotionError on failure.
+ * transaction { run, audit_events row, request_log }. Throws MovaraError on failure.
  */
 export async function execute<I extends z.ZodType, O>(
   ctx: Ctx,
@@ -91,17 +91,17 @@ export async function execute<I extends z.ZodType, O>(
 ): Promise<ExecuteResult<O>> {
   const parsed = cmd.input.safeParse(rawInput)
   if (!parsed.success) {
-    throw new MotionError('validation', parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; '), { issues: parsed.error.issues })
+    throw new MovaraError('validation', parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; '), { issues: parsed.error.issues })
   }
   const input = parsed.data as z.output<I>
 
   // Scope: persons pass; agents need one of the command's scopes.
   const scopes = scopesOf(cmd)
   if (!scopes.some((s) => hasScope(ctx, s))) {
-    throw new MotionError('forbidden_scope', `Missing scope: ${scopes.join(' or ')}`, { scope: scopes })
+    throw new MovaraError('forbidden_scope', `Missing scope: ${scopes.join(' or ')}`, { scope: scopes })
   }
   const minRole = cmd.minRole ?? 'member'
-  if (!hasRole(ctx, minRole)) throw new MotionError('forbidden', `Requires role ${minRole} or higher`, { role: ctx.role, required: minRole })
+  if (!hasRole(ctx, minRole)) throw new MovaraError('forbidden', `Requires role ${minRole} or higher`, { role: ctx.role, required: minRole })
 
   // Idempotent replay (cheap pre-check outside the transaction).
   if (opts.requestId) {
@@ -186,7 +186,7 @@ export async function execute<I extends z.ZodType, O>(
     if (e instanceof Replay && opts.requestId) {
       const replay = await readLog<O>(ctx.db, ctx, cmd, opts.requestId)
       if (replay) return replay
-      throw new MotionError('conflict', 'Request is still being processed; retry shortly')
+      throw new MovaraError('conflict', 'Request is still being processed; retry shortly')
     }
     throw e
   }
@@ -202,12 +202,12 @@ async function readLog<O>(db: Db, ctx: Ctx, cmd: Command<any, any>, requestId: s
     .limit(1)
   if (!row || row.status !== 'done') return null
   if (row.command !== cmd.name || row.actorId !== ctx.actor.id) {
-    throw new MotionError('conflict', 'requestId was already used for a different request')
+    throw new MovaraError('conflict', 'requestId was already used for a different request')
   }
   const res = row.response as (ExecuteResult<O> & { redacted?: boolean }) | null
   if (!res) return null
   if ((res as { redacted?: boolean }).redacted) {
-    throw new MotionError('conflict', 'This request already succeeded; its result was redacted and cannot be replayed', { auditId: (res as { auditId?: string }).auditId })
+    throw new MovaraError('conflict', 'This request already succeeded; its result was redacted and cannot be replayed', { auditId: (res as { auditId?: string }).auditId })
   }
   return { ...res, replayed: true }
 }

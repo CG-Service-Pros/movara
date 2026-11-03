@@ -1,4 +1,4 @@
-import { execute, getVision, getVisionRevision, listVisionRevisions, visionCreateDraft, visionDiscardDraft, visionProposeChange, visionPublish, visionUpdateDraft } from '@motion/core'
+import { execute, getVision, getVisionRevision, listVisionRevisions, visionCreateDraft, visionDiscardDraft, visionProposeChange, visionPublish, visionUpdateDraft } from '@movara/core'
 import { fromExecute } from '../respond'
 import type { HandlerMap } from '../types'
 

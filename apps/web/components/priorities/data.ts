@@ -1,5 +1,5 @@
 import 'server-only'
-import { getPriority, listActivity, listAgents, listPeople, type Ctx, type Terms } from '@motion/core'
+import { getPriority, listActivity, listAgents, listPeople, type Ctx, type Terms } from '@movara/core'
 import { buildActivityItems, type ActivityItem, type AuditEventLike } from '@/components/shell/activity-feed'
 import type { PriorityDetailData, PLevel, PStatus } from './types'
 

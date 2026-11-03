@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { execute, isMotionError, visionCreateDraft, visionDiscardDraft, visionPublish, visionUpdateDraft, type VisionSections } from '@motion/core'
+import { execute, isMovaraError, visionCreateDraft, visionDiscardDraft, visionPublish, visionUpdateDraft, type VisionSections } from '@movara/core'
 import { getCtx } from '@/lib/ctx'
 
 export type ActionResult = { ok: true; needsApproval?: boolean } | { ok: false; error: string }
@@ -11,7 +11,7 @@ async function run(slug: string, fn: (ctx: Awaited<ReturnType<typeof getCtx>>) =
   try {
     return await fn(ctx)
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }

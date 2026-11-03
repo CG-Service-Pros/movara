@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { execute, isMotionError, meetingSeriesCreate, meetingStart, zonedToUtc, getOrg } from '@motion/core'
+import { execute, isMovaraError, meetingSeriesCreate, meetingStart, zonedToUtc, getOrg } from '@movara/core'
 import { getCtx } from '@/lib/ctx'
 
 export type CreateSeriesInput = {
@@ -39,7 +39,7 @@ export async function createSeries(slug: string, input: CreateSeriesInput): Prom
     revalidatePath(`/${slug}/meetings`)
     return { ok: true, id: r.data.series.id }
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }
@@ -53,7 +53,7 @@ export async function startSeries(slug: string, seriesId: string): Promise<{ ok:
     if (!r.ok) return { ok: false, error: 'Sent for approval' }
     id = r.data.id
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
   revalidatePath(`/${slug}/meetings`)

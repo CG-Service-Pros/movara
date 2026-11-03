@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { and, eq, gt, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { orgs, people, teamMembers, ROLES, type Db } from '@motion/db'
+import { orgs, people, teamMembers, ROLES, type Db } from '@movara/db'
 import { actingPersonId, hasRole, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
 import { defineCommand } from '../runner'
 import { brandImage } from '../org/commands'
@@ -39,9 +39,9 @@ export const peopleAdd = defineCommand({
   input: z.object({ name: z.string().trim().min(1).max(80), email, role: role.default('member'), timezone: z.string().optional() }),
   summary: (i) => `Add ${i.name} (${i.email}) as ${i.role}`,
   run: async (ctx, input) => {
-    if (input.role === 'owner' && ctx.role !== 'owner') throw new MotionError('forbidden', 'Only an owner can add another owner')
+    if (input.role === 'owner' && ctx.role !== 'owner') throw new MovaraError('forbidden', 'Only an owner can add another owner')
     const existing = await ctx.db.select({ id: people.id, deletedAt: people.deletedAt }).from(people).where(and(eq(people.orgId, ctx.orgId), eq(people.email, input.email))).limit(1)
-    if (existing[0] && !existing[0].deletedAt) throw new MotionError('conflict', 'Someone with that email is already a member')
+    if (existing[0] && !existing[0].deletedAt) throw new MovaraError('conflict', 'Someone with that email is already a member')
     const inv = newInvite()
     if (existing[0]) {
       // Re-add a previously removed person (must redeem a fresh invite).
@@ -68,7 +68,7 @@ export const peopleCreateInvite = defineCommand({
   run: async (ctx, input) => {
     const [p] = await ctx.db.select().from(people).where(scoped(people, ctx, eq(people.id, input.personId))).limit(1)
     const person = found(p, 'Person')
-    if (person.userId) throw new MotionError('conflict', 'This person has already joined')
+    if (person.userId) throw new MovaraError('conflict', 'This person has already joined')
     const inv = newInvite()
     await ctx.db.update(people).set({ inviteTokenHash: inv.hash, inviteExpiresAt: inv.expiresAt, ...touch(people, ctx) }).where(scoped(people, ctx, eq(people.id, input.personId)))
     return { data: { personId: person.id, email: person.email, name: person.name, inviteToken: inv.token, expiresAt: inv.expiresAt }, entity: { type: 'person', id: person.id }, before: null, after: { invite: 'reissued' } }
@@ -85,8 +85,8 @@ export const peopleUpdateRole = defineCommand({
     const [p] = await ctx.db.select().from(people).where(scoped(people, ctx, eq(people.id, input.personId))).limit(1)
     const before = found(p, 'Person')
     assertVersion(before, h.expectedVersion)
-    if ((input.role === 'owner' || before.role === 'owner') && ctx.role !== 'owner') throw new MotionError('forbidden', 'Only an owner can change owner roles')
-    if (before.role === 'owner' && input.role !== 'owner' && (await ownerCount(ctx)) <= 1) throw new MotionError('conflict', 'An organization needs at least one owner')
+    if ((input.role === 'owner' || before.role === 'owner') && ctx.role !== 'owner') throw new MovaraError('forbidden', 'Only an owner can change owner roles')
+    if (before.role === 'owner' && input.role !== 'owner' && (await ownerCount(ctx)) <= 1) throw new MovaraError('conflict', 'An organization needs at least one owner')
     const [after] = await ctx.db.update(people).set({ role: input.role, ...touch(people, ctx) }).where(scoped(people, ctx, eq(people.id, input.personId))).returning()
     return { data: after!, entity: { type: 'person', id: after!.id }, before: { role: before.role }, after: { role: after!.role } }
   },
@@ -105,7 +105,7 @@ export const peopleUpdate = defineCommand({
     reminderSchedule: z.object({ enabled: z.boolean().optional(), day: z.number().int().min(0).max(6).optional(), time: z.string().optional() }).optional(),
   }),
   run: async (ctx, input, h) => {
-    if (input.personId !== actingPersonId(ctx) && !hasRole(ctx, 'admin')) throw new MotionError('forbidden', 'You can only edit your own profile')
+    if (input.personId !== actingPersonId(ctx) && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', 'You can only edit your own profile')
     const [p] = await ctx.db.select().from(people).where(scoped(people, ctx, eq(people.id, input.personId))).limit(1)
     const before = found(p, 'Person')
     assertVersion(before, h.expectedVersion)
@@ -127,8 +127,8 @@ export const peopleRemove = defineCommand({
     const before = found(p, 'Person')
     assertVersion(before, h.expectedVersion)
     if (before.role === 'owner') {
-      if (ctx.role !== 'owner') throw new MotionError('forbidden', 'Only an owner can remove an owner')
-      if ((await ownerCount(ctx)) <= 1) throw new MotionError('conflict', 'An organization needs at least one owner')
+      if (ctx.role !== 'owner') throw new MovaraError('forbidden', 'Only an owner can remove an owner')
+      if ((await ownerCount(ctx)) <= 1) throw new MovaraError('conflict', 'An organization needs at least one owner')
     }
     await ctx.db.update(people).set(softDelete(people, ctx)).where(scoped(people, ctx, eq(people.id, input.personId)))
     await ctx.db.update(teamMembers).set(softDelete(teamMembers, ctx)).where(scoped(teamMembers, ctx, eq(teamMembers.personId, input.personId)))
@@ -153,7 +153,7 @@ export async function getInvite(db: Db, token: string) {
  * Single use: the token is cleared on success. Not a command: no org context before this.
  */
 export async function acceptInvite(db: Db, token: string, userId: string): Promise<{ orgId: string; slug: string; personId: string }> {
-  const bad = () => new MotionError('not_found', 'This invitation link is invalid, expired or already used')
+  const bad = () => new MovaraError('not_found', 'This invitation link is invalid, expired or already used')
   if (!token || token.length > 200) throw bad()
   return db.transaction(async (tx) => {
     const [p] = await tx
@@ -164,7 +164,7 @@ export async function acceptInvite(db: Db, token: string, userId: string): Promi
       .limit(1)
     if (!p) throw bad()
     const [dup] = await tx.select({ id: people.id }).from(people).where(and(eq(people.orgId, p.orgId), eq(people.userId, userId), isNull(people.deletedAt))).limit(1)
-    if (dup) throw new MotionError('conflict', 'This account is already a member of that organization')
+    if (dup) throw new MovaraError('conflict', 'This account is already a member of that organization')
     const rows = await tx
       .update(people)
       .set({ userId, inviteTokenHash: null, inviteExpiresAt: null, updatedAt: new Date() })

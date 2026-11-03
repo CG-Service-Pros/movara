@@ -1,7 +1,7 @@
 import {
   actingPersonId,
   currentQuarter,
-  isMotionError,
+  isMovaraError,
   isQuarterLabel,
   listPeople,
   listPriorities,
@@ -9,7 +9,7 @@ import {
   prioritiesSummary,
   quarterRange,
   shiftQuarter,
-} from '@motion/core'
+} from '@movara/core'
 import { loadPriorityDetail } from '@/components/priorities/data'
 import { PrioritiesView } from '@/components/priorities/priorities-view'
 import type { Labels, PLevel, PStatus, PriorityItem, Tab } from '@/components/priorities/types'
@@ -51,7 +51,7 @@ export default async function PrioritiesPage({ params, searchParams }: { params:
     try {
       detail = await loadPriorityDetail(ctx, sp.id, terms)
     } catch (e) {
-      if (!isMotionError(e)) throw e
+      if (!isMovaraError(e)) throw e
     }
   }
 

@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@motion/ui/theme.css';
+@import '@movara/ui/theme.css';
 
 /* Tailwind must scan the shared UI package too (it lives outside this app). */
 @source '../../../packages/ui/src';

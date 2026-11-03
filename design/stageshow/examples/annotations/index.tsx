@@ -12,7 +12,7 @@ const studies = [
   { id: 'measure', title: 'Selection guides', note: 'Resize a card by its handle. Its guides and dimensions belong to the same box, including on the return drag.' },
   { id: 'flow', title: 'A request and its reply', note: 'Send a billing event. The solid request points out; the dashed acknowledgement returns only after the receipt arrives.' },
   { id: 'branch', title: 'A shared processing graph', note: 'Store one asset, then send it along a shared trunk to three jobs. Each branch meets its destination cleanly; Clear jobs dismisses the result.' },
-  { id: 'stream', title: 'An ongoing event stream', note: 'Connect the feed once. A quiet route stays fixed while moving dashes show events arriving in the activity table; reduced motion keeps its direction visible.' },
+  { id: 'stream', title: 'An ongoing event stream', note: 'Connect the feed once. A quiet route stays fixed while moving dashes show events arriving in the activity table; reduced movara keeps its direction visible.' },
   { id: 'follow', title: 'Following a layer', note: 'Arrange a selected layer. Its annotation travels and resizes with the object, then fades intact when selection clears.' },
 ] as const
 type Study = typeof studies[number]['id']

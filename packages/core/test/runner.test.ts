@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { auditEvents, approvals, requestLog, teams, type DbHandle } from '@motion/db'
-import { MotionError, approveApproval, declineApproval, defineCommand, execute, getTeam, listAudit, listApprovals, listTeams, teamsCreate, teamsUpdate, base, assertVersion } from '../src'
+import { auditEvents, approvals, requestLog, teams, type DbHandle } from '@movara/db'
+import { MovaraError, approveApproval, declineApproval, defineCommand, execute, getTeam, listAudit, listApprovals, listTeams, teamsCreate, teamsUpdate, base, assertVersion } from '../src'
 import { createTestDb, seedTestOrg } from '../src/testing'
 
 let db: DbHandle
@@ -126,7 +126,7 @@ describe('optimistic concurrency', () => {
     expect(c.data.version).toBe(1)
     await execute(ctx, teamsUpdate, { teamId: c.data.id, name: 'V2' }, { expectedVersion: 1 })
     const err = await execute(ctx, teamsUpdate, { teamId: c.data.id, name: 'V3' }, { expectedVersion: 1 }).catch((e) => e)
-    expect(err).toBeInstanceOf(MotionError)
+    expect(err).toBeInstanceOf(MovaraError)
     expect(err.code).toBe('conflict')
     expect(err.details.current.version).toBe(2)
     expect((await getTeam(ctx, c.data.id)).name).toBe('V2')
@@ -135,7 +135,7 @@ describe('optimistic concurrency', () => {
   it('assertVersion passes when undefined or equal', () => {
     expect(() => assertVersion({ version: 3 }, undefined)).not.toThrow()
     expect(() => assertVersion({ version: 3 }, 3)).not.toThrow()
-    expect(() => assertVersion({ version: 3 }, 2)).toThrow(MotionError)
+    expect(() => assertVersion({ version: 3 }, 2)).toThrow(MovaraError)
   })
 })
 

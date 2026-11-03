@@ -1,9 +1,9 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { Button } from '@motion/ui/button'
-import { Field } from '@motion/ui/field'
-import { Input } from '@motion/ui/input'
+import { Button } from '@movara/ui/button'
+import { Field } from '@movara/ui/field'
+import { Input } from '@movara/ui/input'
 import { createOrgAction, type OnboardingState } from './actions'
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40)

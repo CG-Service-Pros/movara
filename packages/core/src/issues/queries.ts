@@ -1,5 +1,5 @@
 import { asc, desc, eq, inArray, type SQL } from 'drizzle-orm'
-import { issues } from '@motion/db'
+import { issues } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
 import { found, scoped } from '../helpers'
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { AgentMark } from '@motion/ui/agent-mark'
-import { StatusGlyph } from '@motion/ui/status-glyph'
-import { cn } from '@motion/ui/cn'
+import { AgentMark } from '@movara/ui/agent-mark'
+import { StatusGlyph } from '@movara/ui/status-glyph'
+import { cn } from '@movara/ui/cn'
 import { fmtMonthYear, fmtYear, type FullSections, type IssueLite, type PriorityLite, type VisionLabels } from './shared'
 
 export function Col({ title, children }: { title: string; children: ReactNode }) {

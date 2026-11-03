@@ -1,8 +1,8 @@
 import { asc, eq, inArray } from 'drizzle-orm'
-import { milestones, priorities } from '@motion/db'
+import { milestones, priorities } from '@movara/db'
 import { weekOfQuarter, todayIn, currentQuarter, isQuarterLabel } from '../calendar'
 import { requireRead, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { found, scoped } from '../helpers'
 import { getOrg } from '../org'
 
@@ -29,7 +29,7 @@ export async function listPriorities(ctx: Ctx, input: ListPrioritiesInput = {}):
   requireRead(ctx)
   const org = await getOrg(ctx)
   const quarter = input.quarter ?? currentQuarter(org)
-  if (!isQuarterLabel(quarter)) throw new MotionError('validation', 'quarter must look like 2026-Q4')
+  if (!isQuarterLabel(quarter)) throw new MovaraError('validation', 'quarter must look like 2026-Q4')
   const statuses = input.status === undefined ? undefined : Array.isArray(input.status) ? input.status : [input.status]
   const rows = await ctx.db
     .select()

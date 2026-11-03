@@ -2,10 +2,10 @@
 
 import { Check, Download, PackagePlus, Pencil, RotateCcw, Undo2 } from 'lucide-react'
 import { useState } from 'react'
-import { Badge } from '@motion/ui/badge'
-import { Button } from '@motion/ui/button'
-import { Input } from '@motion/ui/input'
-import { toast } from '@motion/ui/toaster'
+import { Badge } from '@movara/ui/badge'
+import { Button } from '@movara/ui/button'
+import { Input } from '@movara/ui/input'
+import { toast } from '@movara/ui/toaster'
 import { applyPack, resetToStandard, revertPack, saveOverrides, type PackPreview } from '@/app/(app)/[org]/settings/actions'
 import { ImportPackDialog, PackPreviewCard } from './import-pack-dialog'
 import { Panel, Section } from './ui'
@@ -86,7 +86,7 @@ export function TerminologyPanel(props: {
       </div>
 
       {props.preinstalled.length > 0 && (
-        <Section title="Preinstalled packs" description="Provided by this server (MOTION_TERMINOLOGY_PACKS).">
+        <Section title="Preinstalled packs" description="Provided by this server (MOVARA_TERMINOLOGY_PACKS).">
           <Panel>
             {props.preinstalled.map((p) => (
               <div key={p.spec} className="flex flex-col gap-3 px-4 py-3">
@@ -117,7 +117,7 @@ export function TerminologyPanel(props: {
         </Section>
       )}
 
-      <Section title="Terms" description="Every label in Motion comes from these. Custom overrides sit on top of the active pack and survive pack updates.">
+      <Section title="Terms" description="Every label in Movara comes from these. Custom overrides sit on top of the active pack and survive pack updates.">
         <div className="overflow-x-auto rounded-xl bg-surface shadow-panel">
           <table className="w-full min-w-[640px] text-left text-base" data-testid="terms-table">
             <thead>

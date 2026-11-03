@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { todos } from '@motion/db'
+import { todos } from '@movara/db'
 import type { Ctx } from '../ctx'
 import { assertVersion, found, scoped, softDelete, touch } from '../helpers'
 import { assertPeople, assertTeam, dateSchema, sourceSchema } from '../issues/internal'

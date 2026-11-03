@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import type { Terms } from '@motion/core'
+import type { Terms } from '@movara/core'
 
 const msg = (text: string) => ({ messages: [{ role: 'user' as const, content: { type: 'text' as const, text } }] })
 

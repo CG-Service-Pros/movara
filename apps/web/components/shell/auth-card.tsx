@@ -5,7 +5,7 @@ export function AuthCard({ title, subtitle, children, footer }: { title: string;
   return (
     <div className="grid min-h-screen place-items-center bg-canvas px-4">
       <div className="w-full max-w-[380px]">
-        <div className="mb-6 text-center text-lg font-[650] tracking-tight text-ink">Motion</div>
+        <div className="mb-6 text-center text-lg font-[650] tracking-tight text-ink">Movara</div>
         <div className="rounded-xl bg-surface p-6 shadow-panel">
           <h1 className="text-lg font-semibold text-ink">{title}</h1>
           {subtitle && <p className="mt-1 text-base text-body">{subtitle}</p>}

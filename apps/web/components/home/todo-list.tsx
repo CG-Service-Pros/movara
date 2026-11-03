@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { Checkbox } from '@motion/ui/checkbox'
-import { cn } from '@motion/ui/cn'
-import { toast } from '@motion/ui/toaster'
+import { Checkbox } from '@movara/ui/checkbox'
+import { cn } from '@movara/ui/cn'
+import { toast } from '@movara/ui/toaster'
 import { setTodoDoneAction } from './actions'
 
 export type HomeTodo = { id: string; title: string; dueLabel: string | null; overdue: boolean; pending: boolean }

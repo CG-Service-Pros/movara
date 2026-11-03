@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from 'react'
 import { cookies } from 'next/headers'
-import { listApprovals, listMembershipsForUser } from '@motion/core'
+import { listApprovals, listMembershipsForUser } from '@movara/core'
 import { AppShell } from '@/components/shell/app-shell'
 import { buildNav, buildQuickActions, buildSettingsNav, paletteItemsFrom } from '@/components/shell/nav'
 import { getDb } from '@/lib/db'
@@ -36,7 +36,7 @@ export default async function OrgLayout({ children, params }: { children: ReactN
           logoDark: org.branding.logoDark,
           orgs: memberships.map((m) => ({ slug: m.slug, name: m.name })),
           user: { name: session!.user.name, email: session!.user.email },
-          initialTheme: theme.get('motion-theme')?.value === 'dark' ? 'dark' : 'light',
+          initialTheme: theme.get('movara-theme')?.value === 'dark' ? 'dark' : 'light',
         }}
       >
         {children}

@@ -1,8 +1,8 @@
-> **Decision:** the product is named **Motion** (owner's choice, 2026-11-02). Note: usemotion.com is an unrelated commercial productivity app with the same name, so check trademarks before a public launch. The research below is kept for reference.
+> **Decision (2026-11-02):** the product is named **Movara**. "Motion" was used briefly but dropped because a well-known commercial app (usemotion.com) uses that name. In a quick search, "Movara" had no software company or product and its bare npm name was free. Run a formal trademark search before the public launch. The research below is kept for reference.
 
 # Naming research (2026-11-02)
 
-Goal: one word that feels like "Traction" (grip, forward motion). "Momentum" is excluded (owner's other project). Every bare .com checked is registered, and every bare GitHub handle is too. Plan on a suffixed domain (e.g. `get<name>.com`) or `.so` / `.dev`, plus a suffixed GitHub org.
+Goal: one word that feels like "Traction" (grip, forward movara). "Momentum" is excluded (owner's other project). Every bare .com checked is registered, and every bare GitHub handle is too. Plan on a suffixed domain (e.g. `get<name>.com`) or `.so` / `.dev`, plus a suffixed GitHub org.
 
 | Name | Why | Conflicts | npm (bare) | Domains free | Risk |
 |---|---|---|---|---|---|
@@ -15,6 +15,6 @@ Goal: one word that feels like "Traction" (grip, forward motion). "Momentum" is 
 | Traxion | sounds like traction | Grupo Traxión holds TRAXION trademarks | free | .dev, .so | High |
 | Cadency | cadence | Trintech Cadency (finance software, same buyers) | free | .so | High |
 
-Rejected: Torque (Quali Torque, npm taken), Cadence (Cadence Design Systems, Uber Cadence), Stride (crowded), Headway (Headway Inc, Headway mental health), Capstan, Footing, Impetus, Kinetic, Vector, Tempo, Grip, Motion (npm taken / too generic).
+Rejected: Torque (Quali Torque, npm taken), Cadence (Cadence Design Systems, Uber Cadence), Stride (crowded), Headway (Headway Inc, Headway mental health), Capstan, Footing, Impetus, Kinetic, Vector, Tempo, Grip, Movara (npm taken / too generic).
 
 Not checked: who owns the registered domains and GitHub handles, and a formal USPTO/EUIPO trademark search. Do the trademark search before committing to a name.

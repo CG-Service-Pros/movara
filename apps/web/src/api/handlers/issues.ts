@@ -1,4 +1,4 @@
-import { execute, getIssue, issueCreate, issueDrop, issueMove, issueReopen, issueSetRank, issueSolve, issueUpdate, listIssues } from '@motion/core'
+import { execute, getIssue, issueCreate, issueDrop, issueMove, issueReopen, issueSetRank, issueSolve, issueUpdate, listIssues } from '@movara/core'
 import { fromExecute } from '../respond'
 import type { ApiRequest, HandlerMap } from '../types'
 

@@ -5,7 +5,7 @@ import { hashApiKey, newId } from './ids'
 import * as s from './schema'
 import type { ActorJson } from './types'
 
-export const DEMO_LOGIN = { email: 'demo@motion.local', password: 'motion-demo', name: 'Oscar Hidalgo' } as const
+export const DEMO_LOGIN = { email: 'demo@movara.local', password: 'movara-demo', name: 'Oscar Hidalgo' } as const
 /** Demo-only API key for the seeded "Ops Agent". Never seed a production database. */
 export const DEMO_API_KEY = 'mk_live_demo_ops_agent_0000000000000000'
 
@@ -242,7 +242,7 @@ export async function seedDemo(db: Db): Promise<{ created: boolean; orgId: strin
           revenue: '$4.2M',
           profit: '14%',
           measurables: [],
-          goals: [{ text: 'Launch Motion Cloud for 50 paying teams' }, { text: 'Two certified implementation partners' }, { text: 'Net revenue retention above 110%' }],
+          goals: [{ text: 'Launch Movara Cloud for 50 paying teams' }, { text: 'Two certified implementation partners' }, { text: 'Net revenue retention above 110%' }],
         },
         longTermIssueIds: issueRows.filter((i) => i.horizon === 'long').map((i) => i.id),
       },

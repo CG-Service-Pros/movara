@@ -1,18 +1,18 @@
-# Motion documentation
+# Movara documentation
 
 ## Using and connecting
 
 - [mcp-setup.md](mcp-setup.md): connect Claude, Cursor, n8n or any HTTP client over MCP
 - [mcp-tools.md](mcp-tools.md): the MCP tool catalog
 - [terminology-packs.md](terminology-packs.md): packs, importing, overrides, rules for agents
-- [core-api.md](core-api.md): `@motion/core` commands and queries (and the REST API built on them)
+- [core-api.md](core-api.md): `@movara/core` commands and queries (and the REST API built on them)
 
 ## Deploying
 
 - [deploy-docker.md](deploy-docker.md): Docker Compose self-hosting (Postgres + web + MCP)
 - [deploy-vercel-supabase.md](deploy-vercel-supabase.md): Vercel + Supabase, with MCP hosting notes
 
-## Building Motion
+## Building Movara
 
 - [architecture.md](architecture.md): principles, monorepo layout, data model
 - [engineering.md](engineering.md): stack and conventions (read before writing code)

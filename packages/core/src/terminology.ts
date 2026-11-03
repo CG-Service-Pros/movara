@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm'
-import { orgs } from '@motion/db'
-import { resolveTerm, type Term, type TermKey, type TermOverrides, type TerminologyPack } from '@motion/terminology'
+import { orgs } from '@movara/db'
+import { resolveTerm, type Term, type TermKey, type TermOverrides, type TerminologyPack } from '@movara/terminology'
 import type { Ctx } from './ctx'
 import { requireRead } from './ctx'
-import { MotionError } from './errors'
+import { MovaraError } from './errors'
 
 export type TermForm = 'singular' | 'plural' | 'short'
 
@@ -52,6 +52,6 @@ export function createTerms(pack?: TerminologyPack | null, overrides?: TermOverr
 export async function getTerms(ctx: Ctx): Promise<Terms> {
   requireRead(ctx)
   const [o] = await ctx.db.select({ pack: orgs.terminologyPack, overrides: orgs.terminologyOverrides }).from(orgs).where(eq(orgs.id, ctx.orgId)).limit(1)
-  if (!o) throw new MotionError('not_found', 'Organization not found')
+  if (!o) throw new MovaraError('not_found', 'Organization not found')
   return createTerms(o.pack, o.overrides)
 }

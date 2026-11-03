@@ -59,8 +59,8 @@ Auth: OAuth 2.1 (PKCE). Each agent gets its own client, owner and scopes.
 
 ## Resources (subscribable)
 
-`motion://org/overview` · `motion://quarter/current` · `motion://team/{id}/scorecard` ·
-`motion://meeting/{id}/live` (pushes state changes during a meeting).
+`movara://org/overview` · `movara://quarter/current` · `movara://team/{id}/scorecard` ·
+`movara://meeting/{id}/live` (pushes state changes during a meeting).
 
 ## Prompts
 

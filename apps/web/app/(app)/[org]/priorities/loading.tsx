@@ -1,4 +1,4 @@
-import { Skeleton } from '@motion/ui/skeleton'
+import { Skeleton } from '@movara/ui/skeleton'
 import { Page } from '@/components/shell/page'
 
 export default function Loading() {

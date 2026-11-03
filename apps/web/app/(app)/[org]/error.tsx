@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { Button } from '@motion/ui/button'
-import { EmptyState } from '@motion/ui/empty-state'
+import { Button } from '@movara/ui/button'
+import { EmptyState } from '@movara/ui/empty-state'
 
 /** Error boundary for every page under /{org}. Shows a calm message; never the stack trace. */
 export default function OrgError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    console.error('[motion] page error', error.digest ?? '')
+    console.error('[movara] page error', error.digest ?? '')
   }, [error])
   return (
     <div className="flex min-h-0 flex-1 items-center justify-center">

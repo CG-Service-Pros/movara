@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import {
-  endMeeting, execute, headlineCascade, headlinePost, idsFocus, idsResolve, idsSetStep, idsStart, isMotionError, issueUpdate, meetingCapture, meetingDropToIssue,
+  endMeeting, execute, headlineCascade, headlinePost, idsFocus, idsResolve, idsSetStep, idsStart, isMovaraError, issueUpdate, meetingCapture, meetingDropToIssue,
   meetingJoin, meetingNextSection, meetingPause, meetingRate, meetingResume, meetingReviewHeadline, meetingSetSection, meetingSetSettings, meetingSetShared,
   meetingStart, prioritySetStatus, todoComplete, todoUncomplete,
-} from '@motion/core'
+} from '@movara/core'
 import { loadBundle } from '@/components/meetings/bundle'
 import type { ActionResult } from '@/components/meetings/types'
 import { getCtx } from '@/lib/ctx'
@@ -77,7 +77,7 @@ export async function meetingAction(slug: string, meetingId: string, op: Meeting
     }
     return { ok: true, bundle: await loadBundle(ctx, meetingId) }
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }

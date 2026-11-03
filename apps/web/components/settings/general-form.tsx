@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@motion/ui/button'
-import { Field } from '@motion/ui/field'
-import { Input } from '@motion/ui/input'
+import { Button } from '@movara/ui/button'
+import { Field } from '@movara/ui/field'
+import { Input } from '@movara/ui/input'
 import { updateGeneral } from '@/app/(app)/[org]/settings/actions'
 import { Panel } from './ui'
 import { useSave } from './use-save'

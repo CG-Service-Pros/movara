@@ -1,7 +1,7 @@
-import { currentQuarter, getVisionRevision, getVision, hasRole, listAgents, listApprovals, listIssues, listPeople, listPriorities, listVisionRevisions, sectionsOf, isMotionError } from '@motion/core'
-import { EmptyState } from '@motion/ui/empty-state'
-import { Badge } from '@motion/ui/badge'
-import { Button } from '@motion/ui/button'
+import { currentQuarter, getVisionRevision, getVision, hasRole, listAgents, listApprovals, listIssues, listPeople, listPriorities, listVisionRevisions, sectionsOf, isMovaraError } from '@movara/core'
+import { EmptyState } from '@movara/ui/empty-state'
+import { Badge } from '@movara/ui/badge'
+import { Button } from '@movara/ui/button'
 import { Target } from 'lucide-react'
 import Link from 'next/link'
 import { NavIcon } from '@/components/shell/icons'
@@ -43,7 +43,7 @@ export default async function VisionPage({ params, searchParams }: { params: Pro
         viewingOld = r.id !== view.published?.id
       }
     } catch (e) {
-      if (!isMotionError(e)) throw e
+      if (!isMovaraError(e)) throw e
     }
   }
   const editing = sp.edit && view.draft && hasRole(ctx, 'member') ? view.draft : null

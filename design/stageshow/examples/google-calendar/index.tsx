@@ -24,7 +24,7 @@ const initial: S = {
   snack: false,
 }
 
-// Reduced motion shows the payoff: the event saved into the grid
+// Reduced movara shows the payoff: the event saved into the grid
 const poster: S = { ...initial, draft: { show: true, start: 780, end: 870 }, saved: true, title: 'Design review' }
 
 // Geometry per layout. Minutes are from midnight.

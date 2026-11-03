@@ -106,7 +106,7 @@ function request(u: URL, opts: SafeFetchOptions, timeoutMs: number): Promise<{ s
       clearTimeout(timer)
       fn()
     }
-    const req = https.request(u, { method: 'GET', lookup: guardedLookup, headers: { accept: opts.accept ?? 'application/json', 'user-agent': 'motion-pack-import' } }, (res) => {
+    const req = https.request(u, { method: 'GET', lookup: guardedLookup, headers: { accept: opts.accept ?? 'application/json', 'user-agent': 'movara-pack-import' } }, (res) => {
       const status = res.statusCode ?? 0
       const location = typeof res.headers.location === 'string' ? res.headers.location : undefined
       if (status >= 300 && status < 400) {

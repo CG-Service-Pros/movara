@@ -1,4 +1,4 @@
-import { Skeleton } from '@motion/ui/skeleton'
+import { Skeleton } from '@movara/ui/skeleton'
 
 /** Default loading state for pages under /{org} (areas with their own loading.tsx override it). */
 export default function Loading() {

@@ -1,10 +1,10 @@
 import { ChevronRight, ListFilter, Plus } from 'lucide-react'
 import { Avatar, Check, Collapse, Count, Meter, Stage, Text, Window, type Act } from '../../kit'
-import { AgentMark, Sidebar, StatusGlyph, StatusPill, type Status } from '../_motion/shared'
-import '../_motion/motion.css'
+import { AgentMark, Sidebar, StatusGlyph, StatusPill, type Status } from '../_movara/shared'
+import '../_movara/movara.css'
 import './priorities.css'
 
-// Motion's home screen for a team: this quarter's priorities, with the
+// Movara's home screen for a team: this quarter's priorities, with the
 // selected one open in a detail pane. The story is the product's reason to
 // exist: an agent, working through the MCP server, ticks a milestone and
 // the change lands everywhere at once (the checklist, the progress in the
@@ -63,9 +63,9 @@ function PriorityRow({ p, s }: { p: P; s: S }) {
   )
 }
 
-export default function MotionPriorities({ theme = 'light' }: { theme?: 'light' | 'dark' }) {
+export default function MovaraPriorities({ theme = 'light' }: { theme?: 'light' | 'dark' }) {
   return (
-    <Stage width={1000} height={560} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" theme={theme} className="motion kp">
+    <Stage width={1000} height={560} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" theme={theme} className="movara kp">
       {(s) => {
         const sel = ROWS[0]!
         const doneCount = sel.m[0] + (s.done ? 1 : 0)

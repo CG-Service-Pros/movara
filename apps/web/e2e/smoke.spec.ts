@@ -11,8 +11,8 @@ test('demo flow: priorities, scorecard, issues, terminology pack', async ({ page
 
   // --- Sign in as the seeded demo user -------------------------------------------------
   await page.goto('/sign-in')
-  await page.getByLabel('Email').fill('demo@motion.local')
-  await page.getByLabel('Password').fill('motion-demo')
+  await page.getByLabel('Email').fill('demo@movara.local')
+  await page.getByLabel('Password').fill('movara-demo')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL('**/vindex**')
 

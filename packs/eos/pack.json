@@ -1,12 +1,12 @@
 {
-  "$schema": "https://unpkg.com/@motion/terminology/schema/terminology-pack.schema.json",
+  "$schema": "https://unpkg.com/@movara/terminology/schema/terminology-pack.schema.json",
   "id": "community.eos",
   "name": "EOS",
   "version": "1.0.0",
   "locale": "en",
   "format": 1,
   "description": "Terminology used by companies running on EOS. Community pack; not affiliated with or endorsed by EOS Worldwide.",
-  "author": "Motion community",
+  "author": "Movara community",
   "license": "Apache-2.0",
   "attribution": "EOS\u00ae, Traction\u00ae, Level 10 Meeting\u2122, V/TO\u2122 and related terms are trademarks of EOS Worldwide, LLC. This pack is not affiliated with or endorsed by EOS Worldwide.",
   "terms": {

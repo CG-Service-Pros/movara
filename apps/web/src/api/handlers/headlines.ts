@@ -1,4 +1,4 @@
-import { execute, getHeadline, headlineCascade, headlineDelete, headlineMarkReviewed, headlinePost, headlineUpdate, listHeadlines } from '@motion/core'
+import { execute, getHeadline, headlineCascade, headlineDelete, headlineMarkReviewed, headlinePost, headlineUpdate, listHeadlines } from '@movara/core'
 import { fromExecute } from '../respond'
 import type { ApiRequest, HandlerMap } from '../types'
 

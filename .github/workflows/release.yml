@@ -1,6 +1,6 @@
 # Manual npm publish for the two public packages. Changesets is not set up yet.
 # Requires the NPM_TOKEN repository secret (an npm automation token with publish rights
-# to the @motion and @motion-community scopes).
+# to the @movara and @movara-community scopes).
 name: Release (npm)
 
 on:
@@ -11,8 +11,8 @@ on:
         type: choice
         options:
           - all
-          - "@motion/terminology"
-          - "@motion-community/pack-eos"
+          - "@movara/terminology"
+          - "@movara-community/pack-eos"
         default: all
       dry_run:
         description: Dry run (npm publish --dry-run)
@@ -37,13 +37,13 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @motion/terminology typecheck
-      - run: pnpm --filter @motion/terminology test
+      - run: pnpm --filter @movara/terminology typecheck
+      - run: pnpm --filter @movara/terminology test
 
       # pnpm publish applies "publishConfig" overrides (exports -> dist) before packing.
       # npm publish would ship the monorepo-only TypeScript-source "exports" field.
-      - name: Publish @motion/terminology
-        if: inputs.package == 'all' || inputs.package == '@motion/terminology'
+      - name: Publish @movara/terminology
+        if: inputs.package == 'all' || inputs.package == '@movara/terminology'
         working-directory: packages/terminology
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -52,8 +52,8 @@ jobs:
           pnpm build
           pnpm publish --access public --no-git-checks ${{ inputs.dry_run && '--dry-run' || '' }}
 
-      - name: Publish @motion-community/pack-eos
-        if: inputs.package == 'all' || inputs.package == '@motion-community/pack-eos'
+      - name: Publish @movara-community/pack-eos
+        if: inputs.package == 'all' || inputs.package == '@movara-community/pack-eos'
         working-directory: packs/eos
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

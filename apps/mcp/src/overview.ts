@@ -1,7 +1,7 @@
 import {
   currentQuarter, getOrg, getScorecard, listPriorities, listTeams, prioritiesSummary, quarterRange, weekOfQuarter,
   todayIn, type Ctx, type Terms,
-} from '@motion/core'
+} from '@movara/core'
 import { compact } from './format'
 
 /** Concepts an agent most needs the vocabulary for. */

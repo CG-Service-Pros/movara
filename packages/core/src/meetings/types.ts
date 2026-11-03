@@ -1,4 +1,4 @@
-import type { AgendaItemJson } from '@motion/db'
+import type { AgendaItemJson } from '@movara/db'
 
 export type SectionTimer = { elapsedMs: number; runningSince: string | null }
 export type IdsStatus = 'idle' | 'prioritizing' | 'discussing' | 'complete'

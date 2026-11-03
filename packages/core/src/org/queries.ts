@@ -1,5 +1,5 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import { orgs, type Db } from '@motion/db'
+import { orgs, type Db } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
 import { found } from '../helpers'
 

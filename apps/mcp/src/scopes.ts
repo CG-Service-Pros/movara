@@ -1,4 +1,4 @@
-import type { Ctx, Scope } from '@motion/core'
+import type { Ctx, Scope } from '@movara/core'
 
 export const allowed = (ctx: Ctx, scope: Scope | Scope[]): boolean => {
   if (ctx.scopes === 'all') return true

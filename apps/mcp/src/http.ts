@@ -1,13 +1,13 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { Readable } from 'node:stream'
-import { createDb, migrate, seedIfEmpty } from '@motion/db'
+import { createDb, migrate, seedIfEmpty } from '@movara/db'
 import { createMcpHttpHandler } from './http-handler'
 
 /** Standalone streamable-HTTP MCP server. Env: DATABASE_URL (postgres:// or pglite://dir), PORT (3333). */
 async function main() {
   const db = createDb(process.env.DATABASE_URL)
   await migrate(db)
-  const seed = process.env.MOTION_SEED_DEMO ? process.env.MOTION_SEED_DEMO !== '0' : db.$driver === 'pglite'
+  const seed = process.env.MOVARA_SEED_DEMO ? process.env.MOVARA_SEED_DEMO !== '0' : db.$driver === 'pglite'
   if (seed) await seedIfEmpty(db)
   const handle = createMcpHttpHandler({ getDb: async () => db })
   const port = Number(process.env.PORT ?? 3333)
@@ -51,12 +51,12 @@ async function main() {
       }
       await send(res, await handle(toRequest(req)), () => {})
     } catch (e) {
-      console.error('[motion-mcp]', e)
+      console.error('[movara-mcp]', e)
       if (!res.headersSent) res.writeHead(500, { 'content-type': 'application/json' })
       res.end('{"error":"internal"}')
     }
   })
-  server.listen(port, () => console.error(`[motion-mcp] streamable HTTP on http://localhost:${port}/mcp (${db.$driver})`))
+  server.listen(port, () => console.error(`[movara-mcp] streamable HTTP on http://localhost:${port}/mcp (${db.$driver})`))
   const shutdown = () => { server.close(); void db.$close().finally(() => process.exit(0)) }
   process.on('SIGINT', shutdown)
   process.on('SIGTERM', shutdown)

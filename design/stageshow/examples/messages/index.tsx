@@ -8,7 +8,7 @@ import './messages.css'
 
 type S = { draft: string; sent: boolean; delivered: boolean; read: boolean; typing: boolean; reply: boolean }
 const initial: S = { draft: '', sent: false, delivered: false, read: false, typing: false, reply: false }
-// Reduced motion shows the whole exchange
+// Reduced movara shows the whole exchange
 const poster: S = { ...initial, sent: true, delivered: true, read: true, reply: true }
 const MINE = 'Yes! See you at 7'
 

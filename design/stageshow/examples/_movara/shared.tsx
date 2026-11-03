@@ -1,8 +1,8 @@
 import { Bot, Building2, CalendarDays, ChevronDown, Gauge, KeyRound, LayoutGrid, Palette, ScrollText, Type, Home, ListChecks, Mountain, Network, Search, Target, TriangleAlert, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
-import './motion.css'
+import './movara.css'
 
-// Shared pieces for every Motion mockup: the white-label sidebar, the agent
+// Shared pieces for every Movara mockup: the white-label sidebar, the agent
 // mark and the priority status glyph. Icons: lucide-react, chosen on
 // purpose for its even 1.7 stroke, one size (15px) throughout.
 

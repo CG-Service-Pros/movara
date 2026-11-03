@@ -1,4 +1,4 @@
-import { execute, getTodo, listTodos, todoComplete, todoCreate, todoDelete, todoUncomplete, todoUpdate } from '@motion/core'
+import { execute, getTodo, listTodos, todoComplete, todoCreate, todoDelete, todoUncomplete, todoUpdate } from '@movara/core'
 import { fromExecute } from '../respond'
 import type { ApiRequest, HandlerMap } from '../types'
 

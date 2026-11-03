@@ -1,6 +1,6 @@
 # Connecting agents over MCP
 
-Motion exposes its tool catalog (`docs/mcp-tools.md`) over the Model Context Protocol, so Claude, Cursor, n8n or your own
+Movara exposes its tool catalog (`docs/mcp-tools.md`) over the Model Context Protocol, so Claude, Cursor, n8n or your own
 agent can read the company's rhythm and write to it with the same rules as people (scopes, approvals, audit, idempotency).
 
 Two servers, same code (`apps/mcp/src/server.ts`):
@@ -8,26 +8,26 @@ Two servers, same code (`apps/mcp/src/server.ts`):
 | Where | URL | Use |
 |---|---|---|
 | Web app route | `https://<host>/mcp` (`apps/web/app/mcp/route.ts`) | Normal deployments: needs a long-running Node server (sessions are in memory) |
-| Standalone | `pnpm --filter @motion/mcp start` -> `http://localhost:3333/mcp` | Same database, own process (`DATABASE_URL`, `PORT`) |
-| stdio | `pnpm --filter @motion/mcp start:stdio` | Local clients that spawn a process |
+| Standalone | `pnpm --filter @movara/mcp start` -> `http://localhost:3333/mcp` | Same database, own process (`DATABASE_URL`, `PORT`) |
+| stdio | `pnpm --filter @movara/mcp start:stdio` | Local clients that spawn a process |
 
 ## 1. Choose how the client authenticates
 
 | Method | Use for | How |
 |---|---|---|
-| **OAuth 2.1** (recommended) | Claude Desktop, Claude Code, ChatGPT custom connectors, Cursor: anything that supports remote MCP with sign-in | Add `https://<host>/mcp`; the client opens a Motion sign-in + consent page. No key to copy. |
+| **OAuth 2.1** (recommended) | Claude Desktop, Claude Code, ChatGPT custom connectors, Cursor: anything that supports remote MCP with sign-in | Add `https://<host>/mcp`; the client opens a Movara sign-in + consent page. No key to copy. |
 | **API key** (`mk_live_…`) | n8n, scripts, servers, clients without OAuth, stdio | Settings -> Agents -> create an agent -> issue a key (shown once). |
 
 Both work on the same `/mcp` endpoint (the token prefix tells them apart: `mo_at_…` is OAuth, `mk_live_…` is a key) and both resolve to a
-Motion **agent** with scopes, approvals, audit and idempotency. Demo key (seeded demo org only): `mk_live_demo_ops_agent_0000000000000000`.
+Movara **agent** with scopes, approvals, audit and idempotency. Demo key (seeded demo org only): `mk_live_demo_ops_agent_0000000000000000`.
 
 ### How OAuth works here
 
-- Motion is its own authorization server (no Better Auth OAuth plugin is shipped in better-auth 1.7; the code lives in
+- Movara is its own authorization server (no Better Auth OAuth plugin is shipped in better-auth 1.7; the code lives in
   `packages/core/src/agents/oauth.ts`). Discovery: `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource`
   (a request to `/mcp` without credentials answers `401` with a `WWW-Authenticate: Bearer resource_metadata=…` header).
 - Clients register themselves (dynamic client registration, `POST /api/auth/oauth2/register`), then run authorization code + PKCE (S256 only)
-  at `/oauth/authorize`. You sign in to Motion, **pick the organization** and **tick the scopes** the client gets, and press Allow.
+  at `/oauth/authorize`. You sign in to Movara, **pick the organization** and **tick the scopes** the client gets, and press Allow.
 - The first consent creates an **agent** in that org (name = the client's name, owner = you, client = "`<client> · OAuth`"). It shows up in
   Settings -> Agents like any other agent; later consents from the same client reuse it. You can lower its scopes there at any time.
 - **Revoking the agent in Settings immediately revokes its OAuth tokens** (access and refresh). Pausing it blocks them until resumed.
@@ -41,38 +41,38 @@ Motion **agent** with scopes, approvals, audit and idempotency. Demo key (seeded
 MCP server URL; ChatGPT custom connectors need a public `https://` URL, e.g. a tunnel while testing) and **Cursor** (`.cursor/mcp.json`):
 
 1. Enter the URL `https://<host>/mcp` (leave client id / secret empty: the client registers itself) and authentication **OAuth**.
-2. A browser window opens at Motion. Sign in, choose the organization, adjust the scopes, **Allow**.
+2. A browser window opens at Movara. Sign in, choose the organization, adjust the scopes, **Allow**.
 3. The client lists the tools. Start with `org_overview`.
 
 **Claude Code**
 
 ```bash
-claude mcp add --transport http motion https://<host>/mcp     # then run /mcp inside Claude Code and choose "Authenticate"
+claude mcp add --transport http movara https://<host>/mcp     # then run /mcp inside Claude Code and choose "Authenticate"
 ```
 
 With an API key instead of OAuth:
 
 ```bash
-claude mcp add --transport http motion http://localhost:3000/mcp \
+claude mcp add --transport http movara http://localhost:3000/mcp \
   --header "Authorization: Bearer mk_live_…"
 ```
 
 **Claude Desktop / Cursor with an API key** (`claude_desktop_config.json` / `.cursor/mcp.json`). Remote HTTP:
 
 ```json
-{ "mcpServers": { "motion": { "url": "https://motion.example.com/mcp", "headers": { "Authorization": "Bearer mk_live_…" } } } }
+{ "mcpServers": { "movara": { "url": "https://movara.example.com/mcp", "headers": { "Authorization": "Bearer mk_live_…" } } } }
 ```
 
 or stdio (clients without HTTP header support):
 
 ```json
-{ "mcpServers": { "motion": {
-  "command": "pnpm", "args": ["--filter", "@motion/mcp", "start:stdio"], "cwd": "/path/to/motion",
-  "env": { "MOTION_API_KEY": "mk_live_…", "DATABASE_URL": "postgres://…" }
+{ "mcpServers": { "movara": {
+  "command": "pnpm", "args": ["--filter", "@movara/mcp", "start:stdio"], "cwd": "/path/to/movara",
+  "env": { "MOVARA_API_KEY": "mk_live_…", "DATABASE_URL": "postgres://…" }
 } } }
 ```
 
-stdio needs `MOTION_API_KEY` and `DATABASE_URL` (blank / `pglite://dir` = embedded dev DB; do not share a PGlite dir between processes).
+stdio needs `MOVARA_API_KEY` and `DATABASE_URL` (blank / `pglite://dir` = embedded dev DB; do not share a PGlite dir between processes).
 
 **n8n / any HTTP client** (JSON-RPC, streamable HTTP). First `initialize`, keep the `Mcp-Session-Id` response header, then call tools:
 
@@ -99,7 +99,7 @@ In n8n use the MCP Client Tool node (endpoint URL, header auth `Authorization: B
   They return `{ ok, entity, auditId }` or `{ ok: false, needsApproval: true, approvalId }`; poll `approval_status`.
 - **Errors** are MCP tool errors (`isError`) with `{ "error": { "code", "message" } }`; code is `not_found | forbidden | forbidden_scope | conflict | validation | needs_approval`.
 - **Lists** return `{ items, nextCursor, total }` (pass `cursor`, `limit`); `*_get` returns full detail.
-- **Resources:** `motion://org/overview`, `motion://quarter/current`, `motion://team/{id}/scorecard`, `motion://meeting/{id}/live`.
+- **Resources:** `movara://org/overview`, `movara://quarter/current`, `movara://team/{id}/scorecard`, `movara://meeting/{id}/live`.
   Subscribe to get `notifications/resources/updated` (live meetings are polled every 2 s on `rev`; the others every 15 s).
 - **Prompts:** `weekly-meeting-prep`, `issue-triage`, `quarterly-planning`, `write-a-good-priority`, `metric-from-hubspot`.
 - Every request updates the agent's `last_seen`.

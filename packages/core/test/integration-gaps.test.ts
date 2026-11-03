@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { auditEvents, type DbHandle } from '@motion/db'
-import { STANDARD_PACK } from '@motion/terminology'
+import { auditEvents, type DbHandle } from '@movara/db'
+import { STANDARD_PACK } from '@movara/terminology'
 import {
   approveApproval, chartProposeChange, endMeeting, execute, getLiveState, getMeeting, getOrg, getScorecard, getTerms, getVision,
   headlinePost, idsFocus, idsSetStep, idsStart, issueCreate, issueSolve, listActivity, listIssues, listMeetings, listTeams, listTodos, meetingCapture, meetingSeriesCreate,

@@ -1,4 +1,4 @@
-import { listAgents, listApiKeys, listPeople, hasRole } from '@motion/core'
+import { listAgents, listApiKeys, listPeople, hasRole } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { AgentsList } from '@/components/settings/agents-panel'
 import { SettingsBody } from '@/components/settings/ui'

@@ -1,6 +1,6 @@
 import 'server-only'
 import nodemailer from 'nodemailer'
-import { consoleEmailSender, setEmailSender, type EmailSender } from '@motion/core'
+import { consoleEmailSender, setEmailSender, type EmailSender } from '@movara/core'
 
 /** SMTP sender for meeting recaps. Env: SMTP_HOST, SMTP_PORT (default 587; 465 = TLS), SMTP_USER, SMTP_PASS, SMTP_FROM. */
 export function createSmtpSender(env: NodeJS.ProcessEnv = process.env): EmailSender {
@@ -11,7 +11,7 @@ export function createSmtpSender(env: NodeJS.ProcessEnv = process.env): EmailSen
     secure: port === 465,
     auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS ?? '' } : undefined,
   })
-  const from = env.SMTP_FROM || env.SMTP_USER || 'Motion <no-reply@localhost>'
+  const from = env.SMTP_FROM || env.SMTP_USER || 'Movara <no-reply@localhost>'
   return {
     async send(m) {
       await transport.sendMail({ from, to: m.to, subject: m.subject, text: m.text, html: m.html })

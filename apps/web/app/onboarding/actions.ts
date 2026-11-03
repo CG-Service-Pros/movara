@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createOrg, isMotionError } from '@motion/core'
+import { createOrg, isMovaraError } from '@movara/core'
 import { getDb } from '@/lib/db'
 import { getSession } from '@/lib/session'
 
@@ -20,7 +20,7 @@ export async function createOrgAction(_prev: OnboardingState, form: FormData): P
     })
     slug = org.slug
   } catch (e) {
-    if (isMotionError(e)) return { error: e.message, fieldErrors: e.code === 'conflict' ? { slug: e.message } : undefined }
+    if (isMovaraError(e)) return { error: e.message, fieldErrors: e.code === 'conflict' ? { slug: e.message } : undefined }
     throw e
   }
   redirect(`/${slug}`)

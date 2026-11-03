@@ -1,13 +1,13 @@
-# @motion/terminology
+# @movara/terminology
 
-Terminology for [Motion](https://github.com/OscarCGPro/motion): term keys, the pack schema (Zod and JSON Schema), the resolver (`org override -> active pack -> Standard`), import preview, and the neutral Standard pack.
+Terminology for [Movara](https://github.com/OscarH30/movara): term keys, the pack schema (Zod and JSON Schema), the resolver (`org override -> active pack -> Standard`), import preview, and the neutral Standard pack.
 
 ```ts
-import { resolveTerm, previewImport, STANDARD_PACK, TerminologyPack } from '@motion/terminology'
+import { resolveTerm, previewImport, STANDARD_PACK, TerminologyPack } from '@movara/terminology'
 ```
 
-- JSON Schema for editors: `@motion/terminology/schema/terminology-pack.schema.json`
-- Standard pack: `@motion/terminology/packs/standard.json`
-- Pack format and import flow: [docs/terminology-packs.md](https://github.com/OscarCGPro/motion/blob/main/docs/terminology-packs.md)
+- JSON Schema for editors: `@movara/terminology/schema/terminology-pack.schema.json`
+- Standard pack: `@movara/terminology/packs/standard.json`
+- Pack format and import flow: [docs/terminology-packs.md](https://github.com/OscarH30/movara/blob/main/docs/terminology-packs.md)
 
 License: Apache-2.0.

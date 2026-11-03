@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
-import { toast } from '@motion/ui/toaster'
+import { toast } from '@movara/ui/toaster'
 import type { ActionResult } from '@/app/(app)/[org]/settings/actions'
 
 /** Run a server action with pending state, toast feedback and a router refresh. */

@@ -1,8 +1,8 @@
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
-import { headlines, issues, meetings, meetingSeries, metrics, metricValues, people, priorities, scorecards, teams, todos, type AgendaItemJson } from '@motion/db'
+import { headlines, issues, meetings, meetingSeries, metrics, metricValues, people, priorities, scorecards, teams, todos, type AgendaItemJson } from '@movara/db'
 import { addDays, currentQuarter, todayIn } from '../calendar'
 import { requireRead, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { found, scoped } from '../helpers'
 import { orgCalendar } from '../issues/internal'
 import { elapsedOf, loadMeeting, type MeetingRow, type SeriesRow } from './state'
@@ -242,7 +242,7 @@ export async function prepareMeeting(ctx: Ctx, input: { meetingId?: string; seri
     const [s] = await ctx.db.select().from(meetingSeries).where(scoped(meetingSeries, ctx, eq(meetingSeries.id, input.seriesId))).limit(1)
     teamId = found(s, 'Meeting series').teamId
   }
-  if (!teamId) throw new MotionError('validation', 'Provide meetingId, seriesId or teamId')
+  if (!teamId) throw new MovaraError('validation', 'Provide meetingId, seriesId or teamId')
   const [team] = await ctx.db.select().from(teams).where(scoped(teams, ctx, eq(teams.id, teamId))).limit(1)
   found(team, 'Team')
   const cal = await orgCalendar(ctx)

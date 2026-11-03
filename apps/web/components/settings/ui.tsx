@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '@motion/ui/cn'
-import { controlClasses } from '@motion/ui/input'
+import { cn } from '@movara/ui/cn'
+import { controlClasses } from '@movara/ui/input'
 
 /** Centered, scrolling column used by every settings page. */
 export function SettingsBody({ children, wide }: { children: ReactNode; wide?: boolean }) {

@@ -1,8 +1,8 @@
 import { desc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { agents, chartRevisions, charts, people, seats, teams } from '@motion/db'
+import { agents, chartRevisions, charts, people, seats, teams } from '@movara/db'
 import { hasRole, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, found, newId, scoped, softDelete, touch } from '../helpers'
 import { defineCommand } from '../runner'
 import { findChart, requireDraftRevision, type ChartRevisionRow, type SeatRow } from './queries'
@@ -30,12 +30,12 @@ async function seatsOf(ctx: Ctx, revisionId: string): Promise<SeatRow[]> {
 async function mustHavePeople(ctx: Ctx, ids: string[]) {
   if (!ids.length) return
   const rows = await ctx.db.select({ id: people.id }).from(people).where(scoped(people, ctx, inArray(people.id, ids)))
-  if (rows.length !== new Set(ids).size) throw new MotionError('not_found', 'Person not found')
+  if (rows.length !== new Set(ids).size) throw new MovaraError('not_found', 'Person not found')
 }
 async function mustHaveAgents(ctx: Ctx, ids: string[]) {
   if (!ids.length) return
   const rows = await ctx.db.select({ id: agents.id }).from(agents).where(scoped(agents, ctx, inArray(agents.id, ids)))
-  if (rows.length !== new Set(ids).size) throw new MotionError('not_found', 'Agent not found')
+  if (rows.length !== new Set(ids).size) throw new MovaraError('not_found', 'Agent not found')
 }
 async function mustHaveTeam(ctx: Ctx, id: string) {
   const [t] = await ctx.db.select({ id: teams.id }).from(teams).where(scoped(teams, ctx, eq(teams.id, id))).limit(1)
@@ -82,8 +82,8 @@ async function createDraftRevision(ctx: Ctx, source: DraftSource): Promise<{ rev
 async function publishRevision(ctx: Ctx, rev: ChartRevisionRow): Promise<ChartRevisionRow> {
   requireDraftRevision(rev)
   const all = await seatsOf(ctx, rev.id)
-  if (!all.length) throw new MotionError('validation', 'The chart needs at least one seat before publishing')
-  if (all.filter((s) => !s.parentSeatId).length !== 1) throw new MotionError('validation', 'The chart needs exactly one top seat')
+  if (!all.length) throw new MovaraError('validation', 'The chart needs at least one seat before publishing')
+  if (all.filter((s) => !s.parentSeatId).length !== 1) throw new MovaraError('validation', 'The chart needs exactly one top seat')
   await ctx.db.update(chartRevisions).set({ status: 'archived', ...touch(chartRevisions, ctx) }).where(scoped(chartRevisions, ctx, eq(chartRevisions.chartId, rev.chartId), eq(chartRevisions.status, 'published')))
   const [row] = await ctx.db.update(chartRevisions).set({ status: 'published', publishedAt: new Date(), publishedBy: ctx.actor, ...touch(chartRevisions, ctx) }).where(scoped(chartRevisions, ctx, eq(chartRevisions.id, rev.id))).returning()
   return row!
@@ -102,8 +102,8 @@ const seatFields = {
 
 async function opAddSeat(ctx: Ctx, revisionId: string, v: { title: string; parentSeatId?: string | null; responsibilities?: string[]; personIds?: string[]; assistingAgentIds?: string[]; teamId?: string | null; linkedPriorityId?: string | null }) {
   const siblings = await seatsOf(ctx, revisionId)
-  if (v.parentSeatId && !siblings.some((s) => s.id === v.parentSeatId)) throw new MotionError('not_found', 'Parent seat not found in this revision')
-  if (!v.parentSeatId && siblings.some((s) => !s.parentSeatId)) throw new MotionError('validation', 'The chart already has a top seat; give a parentSeatId')
+  if (v.parentSeatId && !siblings.some((s) => s.id === v.parentSeatId)) throw new MovaraError('not_found', 'Parent seat not found in this revision')
+  if (!v.parentSeatId && siblings.some((s) => !s.parentSeatId)) throw new MovaraError('validation', 'The chart already has a top seat; give a parentSeatId')
   await mustHavePeople(ctx, v.personIds ?? [])
   await mustHaveAgents(ctx, v.assistingAgentIds ?? [])
   if (v.teamId) await mustHaveTeam(ctx, v.teamId)
@@ -131,13 +131,13 @@ async function opMoveSeat(ctx: Ctx, seatId: string, parentSeatId: string | null,
   const all = await seatsOf(ctx, revision.id)
   const byId = new Map(all.map((s) => [s.id, s]))
   if (parentSeatId) {
-    if (!byId.has(parentSeatId)) throw new MotionError('not_found', 'Parent seat not found in this revision')
+    if (!byId.has(parentSeatId)) throw new MovaraError('not_found', 'Parent seat not found in this revision')
     for (let c: string | null = parentSeatId, i = 0; c && i < 100; i++) {
-      if (c === seatId) throw new MotionError('validation', 'A seat cannot be moved under itself')
+      if (c === seatId) throw new MovaraError('validation', 'A seat cannot be moved under itself')
       c = byId.get(c)?.parentSeatId ?? null
     }
   } else if (all.some((s) => !s.parentSeatId && s.id !== seatId)) {
-    throw new MotionError('validation', 'The chart already has a top seat')
+    throw new MovaraError('validation', 'The chart already has a top seat')
   }
   const newSort = sort ?? all.filter((s) => (s.parentSeatId ?? null) === parentSeatId && s.id !== seatId).reduce((a, s) => Math.max(a, s.sort + 1), 0)
   const [after] = await ctx.db.update(seats).set({ parentSeatId, sort: newSort, ...touch(seats, ctx) }).where(scoped(seats, ctx, eq(seats.id, seatId))).returning()
@@ -147,7 +147,7 @@ async function opMoveSeat(ctx: Ctx, seatId: string, parentSeatId: string | null,
 async function opDeleteSeat(ctx: Ctx, seatId: string) {
   const { seat, revision } = await loadDraftSeat(ctx, seatId)
   const kids = (await seatsOf(ctx, revision.id)).filter((s) => s.parentSeatId === seatId)
-  if (!seat.parentSeatId && kids.length) throw new MotionError('validation', 'Move or delete the seats under the top seat first')
+  if (!seat.parentSeatId && kids.length) throw new MovaraError('validation', 'Move or delete the seats under the top seat first')
   if (kids.length) await ctx.db.update(seats).set({ parentSeatId: seat.parentSeatId, ...touch(seats, ctx) }).where(scoped(seats, ctx, eq(seats.parentSeatId, seatId)))
   await ctx.db.update(seats).set(softDelete(seats, ctx)).where(scoped(seats, ctx, eq(seats.id, seatId)))
   return seat
@@ -178,7 +178,7 @@ export const chartCreateDraft = defineCommand({
     const chart = await ensureChart(ctx)
     const existing = await currentRevision(ctx, chart.id, 'draft')
     if (existing) {
-      if (input.from !== 'published') throw new MotionError('conflict', 'A draft already exists; discard it first', { draftId: existing.id })
+      if (input.from !== 'published') throw new MovaraError('conflict', 'A draft already exists; discard it first', { draftId: existing.id })
       return { data: { revision: existing, created: false }, entity: E(existing.id), before: null, after: null }
     }
     const { revision } = await createDraftRevision(ctx, input.from)
@@ -278,7 +278,7 @@ export const chartReorderSeats = defineCommand({
     const have = new Set(kids.map((s) => s.id))
     const want = new Set(input.seatIds)
     if (want.size !== input.seatIds.length || have.size !== want.size || ![...want].every((id) => have.has(id))) {
-      throw new MotionError('validation', 'seatIds must list every child of the parent exactly once')
+      throw new MovaraError('validation', 'seatIds must list every child of the parent exactly once')
     }
     for (const [i, id] of input.seatIds.entries()) await ctx.db.update(seats).set({ sort: i, ...touch(seats, ctx) }).where(scoped(seats, ctx, eq(seats.id, id)))
     return { data: { seatIds: input.seatIds }, entity: E(input.revisionId), before: null, after: { order: input.seatIds } }
@@ -343,7 +343,7 @@ export const chartProposeChange = defineCommand({
   input: z.object({ ops: z.array(chartOp).min(1).max(50), reason: z.string().max(500).optional(), publish: z.boolean().default(false) }),
   summary: (i) => `Accountability chart: ${i.ops.length} change${i.ops.length === 1 ? '' : 's'}${i.reason ? ` (${i.reason})` : ''}`,
   run: async (ctx, input, h) => {
-    if (input.publish && !h.approvalId && !hasRole(ctx, 'admin')) throw new MotionError('forbidden', 'Publishing requires the admin role')
+    if (input.publish && !h.approvalId && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', 'Publishing requires the admin role')
     const willPublish = !!h.approvalId || input.publish
     const chart = await ensureChart(ctx)
     const published = await currentRevision(ctx, chart.id, 'published')
@@ -358,8 +358,8 @@ export const chartProposeChange = defineCommand({
       if (all.some((s) => s.id === ref)) return ref
       const title = publishedTitles.get(ref) ?? ref
       const hits = all.filter((s) => s.title === title)
-      if (hits.length === 0) throw new MotionError('not_found', `Seat "${ref}" not found`)
-      if (hits.length > 1) throw new MotionError('validation', `Seat title "${ref}" is ambiguous; use an id`)
+      if (hits.length === 0) throw new MovaraError('not_found', `Seat "${ref}" not found`)
+      if (hits.length > 1) throw new MovaraError('validation', `Seat title "${ref}" is ambiguous; use an id`)
       return hits[0]!.id
     }
 

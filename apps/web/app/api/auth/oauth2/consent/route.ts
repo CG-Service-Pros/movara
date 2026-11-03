@@ -1,4 +1,4 @@
-import { approveAuthorization, ctxForUser, getOAuthClient, isMotionError, parseScopes } from '@motion/core'
+import { approveAuthorization, ctxForUser, getOAuthClient, isMovaraError, parseScopes } from '@movara/core'
 import { getDb } from '@/lib/db'
 import { appUrl } from '@/lib/oauth'
 import { getSession } from '@/lib/session'
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     })
     return back(redirectUri, { code, state })
   } catch (e) {
-    if (isMotionError(e)) return back(redirectUri, { error: e.code === 'forbidden' ? 'access_denied' : 'invalid_request', error_description: e.message, state })
+    if (isMovaraError(e)) return back(redirectUri, { error: e.code === 'forbidden' ? 'access_denied' : 'invalid_request', error_description: e.message, state })
     throw e
   }
 }

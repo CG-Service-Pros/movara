@@ -1,4 +1,4 @@
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 
 const DAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'] as const
 export const RRULE_RE = /^FREQ=WEEKLY(;BYDAY=(MO|TU|WE|TH|FR|SA|SU)(,(MO|TU|WE|TH|FR|SA|SU))*)?$/
@@ -7,7 +7,7 @@ export const RRULE_RE = /^FREQ=WEEKLY(;BYDAY=(MO|TU|WE|TH|FR|SA|SU)(,(MO|TU|WE|T
 export function validateRrule(rrule: string | null | undefined): string | null {
   if (!rrule) return null
   const r = rrule.trim().toUpperCase().replace(/^RRULE:/, '')
-  if (!RRULE_RE.test(r)) throw new MotionError('validation', 'rrule must be weekly, e.g. FREQ=WEEKLY;BYDAY=MO,WE (or empty for ad-hoc)')
+  if (!RRULE_RE.test(r)) throw new MovaraError('validation', 'rrule must be weekly, e.g. FREQ=WEEKLY;BYDAY=MO,WE (or empty for ad-hoc)')
   return r
 }
 

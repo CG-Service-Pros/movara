@@ -1,8 +1,8 @@
 import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
-import { isMotionError, ctxForUser, getOrg, getTerms, listTeamsForPerson, type Ctx, type OrgRow, type Terms } from '@motion/core'
-import { MODULE_KEYS, type ModuleKey } from '@motion/db'
+import { isMovaraError, ctxForUser, getOrg, getTerms, listTeamsForPerson, type Ctx, type OrgRow, type Terms } from '@movara/core'
+import { MODULE_KEYS, type ModuleKey } from '@movara/db'
 import { notFound } from 'next/navigation'
 import { getDb } from './db'
 import { getSession } from './session'
@@ -56,12 +56,12 @@ export function assertRouteId(id: string): string {
   return id
 }
 
-/** Await a core getter; a `not_found` MotionError becomes the 404 page. */
+/** Await a core getter; a `not_found` MovaraError becomes the 404 page. */
 export async function orNotFound<T>(p: Promise<T>): Promise<T> {
   try {
     return await p
   } catch (e) {
-    if (isMotionError(e) && e.code === 'not_found') notFound()
+    if (isMovaraError(e) && e.code === 'not_found') notFound()
     throw e
   }
 }

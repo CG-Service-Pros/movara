@@ -1,5 +1,5 @@
-import { AgentMark } from '@motion/ui/agent-mark'
-import { Avatar } from '@motion/ui/avatar'
+import { AgentMark } from '@movara/ui/agent-mark'
+import { Avatar } from '@movara/ui/avatar'
 
 export type ActorLike = { type: 'person' | 'agent'; id: string; onBehalfOf?: string }
 export type NameMap = Record<string, string>

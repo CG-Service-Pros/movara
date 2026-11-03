@@ -2,7 +2,7 @@
 
 ## Principles
 
-- **One domain layer, three doors.** All business rules live in `@motion/core`. The web app
+- **One domain layer, three doors.** All business rules live in `@movara/core`. The web app
   (server actions), the REST API and the MCP server are thin adapters over it. An agent can
   never do something the UI can't, and the reverse holds too.
 - **Every write has an actor.** `actor = { type: 'person' | 'agent', id, onBehalfOf? }`
@@ -19,7 +19,7 @@
 ## Monorepo
 
 ```
-motion/
+movara/
   apps/
     web/                 Next.js (App Router) UI + server actions + REST /api/v1
     mcp/                 MCP server (TypeScript SDK): streamable HTTP + stdio, OAuth 2.1
@@ -27,10 +27,10 @@ motion/
     core/                domain commands/queries, permissions, scopes, audit, events
     db/                  Drizzle schema, migrations, RLS policies, seed
     terminology/         term keys, pack schema, resolver, Standard pack
-    ui/                  design system (Tailwind theme from motion.css tokens, Radix-based components)
+    ui/                  design system (Tailwind theme from movara.css tokens, Radix-based components)
     config/              shared tsconfig, eslint, tailwind preset
   packs/
-    eos/                 @motion-community/pack-eos (moves to its own repo before 1.0)
+    eos/                 @movara-community/pack-eos (moves to its own repo before 1.0)
   design/stageshow/      mockups
   docs/
   docker/                docker-compose.yml (postgres, web, mcp)

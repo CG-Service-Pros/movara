@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import { Check } from 'lucide-react'
-import { cn } from '@motion/ui/cn'
-import { toast } from '@motion/ui/toaster'
+import { cn } from '@movara/ui/cn'
+import { toast } from '@movara/ui/toaster'
 import { recordMetricAction } from './actions'
 
 export type DueMetric = { id: string; title: string; periodStart: string; goalText: string; unit: 'number' | 'percent' | 'currency' | 'duration' | 'boolean'; teamName: string }

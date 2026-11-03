@@ -5,10 +5,10 @@ missing, report it instead of working around it. Read `docs/engineering.md` and
 `docs/architecture.md` first; this file is the precise "how".
 
 Commands: `pnpm install` · `pnpm dev` (web, auto-migrates and seeds PGlite) · `pnpm -w typecheck` ·
-`pnpm -w test` · `pnpm db:generate | db:migrate | db:seed | db:reset` · `pnpm --filter @motion/web build`.
+`pnpm -w test` · `pnpm db:generate | db:migrate | db:seed | db:reset` · `pnpm --filter @movara/web build`.
 
 Demo data (seeded when the embedded DB is empty): org slug `vindex` ("Vindex Consulting"), login
-`demo@motion.local` / `motion-demo` (Oscar Hidalgo, owner). People Maya Reyes (admin), Theo Kim, Ines Park,
+`demo@movara.local` / `movara-demo` (Oscar Hidalgo, owner). People Maya Reyes (admin), Theo Kim, Ines Park,
 Sam Ortiz. Teams "Leadership team" (is_leadership, all five) and "Delivery team" (Sam, Theo, Ines). Demo API key for
 the Ops Agent: `mk_live_demo_ops_agent_0000000000000000` (scopes read, write:todos, write:issues,
 write:priorities, write:headlines). Other agents: Notes Agent, Sales Agent. Data: 8 Q4-2026 priorities with
@@ -21,19 +21,19 @@ milestones, a 13-week weekly scorecard (anchor week 2026-11-02; "Qualified leads
 
 | Package | Import | Notes |
 |---|---|---|
-| `@motion/db` | `import { priorities, createDb, migrate, newId, type Db } from '@motion/db'` | Drizzle schema (`src/schema/*.ts`), types, client, seed. |
-| `@motion/core` | `import { execute, defineCommand, ... } from '@motion/core'` | Domain. Area barrels are re-exported from the root. |
-| `@motion/core/testing` | `import { createTestDb, seedTestOrg } from '@motion/core/testing'` | Test helpers (section 8). |
-| `@motion/terminology` | `import { resolveTerm, previewImport, STANDARD_PACK, TERM_KEYS, type TermKey } from '@motion/terminology'` | |
-| `@motion/ui/<component>` | `import { Button } from '@motion/ui/button'` | One file per component; never edit `packages/ui/src/index.ts`. |
-| `@motion/config` | tsconfig bases, `@motion/config/vitest` | |
+| `@movara/db` | `import { priorities, createDb, migrate, newId, type Db } from '@movara/db'` | Drizzle schema (`src/schema/*.ts`), types, client, seed. |
+| `@movara/core` | `import { execute, defineCommand, ... } from '@movara/core'` | Domain. Area barrels are re-exported from the root. |
+| `@movara/core/testing` | `import { createTestDb, seedTestOrg } from '@movara/core/testing'` | Test helpers (section 8). |
+| `@movara/terminology` | `import { resolveTerm, previewImport, STANDARD_PACK, TERM_KEYS, type TermKey } from '@movara/terminology'` | |
+| `@movara/ui/<component>` | `import { Button } from '@movara/ui/button'` | One file per component; never edit `packages/ui/src/index.ts`. |
+| `@movara/config` | tsconfig bases, `@movara/config/vitest` | |
 
 Internal packages are consumed as TypeScript source. Do not add dependencies; all libraries are already installed.
 
 ## 2. Ctx, Actor, Scope (`packages/core/src/ctx.ts`)
 
 ```ts
-type Actor = { type: 'person' | 'agent'; id: string; onBehalfOf?: string }   // = ActorJson in @motion/db
+type Actor = { type: 'person' | 'agent'; id: string; onBehalfOf?: string }   // = ActorJson in @movara/db
 type Scope = 'read' | 'write:todos' | 'write:issues' | 'write:headlines' | 'write:metrics' | 'write:priorities'
            | 'write:meetings' | 'propose:vision' | 'propose:chart' | 'admin'     // SCOPES const array
 type Role = 'owner' | 'admin' | 'member' | 'viewer'                              // ROLE_RANK: viewer<member<admin<owner
@@ -50,8 +50,8 @@ type Ctx = { db: Db; orgId: string; actor: Actor; scopes: Scope[] | 'all'; role:
 
 ## 3. Errors (`errors.ts`)
 
-`throw new MotionError(code, message, details?)`; codes `not_found | forbidden | forbidden_scope | conflict | validation | needs_approval`.
-`err.status` gives the HTTP status (404/403/403/409/422/202); `err.toJSON()` -> `{ error: { code, message, details } }`; `isMotionError(e)`.
+`throw new MovaraError(code, message, details?)`; codes `not_found | forbidden | forbidden_scope | conflict | validation | needs_approval`.
+`err.status` gives the HTTP status (404/403/403/409/422/202); `err.toJSON()` -> `{ error: { code, message, details } }`; `isMovaraError(e)`.
 Note: `execute` does **not** throw for approvals; it returns `{ ok: false, needsApproval: true, approvalId }`.
 
 ## 4. The runner (`runner.ts`)
@@ -83,7 +83,7 @@ entity, diff, request_id), store the response in `request_log`. Failures roll ba
 - **Idempotency**: same `(org, requestId)` returns the first response with `replayed: true` (JSON round-tripped: Dates become ISO strings). Same requestId with a different command or actor -> `conflict`. `redactResult` commands cannot be replayed (conflict).
 - **Optimistic concurrency**: in `run`, load the row and call `assertVersion(row, h.expectedVersion)` (throws `conflict` with `details.current`). Updates must use `touch(table, ctx)` which bumps `version`.
 - **Approvals**: agent + (`requiresApprovalForAgents` or `scope` includes `'admin'`) -> an `approvals` row is created (payload = validated input, `request_id` kept) and nothing runs.
-  `approvals.decide` approve = re-execute the stored command by name (registry filled by `defineCommand`, so the command module must be imported by `@motion/core`'s index) as the requesting agent with `skipApproval`; scope/role still apply, audit actor stays the agent and the diff gets `approvalId`. If re-execution fails, the approval stays pending.
+  `approvals.decide` approve = re-execute the stored command by name (registry filled by `defineCommand`, so the command module must be imported by `@movara/core`'s index) as the requesting agent with `skipApproval`; scope/role still apply, audit actor stays the agent and the diff gets `approvalId`. If re-execution fails, the approval stays pending.
   Commands an agent may "propose" (e.g. `vision.propose_change`) should therefore be normal commands with `scope: 'propose:vision'` and `requiresApprovalForAgents: true`.
 - **Fan-out** (`ownerIds[]`): one command, many inserts, return the array in `data`.
 - Do not call another command's `run` directly; call `execute(ctx, otherCmd, ...)` (nested transactions are savepoints; it writes its own audit row).
@@ -94,7 +94,7 @@ Helpers (`helpers.ts`): `newId()` (uuid v7), `base(ctx)` -> `{ id, orgId, create
 `softDelete(table, ctx)`, `assertVersion(row, expected)`, `changedFields(before, after)`, `found(row, 'Thing')` (not_found),
 `encodeCursor(at, id)` / `decodeCursor(cursor)` (keyset pagination, newest first).
 
-## 5. Existing areas (all exported from `@motion/core`)
+## 5. Existing areas (all exported from `@movara/core`)
 
 Queries are `(ctx, input?) => Promise<…>`; commands are used with `execute(ctx, cmd, input, opts)`.
 
@@ -155,7 +155,7 @@ Dates: `date` columns are strings (`mode: 'string'`), events are `timestamptz` (
 | audit.ts | `audit_events` |
 | system.ts | `request_log` (unique org+request_id) |
 
-All table objects and enums are exported from `@motion/db`. JSON shapes (`Branding`, `Modules`, `MeetingState`, `Source`, `VisionContent`, …) are in `packages/db/src/types.ts`.
+All table objects and enums are exported from `@movara/db`. JSON shapes (`Branding`, `Modules`, `MeetingState`, `Source`, `VisionContent`, …) are in `packages/db/src/types.ts`.
 Quarters are text `YYYY-Qn`. **Schema changes belong to the lead**: report what you need. When the lead changes the schema: edit `src/schema/*`, run `pnpm db:generate` (runs drizzle-kit and re-embeds migrations into `src/migrations.generated.ts`), then `pnpm db:reset`.
 `createDb(url?)` -> `postgres://` uses postgres-js, blank / `pglite://dir` uses PGlite (default `<repo>/.data/pglite`), `'memory'` is in-memory. `migrate(db)` applies the embedded migrations. Never touch tables outside core.
 
@@ -166,7 +166,7 @@ Only add files inside `packages/core/src/<area>/` and re-export from that folder
 ```ts
 // packages/core/src/priorities/queries.ts
 import { asc, eq } from 'drizzle-orm'
-import { milestones, priorities } from '@motion/db'
+import { milestones, priorities } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'      // inside core import from '../ctx', '../helpers', '../runner' (never '../index': cycles)
 import { scoped } from '../helpers'
 export async function listPriorities(ctx: Ctx, input: { quarter: string; teamId?: string }) {
@@ -179,7 +179,7 @@ export async function listPriorities(ctx: Ctx, input: { quarter: string; teamId?
 // packages/core/src/priorities/commands.ts
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { priorities } from '@motion/db'
+import { priorities } from '@movara/db'
 import { base, touch, scoped, found, assertVersion } from '../helpers'
 import { defineCommand } from '../runner'
 export const prioritySetStatus = defineCommand({
@@ -203,7 +203,7 @@ Test (`packages/core/src/priorities/priorities.test.ts` or `packages/core/test/p
 
 ```ts
 import { afterAll, beforeAll, expect, it } from 'vitest'
-import { createTestDb, seedTestOrg } from '@motion/core/testing'   // or '../src/testing'
+import { createTestDb, seedTestOrg } from '@movara/core/testing'   // or '../src/testing'
 let db: Awaited<ReturnType<typeof createTestDb>>
 beforeAll(async () => { db = await createTestDb() }); afterAll(() => db.$close())
 it('sets status and isolates orgs', async () => {
@@ -213,11 +213,11 @@ it('sets status and isolates orgs', async () => {
 ```
 Always test: happy path, `forbidden_scope` for an agent, cross-org `not_found`, and (for gated commands) the approval flow.
 
-## 8. Test helpers (`@motion/core/testing`)
+## 8. Test helpers (`@movara/core/testing`)
 
 `createTestDb()` (in-memory PGlite + migrations; `await db.$close()` in `afterAll`), `createTestUser(db, name?)`,
 `seedTestOrg(db, slug?) -> { org, ctx /* owner */, addPerson(name, role?) -> { ctx, personId }, addAgent(name, scopes?, ownerPersonId?) -> { agentId, ctx, apiKey } }`.
-Each package has `vitest.config.ts` re-exporting `@motion/config/vitest` (30s timeouts). Use a fresh org per test instead of a fresh DB.
+Each package has `vitest.config.ts` re-exporting `@movara/config/vitest` (30s timeouts). Use a fresh org per test instead of a fresh DB.
 
 ## 9. Web app (`apps/web`)
 
@@ -235,7 +235,7 @@ Page skeleton (replace a stub, keep these lines):
 ```tsx
 // app/(app)/[org]/priorities/page.tsx
 import { Page } from '@/components/shell/page'
-import { listPriorities, currentQuarter } from '@motion/core'
+import { listPriorities, currentQuarter } from '@movara/core'
 import { requireModule } from '@/lib/ctx'
 export default async function PrioritiesPage({ params, searchParams }: { params: Promise<{ org: string }>; searchParams: Promise<{ team?: string; q?: string }> }) {
   const { org: slug } = await params
@@ -248,14 +248,14 @@ export default async function PrioritiesPage({ params, searchParams }: { params:
 - Team context: sidebar team links are `/{org}/<area>?team=<teamId>`. Pages read `searchParams.team` and default to the person's first team (`(await getMyTeams(slug))[0]`).
 - Shell nav lives in `components/shell/nav.ts` (`buildNav`, `buildSettingsNav`, icon keys); labels come from terminology; modules off hide items. Changing nav is a lead change; report it.
 - Existing routes (all stubs): `/{org}` home, `todos`, `priorities`, `scorecard`, `issues`, `headlines`, `meetings`, `meetings/[id]`, `vision`, `chart`, `settings/{general,brand,terminology,modules,calendar,members,agents,keys,audit,approvals}`. Settings has its own sub-nav layout.
-- Server actions live next to the route in `actions.ts`: `'use server'`, `const ctx = await getCtx(slug)`, `await execute(ctx, cmd, input)`, catch `isMotionError`, `revalidatePath(...)`. For `needsApproval` results show a toast ("Sent for approval").
-- Client components: `toast` from `@motion/ui/toaster` (the `<Toaster/>` is mounted by the shell). Command palette items are built in `[org]/layout.tsx`; entity search is added later via the search area.
-- Auth: `(auth)/sign-in`, `(auth)/sign-up`, `onboarding` (create org then redirect to `/{slug}`), `proxy.ts` (cookie guard; public: sign-in, sign-up, `/api/auth`, `/api/v1`, `/mcp`). Theme = `motion-theme` cookie (`light|dark`) applied as `data-theme` on `<html>`.
+- Server actions live next to the route in `actions.ts`: `'use server'`, `const ctx = await getCtx(slug)`, `await execute(ctx, cmd, input)`, catch `isMovaraError`, `revalidatePath(...)`. For `needsApproval` results show a toast ("Sent for approval").
+- Client components: `toast` from `@movara/ui/toaster` (the `<Toaster/>` is mounted by the shell). Command palette items are built in `[org]/layout.tsx`; entity search is added later via the search area.
+- Auth: `(auth)/sign-in`, `(auth)/sign-up`, `onboarding` (create org then redirect to `/{slug}`), `proxy.ts` (cookie guard; public: sign-in, sign-up, `/api/auth`, `/api/v1`, `/mcp`). Theme = `movara-theme` cookie (`light|dark`) applied as `data-theme` on `<html>`.
 - Next 16 notes: `params` and `searchParams` are Promises; `proxy.ts` replaces middleware; everything under `[org]` is dynamic.
 
-### UI components (`@motion/ui/<name>`; theme in `@motion/ui/theme.css`)
+### UI components (`@movara/ui/<name>`; theme in `@movara/ui/theme.css`)
 Tokens as Tailwind utilities: `bg-canvas bg-surface bg-raised border-line text-ink text-body text-faint text-icon bg-nav-active text-accent bg-accent bg-accent-soft text-accent-text text-success bg-success-soft text-danger-text text-warning ... rounded-md shadow-panel shadow-pop`; sizes `text-xs/sm/base/lg`. Dark mode swaps CSS variables, so do not use `dark:`.
-Components: `button` (`variant` primary|secondary|ghost|danger, `size` sm|md|icon, `asChild`, `loading`), `input`, `textarea`, `label`, `field` (label/hint/error wrapper), `badge`, `status-glyph`, `status-pill` (`status` 'on'|'off'|'done', `label?`), `avatar` (people: circle, initials), `agent-mark` (agents: rounded square + Bot), `facepile` (`items: {name, agent?}[]`), `card`, `dialog`, `sheet`, `dropdown-menu`, `popover`, `select`, `switch`, `tabs`, `segmented`, `tooltip` (+ `Tip`), `checkbox`, `meter` (`value` 0..1, `tone`), `empty-state`, `kbd`, `separator`, `skeleton`, `toaster`, `command`, `page-header`, `list-row` (+ `ListRowGroup`), `cn` (`@motion/ui/cn`).
+Components: `button` (`variant` primary|secondary|ghost|danger, `size` sm|md|icon, `asChild`, `loading`), `input`, `textarea`, `label`, `field` (label/hint/error wrapper), `badge`, `status-glyph`, `status-pill` (`status` 'on'|'off'|'done', `label?`), `avatar` (people: circle, initials), `agent-mark` (agents: rounded square + Bot), `facepile` (`items: {name, agent?}[]`), `card`, `dialog`, `sheet`, `dropdown-menu`, `popover`, `select`, `switch`, `tabs`, `segmented`, `tooltip` (+ `Tip`), `checkbox`, `meter` (`value` 0..1, `tone`), `empty-state`, `kbd`, `separator`, `skeleton`, `toaster`, `command`, `page-header`, `list-row` (+ `ListRowGroup`), `cn` (`@movara/ui/cn`).
 Radix-based ones are client components. Gotcha: `DropdownMenuItem asChild` needs a single child; prefer `onSelect` + `router.push`. Map status values for display: `on_track -> 'on'`, `off_track -> 'off'`, `done -> 'done'`.
 
 ## 10. REST API (`apps/web/src/api`)
@@ -266,7 +266,7 @@ Implemented: `GET /api/v1/org`. Try: `curl localhost:3000/api/v1/org -H 'Authori
 
 Add handlers only in `src/api/handlers/<area>.ts` (files exist for every area, each exporting `handlers: HandlerMap = {}`; `handlers/index.ts` already merges them; do not edit it, `router.ts`, or `types.ts`):
 ```ts
-import { execute, listPriorities, prioritySetStatus } from '@motion/core'
+import { execute, listPriorities, prioritySetStatus } from '@movara/core'
 import { fromExecute } from '../respond'
 import type { HandlerMap } from '../types'
 export const handlers: HandlerMap = {
@@ -275,18 +275,18 @@ export const handlers: HandlerMap = {
     fromExecute(await execute(ctx, prioritySetStatus, { priorityId: params.id, ...(await json() as object) }, { requestId, expectedVersion })),  // 200 { ok, data, entity, auditId } | 202 { needsApproval, approvalId }
 }
 ```
-Keys are `"METHOD /path/:param"`. Errors: `MotionError` -> `{ error: { code, message, details } }` with the status from `MotionError.status`. Use the same command objects as the UI and MCP; never write to the DB from a handler.
+Keys are `"METHOD /path/:param"`. Errors: `MovaraError` -> `{ error: { code, message, details } }` with the status from `MovaraError.status`. Use the same command objects as the UI and MCP; never write to the DB from a handler.
 
 ## 11. Adding a page, checklist
 1. Pick the stub under `app/(app)/[org]/…` and replace its `page.tsx` (stubs exist for every route in the product).
 2. `requireModule`/`getOrgContext` first; labels via `terms.t(...)`; render an `EmptyState` when there is no data.
 3. Components in `components/<area>/`; server actions in `actions.ts` next to the page calling `execute`.
 4. Agent-written things show provenance: `actor.type === 'agent'` -> `AgentMark` + "via MCP · on behalf of <owner>".
-5. Run `pnpm -w typecheck`, `pnpm -w test`, and `pnpm --filter @motion/web build`.
+5. Run `pnpm -w typecheck`, `pnpm -w test`, and `pnpm --filter @movara/web build`.
 
 ## 12. Known limits of the foundation
-- No RLS policies yet (isolation is enforced in core: every query uses `scoped`/`org_id`); realtime adapters, email sending and `MOTION_TERMINOLOGY_PACKS` preinstall are not implemented. MCP OAuth lives in `agents/oauth.ts` (`registerOAuthClient`, `approveAuthorization`, `exchangeAuthorizationCode`, `refreshOAuthToken`, `authenticateOAuthToken`); `agents.revoke` revokes the tokens.
-- `approvals.decide` can only re-execute commands registered in `@motion/core`; the seeded pending approval (`vision.propose_change`) becomes approvable once the vision area defines that command.
+- No RLS policies yet (isolation is enforced in core: every query uses `scoped`/`org_id`); realtime adapters, email sending and `MOVARA_TERMINOLOGY_PACKS` preinstall are not implemented. MCP OAuth lives in `agents/oauth.ts` (`registerOAuthClient`, `approveAuthorization`, `exchangeAuthorizationCode`, `refreshOAuthToken`, `authenticateOAuthToken`); `agents.revoke` revokes the tokens.
+- `approvals.decide` can only re-execute commands registered in `@movara/core`; the seeded pending approval (`vision.propose_change`) becomes approvable once the vision area defines that command.
 - Org slug rename, org deletion are not implemented. Invitation emails are sent only when SMTP is configured (the invite link is always shown in Members settings).
 
 ## Areas: priorities, scorecard, vision, chart

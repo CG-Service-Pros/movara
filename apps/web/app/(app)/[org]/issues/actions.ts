@@ -1,6 +1,6 @@
 'use server'
 
-import { execute, issueCreate, issueDrop, issueMove, issueReopen, issueSetRank, issueSolve, issueUpdate } from '@motion/core'
+import { execute, issueCreate, issueDrop, issueMove, issueReopen, issueSetRank, issueSolve, issueUpdate } from '@movara/core'
 import { runAction, type ActionResult } from '@/components/issues/action'
 
 const paths = ['issues', 'scorecard', 'todos']

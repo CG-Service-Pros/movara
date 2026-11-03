@@ -4,12 +4,12 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { AgentMark } from '@motion/ui/agent-mark'
-import { Badge } from '@motion/ui/badge'
-import { Button } from '@motion/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@motion/ui/dialog'
-import { Field } from '@motion/ui/field'
-import { Input } from '@motion/ui/input'
+import { AgentMark } from '@movara/ui/agent-mark'
+import { Badge } from '@movara/ui/badge'
+import { Button } from '@movara/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@movara/ui/dialog'
+import { Field } from '@movara/ui/field'
+import { Input } from '@movara/ui/input'
 import { createAgent } from '@/app/(app)/[org]/settings/actions'
 import { NativeSelect, Panel, ago } from './ui'
 import { useSave } from './use-save'
@@ -27,7 +27,7 @@ export function AgentsList({ slug, agents, people, meId, canCreate }: { slug: st
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <p className="text-base text-body">Agents act in Motion with their own scopes. Everything they do is attributed and audited.</p>
+        <p className="text-base text-body">Agents act in Movara with their own scopes. Everything they do is attributed and audited.</p>
         {canCreate && <Button variant="primary" onClick={() => setOpen(true)}><Plus size={14} strokeWidth={1.7} />New agent</Button>}
       </div>
       <Panel data-testid="agents">

@@ -1,6 +1,6 @@
 import { Stage, Window } from '../../kit'
-import { AgentMark, Sidebar } from '../_motion/shared'
-import '../_motion/motion.css'
+import { AgentMark, Sidebar } from '../_movara/shared'
+import '../_movara/movara.css'
 import './vision.css'
 
 // The Vision plan as one page: the company's long view on the left, this
@@ -10,9 +10,9 @@ import './vision.css'
 //
 // Real strings: it is a document, so its content is the subject.
 
-export default function MotionVision() {
+export default function MovaraVision() {
   return (
-    <Stage width={1000} height={600} fidelity="realistic" className="motion kv">
+    <Stage width={1000} height={600} fidelity="realistic" className="movara kv">
       {() => (
         <Window
           className="k-window kv-window"
@@ -64,7 +64,7 @@ export default function MotionVision() {
                   <div><span>Profit</span><b>14%</b></div>
                 </div>
                 <ol className="kv-goals">
-                  <li>Launch Motion Cloud for 50 paying teams</li>
+                  <li>Launch Movara Cloud for 50 paying teams</li>
                   <li>Two certified implementation partners</li>
                   <li>Net revenue retention above 110%</li>
                   <li className="kv-new">

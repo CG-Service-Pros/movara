@@ -35,7 +35,7 @@ export default defineConfig({
       BETTER_AUTH_SECRET: 'e2e-secret-not-for-production-0123456789',
       BETTER_AUTH_URL: BASE,
       APP_URL: BASE,
-      MOTION_SEED_DEMO: '1',
+      MOVARA_SEED_DEMO: '1',
       NEXT_TELEMETRY_DISABLED: '1',
     },
   },

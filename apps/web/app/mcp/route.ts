@@ -1,5 +1,5 @@
 import { getDb } from '@/lib/db'
-import { sharedMcpHttpHandler } from '@motion/mcp/http-handler'
+import { sharedMcpHttpHandler } from '@movara/mcp/http-handler'
 import { OAUTH_ENDPOINTS } from '@/lib/oauth'
 
 export const dynamic = 'force-dynamic'

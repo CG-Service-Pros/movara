@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { DbHandle } from '@motion/db'
+import type { DbHandle } from '@movara/db'
 import {
   execute, getMetric, getScorecard, listScorecards, listTeams, metricArchive, metricCreate, metricRecordValues, metricReorder, metricStatus, metricUpdate, offTrackMetrics,
   scorecardCreate, scorecardUpdateSettings, approveApproval, type MetricComparison,

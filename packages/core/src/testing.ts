@@ -1,5 +1,5 @@
-/** Test helpers: `import { createTestDb, seedTestOrg } from '@motion/core/testing'`. */
-import { createDb, migrate, newId, user, type DbHandle } from '@motion/db'
+/** Test helpers: `import { createTestDb, seedTestOrg } from '@movara/core/testing'`. */
+import { createDb, migrate, newId, user, type DbHandle } from '@movara/db'
 import { createOrg, type OrgRow } from './org'
 import { execute } from './runner'
 import { agentsCreate, issueApiKey } from './agents'

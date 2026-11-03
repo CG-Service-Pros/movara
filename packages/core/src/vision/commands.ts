@@ -1,8 +1,8 @@
 import { desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { issues, teams, visionPlans, visionRevisions } from '@motion/db'
+import { issues, teams, visionPlans, visionRevisions } from '@movara/db'
 import { hasRole, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, found, scoped, touch } from '../helpers'
 import { defineCommand } from '../runner'
 import { findVisionPlan, requireDraft, sectionsOf, type VisionPlanRow, type VisionRevisionRow } from './queries'
@@ -167,7 +167,7 @@ export const visionProposeChange = defineCommand({
   run: async (ctx, input, h) => {
     const plan = await ensurePlan(ctx, input.teamId)
     const willPublish = !!h.approvalId || (input.publish && hasRole(ctx, 'admin'))
-    if (input.publish && !h.approvalId && !hasRole(ctx, 'admin')) throw new MotionError('forbidden', 'Publishing requires the admin role')
+    if (input.publish && !h.approvalId && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', 'Publishing requires the admin role')
     // Publishing builds on the published content (an unrelated in-progress draft is left alone).
     let rev = willPublish ? await createDraftRow(ctx, plan) : ((await currentRevision(ctx, plan.id, 'draft')) ?? (await createDraftRow(ctx, plan)))
     const sections = structuredClone(sectionsOf(rev)) as Record<string, any>
@@ -190,7 +190,7 @@ export const visionProposeChange = defineCommand({
       sections.longTermIssueIds = [...new Set([...(sections.longTermIssueIds ?? []), input.issueId!])]
     } else {
       const parsed = VisionSectionsSchema.shape[input.section].safeParse(input.value)
-      if (!parsed.success) throw new MotionError('validation', `value: ${parsed.error.issues.map((i) => `${i.path.join('.') || 'value'}: ${i.message}`).join('; ')}`)
+      if (!parsed.success) throw new MovaraError('validation', `value: ${parsed.error.issues.map((i) => `${i.path.join('.') || 'value'}: ${i.message}`).join('; ')}`)
       sections[input.section] = parsed.data
     }
 

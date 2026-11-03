@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import {
   execute,
-  isMotionError,
+  isMovaraError,
   milestoneAdd,
   milestoneDelete,
   milestoneReorder,
@@ -13,7 +13,7 @@ import {
   priorityDelete,
   prioritySetStatus,
   priorityUpdate,
-} from '@motion/core'
+} from '@movara/core'
 import { getCtx } from '@/lib/ctx'
 import type { ActionResult, PLevel, PStatus } from '@/components/priorities/types'
 
@@ -29,7 +29,7 @@ async function run<T = undefined>(slug: string, cmd: Cmd, input: unknown, reques
     if (!r.ok) return { ok: true, message: 'Sent for approval' }
     return { ok: true, data: pick ? pick(r.data) : undefined }
   } catch (e) {
-    if (isMotionError(e)) return { ok: false, error: e.message }
+    if (isMovaraError(e)) return { ok: false, error: e.message }
     throw e
   }
 }

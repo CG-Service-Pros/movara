@@ -1,6 +1,6 @@
 # Deploy: Vercel + Supabase
 
-Reference cloud setup: Supabase provides PostgreSQL, Vercel hosts the Next.js app. Motion talks to Postgres through Drizzle with a plain `DATABASE_URL`, so Supabase is "just Postgres" here (no Supabase client SDK is required).
+Reference cloud setup: Supabase provides PostgreSQL, Vercel hosts the Next.js app. Movara talks to Postgres through Drizzle with a plain `DATABASE_URL`, so Supabase is "just Postgres" here (no Supabase client SDK is required).
 
 ## 1. Create the Supabase project
 
@@ -10,7 +10,7 @@ Reference cloud setup: Supabase provides PostgreSQL, Vercel hosts the Next.js ap
    - **Transaction pooler** (`postgresql://postgres.<ref>:<pw>@aws-0-<region>.pooler.supabase.com:6543/postgres`): for the app on Vercel. Serverless functions open many short-lived connections, so use the pooler.
 3. URL-encode special characters in the password.
 
-> **Session vs transaction pooler.** The transaction pooler (port 6543) cannot serve named prepared statements. Motion's driver (postgres-js)
+> **Session vs transaction pooler.** The transaction pooler (port 6543) cannot serve named prepared statements. Movara's driver (postgres-js)
 > turns prepared statements **off automatically** when `DATABASE_URL` has port `6543`, a `*.pooler.*` host or `?pgbouncer=true`, so the
 > transaction pooler string works as-is (the `pgbouncer` parameter is stripped before connecting). The **session pooler** (port 5432 on the
 > pooler host) also works, but because its host contains `pooler.` prepared statements are disabled there too; set `DATABASE_PREPARE=1` to
@@ -22,20 +22,20 @@ Reference cloud setup: Supabase provides PostgreSQL, Vercel hosts the Next.js ap
 From your machine, once, and again after each upgrade that includes new migrations:
 
 ```bash
-git clone https://github.com/OscarCGPro/motion.git && cd motion
+git clone https://github.com/OscarH30/movara.git && cd movara
 pnpm install
 DATABASE_URL='<direct or session-pooler connection string>' pnpm db:migrate
 ```
 
 The web app also applies pending migrations on its first request, so this step mainly lets you fail early and keep schema changes out of request time.
 
-Optional demo data (demo org `vindex`, login `demo@motion.local` / `motion-demo`, **demo API key**):
+Optional demo data (demo org `vindex`, login `demo@movara.local` / `movara-demo`, **demo API key**):
 
 ```bash
 DATABASE_URL='...' pnpm db:seed
 ```
 
-Do not seed a production database. Without `MOTION_SEED_DEMO`, the app only auto-seeds embedded PGlite, never Postgres.
+Do not seed a production database. Without `MOVARA_SEED_DEMO`, the app only auto-seeds embedded PGlite, never Postgres.
 
 ## 3. Create the Vercel project
 
@@ -50,11 +50,11 @@ Do not seed a production database. Without `MOTION_SEED_DEMO`, the app only auto
 |---|---|
 | `DATABASE_URL` | Supabase **transaction pooler** string (port 6543; prepared statements are disabled automatically) |
 | `BETTER_AUTH_SECRET` | `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | Public URL, e.g. `https://motion.example.com` |
+| `BETTER_AUTH_URL` | Public URL, e.g. `https://movara.example.com` |
 | `APP_URL` | Same public URL (used in emails and links) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Your SMTP provider (invitations, recaps). Without SMTP, emails are only logged |
-| `MOTION_TERMINOLOGY_PACKS` | Optional, e.g. `@motion-community/pack-eos` |
-| `MOTION_SEED_DEMO` | Leave unset or `0` in production |
+| `MOVARA_TERMINOLOGY_PACKS` | Optional, e.g. `@movara-community/pack-eos` |
+| `MOVARA_SEED_DEMO` | Leave unset or `0` in production |
 
 Set them for Production (and Preview if you use previews; use a separate database for previews). Deploy. If you set the production domain after the first deploy, update `BETTER_AUTH_URL` and `APP_URL` and redeploy.
 
@@ -64,10 +64,10 @@ Open the URL, **Create an account**, and complete onboarding to create your orga
 
 ## 4. MCP for agents
 
-- **Web route (default):** `https://<your-domain>/mcp` is served by the same deployment. It authenticates with OAuth (Claude, ChatGPT and Cursor sign in through Motion's consent screen; `APP_URL` must be the public URL) or Bearer agent keys from Settings -> Agents.
+- **Web route (default):** `https://<your-domain>/mcp` is served by the same deployment. It authenticates with OAuth (Claude, ChatGPT and Cursor sign in through Movara's consent screen; `APP_URL` must be the public URL) or Bearer agent keys from Settings -> Agents.
 - **Important: serverless caveat.** MCP sessions (the `Mcp-Session-Id` returned by `initialize`) are kept **in process memory**. On Vercel, requests can land on different function instances, so a later call may not find the session and fail. This works for quick tests but is not reliable for real agents.
 - **Recommended for production:** run the standalone MCP server (`apps/mcp`, port 3333) on a long-running host such as **Fly.io** or **Render**, pointing at the same `DATABASE_URL`:
-  - Build with [`docker/Dockerfile.mcp`](../docker/Dockerfile.mcp) (`docker build -f docker/Dockerfile.mcp -t motion-mcp .`), expose port 3333, health check `GET /healthz`.
+  - Build with [`docker/Dockerfile.mcp`](../docker/Dockerfile.mcp) (`docker build -f docker/Dockerfile.mcp -t movara-mcp .`), expose port 3333, health check `GET /healthz`.
   - Fly.io: `fly launch --dockerfile docker/Dockerfile.mcp --internal-port 3333`, then `fly secrets set DATABASE_URL=...`. Keep a single machine (or sticky routing) because sessions are in memory.
   - Render: a Web Service from the repo using that Dockerfile, env `DATABASE_URL`, health check path `/healthz`.
   - Point clients at `https://<mcp-host>/mcp`. See [mcp-setup.md](mcp-setup.md).

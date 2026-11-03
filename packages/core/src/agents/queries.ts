@@ -1,5 +1,5 @@
 import { asc, desc, eq } from 'drizzle-orm'
-import { agents, apiKeys } from '@motion/db'
+import { agents, apiKeys } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
 import { found, scoped } from '../helpers'
 

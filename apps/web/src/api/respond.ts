@@ -1,4 +1,4 @@
-import { isMotionError, type ExecuteResult } from '@motion/core'
+import { isMovaraError, type ExecuteResult } from '@movara/core'
 
 export const json = (body: unknown, status = 200, headers?: HeadersInit) => Response.json(body, { status, headers })
 
@@ -12,7 +12,7 @@ export function fromExecute<O>(r: ExecuteResult<O>, status = 200): Response {
 }
 
 export function errorResponse(e: unknown): Response {
-  if (isMotionError(e)) return json(e.toJSON(), e.status)
+  if (isMovaraError(e)) return json(e.toJSON(), e.status)
   console.error('[api] unexpected error', e)
   return json({ error: { code: 'internal', message: 'Internal error' } }, 500)
 }

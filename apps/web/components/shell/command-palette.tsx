@@ -3,7 +3,7 @@
 import { Bot, CircleUser, Gauge, ListChecks, Newspaper, Plus, Target, TriangleAlert, Users, type LucideIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@motion/ui/command'
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@movara/ui/command'
 import { searchEntities, type PaletteHit } from './actions'
 import { NavIcon } from './icons'
 import type { PaletteItem } from './nav'

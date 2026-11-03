@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { agents, oauthTokens, type DbHandle } from '@motion/db'
+import { agents, oauthTokens, type DbHandle } from '@movara/db'
 import {
   agentsRevoke, agentsUpdate, approveAuthorization, authenticateOAuthToken, exchangeAuthorizationCode, execute, isValidRedirectUri,
   refreshOAuthToken, registerOAuthClient,

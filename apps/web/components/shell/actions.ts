@@ -1,6 +1,6 @@
 'use server'
 
-import { search, isMotionError, type SearchHit } from '@motion/core'
+import { search, isMovaraError, type SearchHit } from '@movara/core'
 import { getCtx, getOrgTerms } from '@/lib/ctx'
 
 export type PaletteHit = { id: string; type: SearchHit['type']; typeLabel: string; title: string; subtitle?: string; href: string }
@@ -27,7 +27,7 @@ export async function searchEntities(slug: string, q: string): Promise<PaletteHi
       return { id: `${h.type}:${h.id}`, type: h.type, typeLabel: label[h.type], title: h.title, subtitle: h.subtitle, href }
     })
   } catch (e) {
-    if (isMotionError(e)) return []
+    if (isMovaraError(e)) return []
     throw e
   }
 }

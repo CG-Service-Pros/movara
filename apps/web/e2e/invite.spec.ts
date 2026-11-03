@@ -6,8 +6,8 @@ test('invites are claimed only through the single-use token link; next param can
 
   // Admin creates an invitation and copies the link.
   await page.goto('/sign-in')
-  await page.getByLabel('Email').fill('demo@motion.local')
-  await page.getByLabel('Password').fill('motion-demo')
+  await page.getByLabel('Email').fill('demo@movara.local')
+  await page.getByLabel('Password').fill('movara-demo')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.waitForURL('**/vindex**')
   await page.goto('/vindex/settings/members')
@@ -42,8 +42,8 @@ test('invites are claimed only through the single-use token link; next param can
   const ctx2 = await browser.newContext({ baseURL })
   const q = await ctx2.newPage()
   await q.goto('/sign-in?next=' + encodeURIComponent('/\\evil.example.com'))
-  await q.getByLabel('Email').fill('demo@motion.local')
-  await q.getByLabel('Password').fill('motion-demo')
+  await q.getByLabel('Email').fill('demo@movara.local')
+  await q.getByLabel('Password').fill('movara-demo')
   await q.getByRole('button', { name: 'Sign in' }).click()
   await q.waitForURL('**/vindex**')
   expect(new URL(q.url()).origin).toBe(new URL(baseURL!).origin)

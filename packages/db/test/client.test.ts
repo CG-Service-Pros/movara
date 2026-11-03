@@ -4,7 +4,7 @@ import { postgresOptions } from '../src/client'
 describe('postgresOptions', () => {
   it('keeps prepared statements for direct and session-pooler connections', () => {
     expect(postgresOptions('postgres://u:p@db.abc.supabase.co:5432/postgres', {}).prepare).toBe(true)
-    expect(postgresOptions('postgres://u:p@localhost:5432/motion', {}).prepare).toBe(true)
+    expect(postgresOptions('postgres://u:p@localhost:5432/movara', {}).prepare).toBe(true)
   })
   it('disables them for transaction poolers', () => {
     expect(postgresOptions('postgres://u:p@aws-0-eu.pooler.supabase.com:6543/postgres', {}).prepare).toBe(false)

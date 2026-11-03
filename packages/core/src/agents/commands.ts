@@ -1,8 +1,8 @@
 import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
-import { agents, apiKeys, API_KEY_PREFIX, generateApiKey, hashApiKey, people, type Db } from '@motion/db'
+import { agents, apiKeys, API_KEY_PREFIX, generateApiKey, hashApiKey, people, type Db } from '@movara/db'
 import { actingPersonId, ctxForAgent, hasRole, SCOPES, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
 import { revokeAgentOAuthTokens } from './oauth'
 import { defineCommand, execute, type ExecuteOptions } from '../runner'
@@ -12,7 +12,7 @@ const scopesSchema = z.array(z.enum(SCOPES)).max(SCOPES.length)
 async function ownedAgent(ctx: Ctx, agentId: string) {
   const [a] = await ctx.db.select().from(agents).where(scoped(agents, ctx, eq(agents.id, agentId))).limit(1)
   const agent = found(a, 'Agent')
-  if (!hasRole(ctx, 'admin') && agent.ownerPersonId !== actingPersonId(ctx)) throw new MotionError('forbidden', 'Only an admin or the agent\'s owner can do this')
+  if (!hasRole(ctx, 'admin') && agent.ownerPersonId !== actingPersonId(ctx)) throw new MovaraError('forbidden', 'Only an admin or the agent\'s owner can do this')
   return agent
 }
 
@@ -30,7 +30,7 @@ export const agentsCreate = defineCommand({
   summary: (i) => `Create agent "${i.name}"`,
   run: async (ctx, input) => {
     const ownerId = input.ownerPersonId ?? actingPersonId(ctx)
-    if (ownerId !== actingPersonId(ctx) && !hasRole(ctx, 'admin')) throw new MotionError('forbidden', 'Only an admin can create an agent for someone else')
+    if (ownerId !== actingPersonId(ctx) && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', 'Only an admin can create an agent for someone else')
     const [owner] = await ctx.db.select({ id: people.id }).from(people).where(scoped(people, ctx, eq(people.id, ownerId))).limit(1)
     found(owner, 'Owner')
     const [row] = await ctx.db.insert(agents).values({ ...base(ctx), name: input.name, client: input.client ?? null, ownerPersonId: ownerId, scopes: [...new Set(input.scopes)] }).returning()
@@ -46,7 +46,7 @@ export const agentsUpdate = defineCommand({
   run: async (ctx, input, h) => {
     const before = await ownedAgent(ctx, input.agentId)
     assertVersion(before, h.expectedVersion)
-    if (before.status === 'revoked') throw new MotionError('conflict', 'Agent is revoked')
+    if (before.status === 'revoked') throw new MovaraError('conflict', 'Agent is revoked')
     const { agentId, ...patch } = input
     const [after] = await ctx.db.update(agents).set({ ...patch, ...touch(agents, ctx) }).where(scoped(agents, ctx, eq(agents.id, agentId))).returning()
     return { data: after!, entity: { type: 'agent', id: agentId }, before: before as unknown as Record<string, unknown>, after: after as unknown as Record<string, unknown> }
@@ -62,10 +62,10 @@ export const agentsUpdateScopes = defineCommand({
   run: async (ctx, input, h) => {
     const before = await ownedAgent(ctx, input.agentId)
     assertVersion(before, h.expectedVersion)
-    if (before.status === 'revoked') throw new MotionError('conflict', 'Agent is revoked')
+    if (before.status === 'revoked') throw new MovaraError('conflict', 'Agent is revoked')
     const scopes = [...new Set(input.scopes)]
     // Members can only grant scopes that are not 'admin'.
-    if (scopes.includes('admin') && !hasRole(ctx, 'admin')) throw new MotionError('forbidden', "Only an admin can grant the 'admin' scope")
+    if (scopes.includes('admin') && !hasRole(ctx, 'admin')) throw new MovaraError('forbidden', "Only an admin can grant the 'admin' scope")
     const [after] = await ctx.db.update(agents).set({ scopes, ...touch(agents, ctx) }).where(scoped(agents, ctx, eq(agents.id, input.agentId))).returning()
     return { data: after!, entity: { type: 'agent', id: input.agentId }, before: { scopes: before.scopes }, after: { scopes } }
   },
@@ -104,7 +104,7 @@ export const agentsIssueApiKey = defineCommand({
   summary: (i) => `Issue an API key for agent ${i.agentId}`,
   run: async (ctx, input) => {
     const agent = await ownedAgent(ctx, input.agentId)
-    if (agent.status !== 'active') throw new MotionError('conflict', `Agent is ${agent.status}`)
+    if (agent.status !== 'active') throw new MovaraError('conflict', `Agent is ${agent.status}`)
     const key = generateApiKey()
     const [row] = await ctx.db
       .insert(apiKeys)
@@ -134,10 +134,10 @@ export const agentsRevokeApiKey = defineCommand({
  * timestamps. Throws `forbidden` for unknown, revoked or expired keys.
  */
 export async function authenticateApiKey(db: Db, key: string): Promise<Ctx> {
-  if (!key.startsWith(API_KEY_PREFIX)) throw new MotionError('forbidden', 'Invalid API key')
+  if (!key.startsWith(API_KEY_PREFIX)) throw new MovaraError('forbidden', 'Invalid API key')
   const [row] = await db.select().from(apiKeys).where(and(eq(apiKeys.keyHash, hashApiKey(key)), isNull(apiKeys.deletedAt))).limit(1)
-  if (!row || row.revokedAt) throw new MotionError('forbidden', 'Invalid or revoked API key')
-  if (row.expiresAt && row.expiresAt.getTime() < Date.now()) throw new MotionError('forbidden', 'API key expired')
+  if (!row || row.revokedAt) throw new MovaraError('forbidden', 'Invalid or revoked API key')
+  if (row.expiresAt && row.expiresAt.getTime() < Date.now()) throw new MovaraError('forbidden', 'API key expired')
   const ctx = await ctxForAgent(db, row.orgId, row.agentId, row.scopes)
   const now = new Date()
   await db.update(apiKeys).set({ lastUsedAt: now }).where(eq(apiKeys.id, row.id))

@@ -1,9 +1,9 @@
 import { desc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { metricValues, metrics, people, scorecards, teams } from '@motion/db'
+import { metricValues, metrics, people, scorecards, teams } from '@movara/db'
 import { periodStart } from '../calendar'
 import type { Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { assertVersion, base, found, scoped, softDelete, touch } from '../helpers'
 import { getOrg } from '../org'
 import { defineCommand } from '../runner'
@@ -15,16 +15,16 @@ const comparisonSchema = z.enum(['gte', 'lte', 'gt', 'lt', 'eq', 'between'])
 const unitSchema = z.enum(['number', 'percent', 'currency', 'duration', 'boolean'])
 
 function checkGoal(m: { comparison: string; goal: number | null; goalUpper: number | null }) {
-  if (m.goal === null) throw new MotionError('validation', 'goal is required')
+  if (m.goal === null) throw new MovaraError('validation', 'goal is required')
   if (m.comparison === 'between') {
-    if (m.goalUpper === null) throw new MotionError('validation', 'goalUpper is required for a "between" goal')
-    if (m.goalUpper < m.goal) throw new MotionError('validation', 'goalUpper must be >= goal')
+    if (m.goalUpper === null) throw new MovaraError('validation', 'goalUpper is required for a "between" goal')
+    if (m.goalUpper < m.goal) throw new MovaraError('validation', 'goalUpper must be >= goal')
   }
 }
 async function mustHavePeople(ctx: Ctx, ids: string[]) {
   if (!ids.length) return
   const rows = await ctx.db.select({ id: people.id }).from(people).where(scoped(people, ctx, inArray(people.id, ids)))
-  if (rows.length !== new Set(ids).size) throw new MotionError('not_found', 'Person not found')
+  if (rows.length !== new Set(ids).size) throw new MovaraError('not_found', 'Person not found')
 }
 async function loadScorecard(ctx: Ctx, id: string) {
   const [s] = await ctx.db.select().from(scorecards).where(scoped(scorecards, ctx, eq(scorecards.id, id))).limit(1)
@@ -58,7 +58,7 @@ export const scorecardCreate = defineCommand({
     const [team] = await ctx.db.select({ id: teams.id }).from(teams).where(scoped(teams, ctx, eq(teams.id, input.teamId))).limit(1)
     found(team, 'Team')
     const [existing] = await ctx.db.select({ id: scorecards.id }).from(scorecards).where(scoped(scorecards, ctx, eq(scorecards.teamId, input.teamId))).limit(1)
-    if (existing) throw new MotionError('conflict', 'This team already has a scorecard', { scorecardId: existing.id })
+    if (existing) throw new MovaraError('conflict', 'This team already has a scorecard', { scorecardId: existing.id })
     const org = await getOrg(ctx)
     const [row] = await ctx.db
       .insert(scorecards)
@@ -173,7 +173,7 @@ export const metricReorder = defineCommand({
     const have = new Set(rows.map((r) => r.id))
     const want = new Set(input.metricIds)
     if (want.size !== input.metricIds.length || have.size !== want.size || ![...want].every((id) => have.has(id))) {
-      throw new MotionError('validation', 'metricIds must list every metric of the scorecard exactly once')
+      throw new MovaraError('validation', 'metricIds must list every metric of the scorecard exactly once')
     }
     for (const [i, id] of input.metricIds.entries()) {
       await ctx.db.update(metrics).set({ sort: i, ...touch(metrics, ctx) }).where(scoped(metrics, ctx, eq(metrics.id, id)))
@@ -224,7 +224,7 @@ export const metricRecordValues = defineCommand({
       titleScorecardId = found(sc, 'Scorecard').id
     }
     if (titleScorecardId) await loadScorecard(ctx, titleScorecardId)
-    if (input.values.some((v) => v.metricTitle) && !titleScorecardId) throw new MotionError('validation', 'scorecardId or teamId is required when using metricTitle')
+    if (input.values.some((v) => v.metricTitle) && !titleScorecardId) throw new MovaraError('validation', 'scorecardId or teamId is required when using metricTitle')
 
     const ids = [...new Set(input.values.flatMap((v) => (v.metricId ? [v.metricId] : [])))]
     const byId = new Map<string, typeof metrics.$inferSelect>()
@@ -240,7 +240,7 @@ export const metricRecordValues = defineCommand({
       if (!scs.has(id)) scs.set(id, await loadScorecard(ctx, id))
       return scs.get(id)!
     }
-    if (input.scorecardId) for (const m of byId.values()) if (m.scorecardId !== input.scorecardId) throw new MotionError('validation', `Metric ${m.id} is not on this scorecard`)
+    if (input.scorecardId) for (const m of byId.values()) if (m.scorecardId !== input.scorecardId) throw new MovaraError('validation', `Metric ${m.id} is not on this scorecard`)
 
     const rows = new Map<string, { metric: typeof metrics.$inferSelect; period: string; value: number | null; note: string | undefined }>()
     for (const v of input.values) {
@@ -248,10 +248,10 @@ export const metricRecordValues = defineCommand({
       if (v.metricId) metric = byId.get(v.metricId)
       else {
         const hits = byTitle.get(v.metricTitle!) ?? []
-        if (hits.length > 1) throw new MotionError('validation', `Metric title "${v.metricTitle}" is ambiguous`)
+        if (hits.length > 1) throw new MovaraError('validation', `Metric title "${v.metricTitle}" is ambiguous`)
         metric = hits[0]
       }
-      if (!metric) throw new MotionError('not_found', `Metric ${v.metricId ?? `"${v.metricTitle}"`} not found`)
+      if (!metric) throw new MovaraError('not_found', `Metric ${v.metricId ?? `"${v.metricTitle}"`} not found`)
       const sc = await scorecardOf(metric.scorecardId)
       const period = periodStart(v.periodStart, sc.interval, calendarFor(org, sc))
       rows.set(`${metric.id}|${period}`, { metric, period, value: v.value, note: v.note })

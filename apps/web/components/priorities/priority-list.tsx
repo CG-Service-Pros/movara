@@ -1,9 +1,9 @@
 'use client'
 
-import { Avatar } from '@motion/ui/avatar'
-import { cn } from '@motion/ui/cn'
-import { ListRow, ListRowGroup } from '@motion/ui/list-row'
-import { Meter } from '@motion/ui/meter'
+import { Avatar } from '@movara/ui/avatar'
+import { cn } from '@movara/ui/cn'
+import { ListRow, ListRowGroup } from '@movara/ui/list-row'
+import { Meter } from '@movara/ui/meter'
 import { fmtDate } from './format'
 import { meterTone, PriorityGlyph } from './status'
 import type { Labels, Option, PriorityItem } from './types'

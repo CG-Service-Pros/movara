@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { DbHandle } from '@motion/db'
+import type { DbHandle } from '@movara/db'
 import {
   execute, getIssue, getTodo, headlineCascade, headlineDelete, headlineMarkReviewed, headlinePost, headlineUpdate, issueCreate, issueDrop, issueMove, issueReopen, issueSetRank, issueSolve,
   issueUpdate, listHeadlines, listIssues, listTeams, listTodos, teamsCreate, todoComplete, todoCreate, todoDelete, todoUncomplete, todoUpdate, addDays, todayIn, getOrg,

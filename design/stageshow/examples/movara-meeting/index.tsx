@@ -1,6 +1,6 @@
 import { Check, Collapse, Count, Facepile, Avatar, Stage, Window, type Act } from '../../kit'
-import { AgentMark } from '../_motion/shared'
-import '../_motion/motion.css'
+import { AgentMark } from '../_movara/shared'
+import '../_movara/movara.css'
 import './meeting.css'
 
 // The weekly meeting, live. Meeting mode swaps the app's navigation for the
@@ -68,9 +68,9 @@ function Agenda() {
   )
 }
 
-export default function MotionMeeting() {
+export default function MovaraMeeting() {
   return (
-    <Stage width={1000} height={560} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" cursor={{ at: { x: 900, y: 520 } }} className="motion km">
+    <Stage width={1000} height={560} initial={initial} poster={poster} script={script} play="once" fidelity="realistic" cursor={{ at: { x: 900, y: 520 } }} className="movara km">
       {(s) => (
         <Window
           className="k-window km-window"

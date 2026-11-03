@@ -1,4 +1,4 @@
-import { isMotionError, type ExecuteResult } from '@motion/core'
+import { isMovaraError, type ExecuteResult } from '@movara/core'
 
 /** Keys that are noise for an agent (tenant plumbing, provenance blobs). */
 const NOISE = new Set(['orgId', 'createdByActor', 'updatedByActor', 'deletedAt'])
@@ -29,9 +29,9 @@ export type ToolResult = { content: { type: 'text'; text: string }[]; isError?: 
 export const json = (v: unknown): string => JSON.stringify(v)
 export const text = (v: unknown): ToolResult => ({ content: [{ type: 'text', text: json(v) }] })
 
-/** Typed MotionError -> MCP tool error carrying the code. */
+/** Typed MovaraError -> MCP tool error carrying the code. */
 export function toolError(e: unknown): ToolResult {
-  if (isMotionError(e)) {
+  if (isMovaraError(e)) {
     return { isError: true, content: [{ type: 'text', text: json({ error: { code: e.code, message: e.message, ...(e.details ? { details: compact(e.details) } : {}) } }) }] }
   }
   const message = e instanceof Error ? e.message : String(e)

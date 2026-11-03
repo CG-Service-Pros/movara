@@ -1,8 +1,8 @@
 import { and, asc, eq, inArray } from 'drizzle-orm'
-import { metricValues, metrics, scorecards, teams, type ActorJson } from '@motion/db'
+import { metricValues, metrics, scorecards, teams, type ActorJson } from '@movara/db'
 import { recentPeriods, todayIn, type CalendarSettings } from '../calendar'
 import { requireRead, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { found, scoped } from '../helpers'
 import { getOrg } from '../org'
 import { metricStatus, type MetricStatus } from './status'
@@ -108,9 +108,9 @@ export type GetScorecardInput = {
 /** Metrics × periods with computed status, totals/averages and the on-track count of the latest period. */
 export async function getScorecard(ctx: Ctx, input: GetScorecardInput): Promise<ScorecardView> {
   requireRead(ctx)
-  if (!input.scorecardId && !input.teamId) throw new MotionError('validation', 'scorecardId or teamId is required')
+  if (!input.scorecardId && !input.teamId) throw new MovaraError('validation', 'scorecardId or teamId is required')
   if (input.periods !== undefined && (!Number.isInteger(input.periods) || input.periods < 1 || input.periods > 104)) {
-    throw new MotionError('validation', 'periods must be an integer between 1 and 104')
+    throw new MovaraError('validation', 'periods must be an integer between 1 and 104')
   }
   const org = await getOrg(ctx)
   const [row] = await ctx.db

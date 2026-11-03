@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@motion/ui/button'
-import { toast } from '@motion/ui/toaster'
+import { Button } from '@movara/ui/button'
+import { toast } from '@movara/ui/toaster'
 import { startSeries } from '@/app/(app)/[org]/meetings/actions'
 
 /** Starts the series' meeting (server action redirects into the live page). */

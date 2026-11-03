@@ -1,6 +1,6 @@
 import { Avatar, Stage, Window } from '../../kit'
-import { AgentMark, Sidebar } from '../_motion/shared'
-import '../_motion/motion.css'
+import { AgentMark, Sidebar } from '../_movara/shared'
+import '../_movara/movara.css'
 import './chart.css'
 
 // The Accountability chart: seats, not job titles. Each seat lists its few
@@ -34,9 +34,9 @@ function SeatCard({ s }: { s: Seat }) {
   )
 }
 
-export default function MotionChart() {
+export default function MovaraChart() {
   return (
-    <Stage width={1000} height={600} fidelity="realistic" className="motion kc">
+    <Stage width={1000} height={600} fidelity="realistic" className="movara kc">
       {() => (
         <Window
           className="k-window kc-window"

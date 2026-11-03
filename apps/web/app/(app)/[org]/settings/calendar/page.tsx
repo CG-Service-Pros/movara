@@ -1,4 +1,4 @@
-import { hasRole } from '@motion/core'
+import { hasRole } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { CalendarForm } from '@/components/settings/calendar-form'
 import { SettingsBody } from '@/components/settings/ui'

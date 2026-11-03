@@ -1,6 +1,6 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import { agents, orgs, people, type ActorJson, type Db, type Role } from '@motion/db'
-import { MotionError } from './errors'
+import { agents, orgs, people, type ActorJson, type Db, type Role } from '@movara/db'
+import { MovaraError } from './errors'
 
 export const SCOPES = [
   'read',
@@ -40,12 +40,12 @@ export const hasRole = (ctx: Ctx, min: Role): boolean => ROLE_RANK[ctx.role] >= 
 
 /** Throws forbidden_scope unless ctx holds the scope. */
 export function requireScope(ctx: Ctx, scope: Scope): void {
-  if (!hasScope(ctx, scope)) throw new MotionError('forbidden_scope', `Missing scope: ${scope}`, { scope })
+  if (!hasScope(ctx, scope)) throw new MovaraError('forbidden_scope', `Missing scope: ${scope}`, { scope })
 }
 
 /** Throws forbidden unless ctx has at least the given role. */
 export function requireRole(ctx: Ctx, min: Role): void {
-  if (!hasRole(ctx, min)) throw new MotionError('forbidden', `Requires role ${min} or higher`, { role: ctx.role, required: min })
+  if (!hasRole(ctx, min)) throw new MovaraError('forbidden', `Requires role ${min} or higher`, { role: ctx.role, required: min })
 }
 
 /** Call at the top of every query: agents need the `read` scope. */
@@ -61,7 +61,7 @@ export async function ctxForPerson(db: Db, orgId: string, personId: string): Pro
     .from(people)
     .where(and(eq(people.orgId, orgId), eq(people.id, personId), isNull(people.deletedAt)))
     .limit(1)
-  if (!p) throw new MotionError('not_found', 'Person not found in this organization')
+  if (!p) throw new MovaraError('not_found', 'Person not found in this organization')
   return { db, orgId, actor: { type: 'person', id: p.id }, scopes: 'all', role: p.role }
 }
 
@@ -72,14 +72,14 @@ export async function ctxForAgent(db: Db, orgId: string, agentId: string, keySco
     .from(agents)
     .where(and(eq(agents.orgId, orgId), eq(agents.id, agentId), isNull(agents.deletedAt)))
     .limit(1)
-  if (!a) throw new MotionError('not_found', 'Agent not found')
-  if (a.status !== 'active') throw new MotionError('forbidden', `Agent is ${a.status}`)
+  if (!a) throw new MovaraError('not_found', 'Agent not found')
+  if (a.status !== 'active') throw new MovaraError('forbidden', `Agent is ${a.status}`)
   const [owner] = await db
     .select({ id: people.id, role: people.role })
     .from(people)
     .where(and(eq(people.orgId, orgId), eq(people.id, a.ownerPersonId), isNull(people.deletedAt)))
     .limit(1)
-  if (!owner) throw new MotionError('forbidden', "The agent's owner is no longer a member of this organization")
+  if (!owner) throw new MovaraError('forbidden', "The agent's owner is no longer a member of this organization")
   const scopes = (keyScopes && keyScopes.length ? a.scopes.filter((s) => keyScopes.includes(s)) : a.scopes) as Scope[]
   return { db, orgId, actor: { type: 'agent', id: a.id, onBehalfOf: owner.id }, scopes, role: owner.role }
 }

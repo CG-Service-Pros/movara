@@ -1,17 +1,17 @@
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { SubscribeRequestSchema, UnsubscribeRequestSchema } from '@modelcontextprotocol/sdk/types.js'
-import { createTerms, getLiveState, getTerms, listMeetings, listTeams, type Ctx, type Terms } from '@motion/core'
-import type { Db } from '@motion/db'
+import { createTerms, getLiveState, getTerms, listMeetings, listTeams, type Ctx, type Terms } from '@movara/core'
+import type { Db } from '@movara/db'
 import { allowed } from './scopes'
 import { json, text, toolError } from './format'
 import { orgOverview, quarterView, teamScorecard } from './overview'
 import { registerPrompts } from './prompts'
 import { buildTools } from './tools'
 
-export const MCP_SERVER_NAME = 'motion'
+export const MCP_SERVER_NAME = 'movara'
 export const MCP_SERVER_VERSION = '0.1.0'
 
-export type MotionMcpOptions = {
+export type MovaraMcpOptions = {
   db: Db
   /** Authenticated context of the connecting agent (API key, OAuth client, …). Called once per server (session). */
   resolveCtx: () => Ctx | Promise<Ctx>
@@ -19,13 +19,13 @@ export type MotionMcpOptions = {
   pollMs?: number
 }
 
-const MEETING_URI = /^motion:\/\/meeting\/([0-9a-f-]{36})\/live$/i
+const MEETING_URI = /^movara:\/\/meeting\/([0-9a-f-]{36})\/live$/i
 
 /**
  * One McpServer per session. Tool descriptions, prompts and labels are rendered from the org's terminology at
  * creation; the tool list is filtered by the agent's scopes. Tool names are canonical and never change.
  */
-export async function createMotionMcpServer(opts: MotionMcpOptions): Promise<McpServer> {
+export async function createMovaraMcpServer(opts: MovaraMcpOptions): Promise<McpServer> {
   const ctx = await opts.resolveCtx()
   let terms: Terms
   try {
@@ -37,7 +37,7 @@ export async function createMotionMcpServer(opts: MotionMcpOptions): Promise<Mcp
     { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },
     {
       capabilities: { resources: { subscribe: true, listChanged: false }, tools: {}, prompts: {} },
-      instructions: `Motion: the company's operating system (${terms.t('priority', 'plural')}, ${terms.t('scorecard')}, ${terms.t('issue', 'plural')}, ${terms.t('todo', 'plural')}, meetings). Call org_overview first. Writes accept requestId (idempotency) and expectedVersion. Changes that need a person return { needsApproval, approvalId }: poll approval_status.`,
+      instructions: `Movara: the company's operating system (${terms.t('priority', 'plural')}, ${terms.t('scorecard')}, ${terms.t('issue', 'plural')}, ${terms.t('todo', 'plural')}, meetings). Call org_overview first. Writes accept requestId (idempotency) and expectedVersion. Changes that need a person return { needsApproval, approvalId }: poll approval_status.`,
     },
   )
 
@@ -65,16 +65,16 @@ export async function createMotionMcpServer(opts: MotionMcpOptions): Promise<Mcp
   const canRead = allowed(ctx, 'read')
   const asJson = (uri: URL, v: unknown) => ({ contents: [{ uri: uri.href, mimeType: 'application/json', text: json(v) }] })
   if (canRead) {
-    server.registerResource('org-overview', 'motion://org/overview', { description: 'Organization, vocabulary, current quarter/week, teams, your role', mimeType: 'application/json' },
+    server.registerResource('org-overview', 'movara://org/overview', { description: 'Organization, vocabulary, current quarter/week, teams, your role', mimeType: 'application/json' },
       async (uri) => asJson(uri, await orgOverview(ctx, terms)))
-    server.registerResource('quarter-current', 'motion://quarter/current', { description: `Current quarter: ${terms.t('priority', 'plural')} with status and progress`, mimeType: 'application/json' },
+    server.registerResource('quarter-current', 'movara://quarter/current', { description: `Current quarter: ${terms.t('priority', 'plural')} with status and progress`, mimeType: 'application/json' },
       async (uri) => asJson(uri, await quarterView(ctx, terms)))
-    server.registerResource('team-scorecard', new ResourceTemplate('motion://team/{id}/scorecard', {
-      list: async () => ({ resources: (await listTeams(ctx)).map((t) => ({ uri: `motion://team/${t.id}/scorecard`, name: `${t.name} ${terms.t('scorecard')}`, mimeType: 'application/json' })) }),
+    server.registerResource('team-scorecard', new ResourceTemplate('movara://team/{id}/scorecard', {
+      list: async () => ({ resources: (await listTeams(ctx)).map((t) => ({ uri: `movara://team/${t.id}/scorecard`, name: `${t.name} ${terms.t('scorecard')}`, mimeType: 'application/json' })) }),
     }), { description: `A team's ${terms.t('scorecard')}: ${terms.t('metric', 'plural')} by period with on/off-track`, mimeType: 'application/json' },
       async (uri, v) => asJson(uri, await teamScorecard(ctx, String(v.id))))
-    server.registerResource('meeting-live', new ResourceTemplate('motion://meeting/{id}/live', {
-      list: async () => ({ resources: (await listMeetings(ctx, { status: 'live' })).map((m) => ({ uri: `motion://meeting/${m.id}/live`, name: `Live: ${m.seriesName}`, mimeType: 'application/json' })) }),
+    server.registerResource('meeting-live', new ResourceTemplate('movara://meeting/{id}/live', {
+      list: async () => ({ resources: (await listMeetings(ctx, { status: 'live' })).map((m) => ({ uri: `movara://meeting/${m.id}/live`, name: `Live: ${m.seriesName}`, mimeType: 'application/json' })) }),
     }), { description: `Live state of a running ${terms.t('weekly_meeting')} (agenda timers, focus ${terms.t('issue', 'plural')}, presence). Subscribe for pushes.`, mimeType: 'application/json' },
       async (uri, v) => {
         const s = await getLiveState(ctx, String(v.id))
@@ -102,7 +102,7 @@ export async function createMotionMcpServer(opts: MotionMcpOptions): Promise<Mcp
             if (!first) await server.server.sendResourceUpdated({ uri })
           }
         } else {
-          const body = json(uri === 'motion://org/overview' ? await orgOverview(ctx, terms) : uri === 'motion://quarter/current' ? await quarterView(ctx, terms) : await teamScorecard(ctx, /^motion:\/\/team\/([^/]+)\/scorecard$/.exec(uri)?.[1] ?? ''))
+          const body = json(uri === 'movara://org/overview' ? await orgOverview(ctx, terms) : uri === 'movara://quarter/current' ? await quarterView(ctx, terms) : await teamScorecard(ctx, /^movara:\/\/team\/([^/]+)\/scorecard$/.exec(uri)?.[1] ?? ''))
           if (last !== undefined && last !== body) await server.server.sendResourceUpdated({ uri })
           last = body
         }

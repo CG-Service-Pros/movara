@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray } from 'drizzle-orm'
-import { agents, chartRevisions, charts, people, seats } from '@motion/db'
+import { agents, chartRevisions, charts, people, seats } from '@movara/db'
 import { requireRead, type Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { found, scoped } from '../helpers'
 
 export type ChartRow = typeof charts.$inferSelect
@@ -85,5 +85,5 @@ export async function listChartRevisions(ctx: Ctx): Promise<ChartRevisionRow[]> 
 }
 
 export function requireDraftRevision(rev: ChartRevisionRow) {
-  if (rev.status !== 'draft') throw new MotionError('conflict', `Revision is ${rev.status}; only drafts can be edited`)
+  if (rev.status !== 'draft') throw new MovaraError('conflict', `Revision is ${rev.status}; only drafts can be edited`)
 }

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { agents, apiKeys, auditEvents, hashApiKey, requestLog, type DbHandle } from '@motion/db'
+import { agents, apiKeys, auditEvents, hashApiKey, requestLog, type DbHandle } from '@movara/db'
 import { agentsCreate, agentsRevoke, agentsRevokeApiKey, agentsUpdateScopes, authenticateApiKey, execute, getAgent, issueApiKey, listAgents, listApiKeys, teamsCreate } from '../src'
 import { createTestDb, seedTestOrg } from '../src/testing'
 

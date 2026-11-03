@@ -1,4 +1,4 @@
-import { actingPersonId, hasRole, listAgents, listApprovals, listPeople } from '@motion/core'
+import { actingPersonId, hasRole, listAgents, listApprovals, listPeople } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { ApprovalsPanel, type ApprovalItem } from '@/components/settings/approvals-panel'
 import { SettingsBody } from '@/components/settings/ui'

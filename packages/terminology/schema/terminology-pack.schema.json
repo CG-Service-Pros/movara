@@ -1,6 +1,6 @@
 {
-  "$id": "https://unpkg.com/@motion/terminology/schema/terminology-pack.schema.json",
-  "title": "Motion terminology pack",
+  "$id": "https://unpkg.com/@movara/terminology/schema/terminology-pack.schema.json",
+  "title": "Movara terminology pack",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {

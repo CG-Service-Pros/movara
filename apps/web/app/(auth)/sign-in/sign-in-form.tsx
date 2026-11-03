@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@motion/ui/button'
-import { Field } from '@motion/ui/field'
-import { Input } from '@motion/ui/input'
+import { Button } from '@movara/ui/button'
+import { Field } from '@movara/ui/field'
+import { Input } from '@movara/ui/input'
 import { authClient } from '@/lib/auth-client'
 import { safeNext } from '@/lib/safe-next'
 
@@ -34,7 +34,7 @@ export function SignInForm({ next }: { next?: string }) {
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </Field>
       <Button variant="primary" type="submit" loading={pending} className="mt-1 w-full justify-center">Sign in</Button>
-      <p className="text-center text-xs text-faint">Demo: demo@motion.local / motion-demo</p>
+      <p className="text-center text-xs text-faint">Demo: demo@movara.local / movara-demo</p>
     </form>
   )
 }

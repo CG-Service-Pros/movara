@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { DbHandle } from '@motion/db'
+import type { DbHandle } from '@movara/db'
 import {
   approveApproval, chartAddSeat, chartAssignPeople, chartCreateDraft, chartDeleteSeat, chartDiscardDraft, chartMoveSeat, chartProposeChange, chartPublish, chartReorderSeats,
   chartSetAssistingAgents, chartUpdateSeat, execute, getChart, getChartRevision, listApprovals, listChartRevisions, STANDARD_SEATS,

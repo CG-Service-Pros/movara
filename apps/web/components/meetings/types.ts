@@ -1,4 +1,4 @@
-import type { LiveState } from '@motion/core'
+import type { LiveState } from '@movara/core'
 
 /** Plain-JSON data the live meeting UI renders (served by the page and the state route). */
 export type Person = { id: string; name: string }

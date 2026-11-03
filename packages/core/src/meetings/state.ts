@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
-import { meetings, meetingSeries, type AgendaItemJson, type MeetingState } from '@motion/db'
+import { meetings, meetingSeries, type AgendaItemJson, type MeetingState } from '@movara/db'
 import type { Ctx } from '../ctx'
-import { MotionError } from '../errors'
+import { MovaraError } from '../errors'
 import { found, scoped, touch } from '../helpers'
 import { DEFAULT_FOCUS_ISSUE_COUNT, type SectionTimer, type StoredMeetingState } from './types'
 
@@ -66,8 +66,8 @@ export async function loadMeeting(ctx: Ctx, meetingId: string, lock = false): Pr
 export const isLive = (m: MeetingRow) => !!m.startedAt && !m.endedAt
 
 export function requireLive(m: MeetingRow): void {
-  if (!m.startedAt) throw new MotionError('conflict', 'The meeting has not started')
-  if (m.endedAt) throw new MotionError('conflict', 'The meeting has ended')
+  if (!m.startedAt) throw new MovaraError('conflict', 'The meeting has not started')
+  if (m.endedAt) throw new MovaraError('conflict', 'The meeting has ended')
 }
 
 /** Persist state, bumping `rev`. `extra` can set other columns (startedAt, ratings, ...). */

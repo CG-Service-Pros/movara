@@ -1,4 +1,4 @@
-import { actingPersonId, getTodo, listMeetings, listTodos, todayIn } from '@motion/core'
+import { actingPersonId, getTodo, listMeetings, listTodos, todayIn } from '@movara/core'
 import { Page } from '@/components/shell/page'
 import { TodosView } from '@/components/todos/todos-view'
 import { peopleAndTeams, resolveSources } from '@/components/issues/server'
