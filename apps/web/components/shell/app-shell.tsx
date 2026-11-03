@@ -22,9 +22,10 @@ export function AppShell({ accent, sections, switcher, palette, coach, canWrite,
     <ShellProvider canWrite={canWrite}>
     <CoachProvider org={switcher.orgSlug} {...coach}>
     <div className="flex h-screen bg-canvas max-md:flex-col" style={style} data-shell>
+      <a href="#main-content" className="sr-only rounded-md bg-surface px-3 py-2 text-sm font-[550] text-ink shadow-pop focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50">Skip to content</a>
       <Sidebar sections={sections} switcher={switcher} />
       <MobileNav sections={sections} switcher={switcher} />
-      <main className="mr-2 mt-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-t-[10px] bg-surface shadow-panel max-md:mx-1.5 max-md:mt-0">{children}</main>
+      <main id="main-content" tabIndex={-1} className="mr-2 mt-2 flex min-w-0 flex-1 flex-col overflow-hidden outline-none rounded-t-[10px] bg-surface shadow-panel max-md:mx-1.5 max-md:mt-0">{children}</main>
       <CoachPanel />
       <CommandPalette items={palette} orgSlug={switcher.orgSlug} />
       <Toaster />

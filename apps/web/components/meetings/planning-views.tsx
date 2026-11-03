@@ -347,7 +347,7 @@ export function IssuesBuildView({ b, act }: { b: Bundle; act: Act }) {
   return (
     <>
       <SectionTitle aside={<span className="text-sm tabular-nums text-body">{added.length} added · {b.live.counts.openIssues} open on the list</span>}>{b.labels.issues_list_build?.s}</SectionTitle>
-      <Hint>Get everything out of everyone's head. One line per {issues?.s.toLowerCase()}, no discussion yet. Long-term {issues?.p.toLowerCase()} stay off the weekly list.</Hint>
+      <Hint>Get everything out of everyone’s head. One line per {issues?.s.toLowerCase()}, no discussion yet. Long-term {issues?.p.toLowerCase()} stay off the weekly list.</Hint>
       <form
         className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-surface p-3 shadow-[0_0_0_1px_var(--m-line)]"
         onSubmit={(e) => {

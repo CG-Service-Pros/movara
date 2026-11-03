@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as SheetPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { cn } from './cn'
-import { overlayClasses } from './dialog'
+import { overlayClasses, useRestoreFocus } from './dialog'
 
 /** Side panel root (Radix Dialog). Controlled via `open` / `onOpenChange`. */
 export const Sheet = SheetPrimitive.Root
@@ -23,6 +23,7 @@ export function SheetContent({
   hideClose,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & { side?: SheetSide; hideClose?: boolean }) {
+  const restoreFocus = useRestoreFocus(props)
   return (
     <SheetPrimitive.Portal>
       <SheetPrimitive.Overlay className={overlayClasses} />
@@ -33,7 +34,9 @@ export function SheetContent({
           className,
         )}
         {...props}
+        onCloseAutoFocus={restoreFocus.onCloseAutoFocus}
       >
+        {restoreFocus.origin}
         {children}
         {!hideClose && (
           <SheetPrimitive.Close

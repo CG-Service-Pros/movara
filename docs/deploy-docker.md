@@ -6,7 +6,7 @@ One command brings up PostgreSQL 16, the web app, the standalone MCP server and 
 |---|---|---|---|
 | `postgres` | `postgres:16-alpine` | none published | Data in the `movara-pgdata` volume; healthcheck `pg_isready` |
 | `migrate` | [`docker/Dockerfile.web`](../docker/Dockerfile.web) | none | One-shot (builds the `builder` stage: full workspace): `pnpm db:migrate` (or `db:seed` when `MOVARA_SEED_DEMO=1`), then exits |
-| `web` | [`docker/Dockerfile.web`](../docker/Dockerfile.web) | 3000 | Next.js **standalone** server (`node apps/web/server.js`); healthcheck on `/sign-in`; serves `/mcp` and the OAuth endpoints too |
+| `web` | [`docker/Dockerfile.web`](../docker/Dockerfile.web) | 3000 | Next.js **standalone** server (`node apps/web/server.js`); healthcheck on `/api/health` (200 when the database answers, 503 otherwise); serves `/mcp` and the OAuth endpoints too |
 | `mcp` | [`docker/Dockerfile.mcp`](../docker/Dockerfile.mcp) | 3333 | Standalone MCP server; healthcheck `/healthz` |
 
 `web` and `mcp` start after `migrate` completes successfully.

@@ -78,7 +78,7 @@ export function PriorityDetail({
       <fieldset disabled={!canWrite} className="contents">
       <div className="flex items-center justify-between gap-3">
         <DropdownMenu>
-          <DropdownMenuTrigger className="group inline-flex items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent/50" aria-label="Change status">
+          <DropdownMenuTrigger className="group inline-flex items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent/50" aria-label={`${labels.status[d.status]}, change status`}>
             <PriorityPill status={d.status} label={labels.status[d.status]} />
             <ChevronDown size={13} strokeWidth={1.7} className="text-icon opacity-60 group-hover:opacity-100" />
           </DropdownMenuTrigger>

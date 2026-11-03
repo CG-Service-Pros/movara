@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AlertTriangle, ArrowDownToLine, Check, ChevronDown, Mail, Megaphone, Trash2 } from 'lucide-react'
 import { AgentMark } from '@movara/ui/agent-mark'
 import { Badge } from '@movara/ui/badge'
@@ -106,7 +106,7 @@ export function ScorecardView({ b, act }: { b: Bundle; act: Act }) {
       </SectionTitle>
       <Hint>Latest period. Anything off track that needs discussion goes to {b.labels.issue?.p.toLowerCase() ?? 'issues'}; everything else is reported and moved on.</Hint>
       {!sc || sc.metrics.length === 0 ? (
-        <Empty>No {b.labels.metric?.p.toLowerCase()} on this team's {b.labels.scorecard?.s.toLowerCase()} yet.</Empty>
+        <Empty>No {b.labels.metric?.p.toLowerCase()} on this team’s {b.labels.scorecard?.s.toLowerCase()} yet.</Empty>
       ) : (
         <List>
           {sc.metrics.map((m) => (
@@ -233,7 +233,7 @@ export function TodoReviewView({ b, act, today }: { b: Bundle; act: Act; today: 
   return (
     <>
       <SectionTitle aside={<span className="text-sm tabular-nums text-body">{done} of {mine.length} done</span>}>{b.labels.todo_review?.s}</SectionTitle>
-      <Hint>Last week's {b.labels.todo?.p.toLowerCase()}. Done is confirmed when the meeting ends. Anything not done can go to {b.labels.issue?.p.toLowerCase()}.</Hint>
+      <Hint>Last week’s {b.labels.todo?.p.toLowerCase()}. Done is confirmed when the meeting ends. Anything not done can go to {b.labels.issue?.p.toLowerCase()}.</Hint>
       {mine.length === 0 ? (
         <Empty>No open {b.labels.todo?.p.toLowerCase()} for this team.</Empty>
       ) : (

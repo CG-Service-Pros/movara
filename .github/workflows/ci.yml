@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   verify:
-    name: Typecheck, test, build, e2e
+    name: Typecheck, lint, test, build, e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -36,6 +36,9 @@ jobs:
 
       - name: Typecheck
         run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Test
         run: pnpm test

@@ -48,7 +48,7 @@ export default async function AuditPage({ params, searchParams }: { params: Prom
           <Button type="submit">Filter</Button>
           {(sp.actor || sp.type || sp.cmd) && <Button asChild variant="ghost"><Link href={`/${slug}/settings/audit`}>Clear</Link></Button>}
         </form>
-        <div className="overflow-x-auto rounded-xl bg-surface shadow-panel">
+        <div tabIndex={0} aria-label="Audit log" className="overflow-x-auto rounded-xl bg-surface shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-accent/50">
           <table className="w-full min-w-[720px] text-left text-base" data-testid="audit-table">
             <thead>
               <tr className="border-b border-line text-xs font-[550] text-faint">

@@ -20,6 +20,7 @@ import type { ActionResult, PLevel, PStatus } from '@/components/priorities/type
 type Cmd = Parameters<typeof execute>[1]
 
 /** Run a command as the signed-in person; map errors and approvals to a plain result for the client. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each command returns its own data shape; `pick` narrows it per call site
 async function run<T = undefined>(slug: string, cmd: Cmd, input: unknown, requestId: string | undefined, pick?: (data: any) => T): Promise<ActionResult<T>> {
   try {
     const ctx = await getCtx(slug)

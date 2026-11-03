@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const EOS_PACK = resolve(here, '../../../packs/eos/pack.json')

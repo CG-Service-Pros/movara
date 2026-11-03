@@ -170,7 +170,9 @@ export function ChartWorkspace({
           <>
             <div
               data-testid="chart-canvas"
-              className="h-full overflow-auto"
+              tabIndex={0}
+              aria-label="Accountability chart canvas"
+              className="h-full overflow-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50"
               style={{ backgroundImage: 'radial-gradient(circle, var(--m-line) 1px, transparent 1.3px)', backgroundSize: '16px 16px' }}
             >
               <div className="mx-auto" style={{ width: wrapperW, height: wrapperH }}>
@@ -227,7 +229,7 @@ export function ChartWorkspace({
               <Button size="icon" variant="ghost" aria-label="Zoom out" disabled={zoom <= ZOOMS[0]!} onClick={() => setZoom(ZOOMS[Math.max(0, ZOOMS.indexOf(zoom) - 1)]!)}>
                 <Minus size={14} strokeWidth={1.7} />
               </Button>
-              <button type="button" aria-label="Reset zoom" className="h-7 min-w-11 rounded-md px-1 text-sm font-[550] text-body tabular-nums hover:bg-nav-active" onClick={() => setZoom(100)}>
+              <button type="button" aria-label={`${zoom}%, reset zoom`} className="h-7 min-w-11 rounded-md px-1 text-sm font-[550] text-body tabular-nums hover:bg-nav-active" onClick={() => setZoom(100)}>
                 {zoom}%
               </button>
               <Button size="icon" variant="ghost" aria-label="Zoom in" disabled={zoom >= ZOOMS[ZOOMS.length - 1]!} onClick={() => setZoom(ZOOMS[Math.min(ZOOMS.length - 1, ZOOMS.indexOf(zoom) + 1)]!)}>
@@ -290,7 +292,7 @@ function ListRow({ node, edit, onPick, prioTitle }: { node: TreeNode; edit: bool
 }
 
 /** Empty-state actions: pick how to start the first draft. */
-export function StartChart({ slug, seatLabel }: { slug: string; seatLabel: string }) {
+export function StartChart({ slug }: { slug: string; seatLabel: string }) {
   const router = useRouter()
   const [busy, start] = React.useTransition()
   const go = (from: 'blank' | 'template') =>

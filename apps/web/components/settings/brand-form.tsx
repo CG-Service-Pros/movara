@@ -40,7 +40,7 @@ function LogoField({ label, value, onChange, dark }: { label: string; value?: st
             // eslint-disable-next-line @next/next/no-img-element
             <img src={value} alt={`${label} preview`} className="max-h-8 max-w-[130px] object-contain" />
           ) : (
-            <span className="text-xs" style={{ color: dark ? '#9aa1ab' : '#9aa1ab' }}>No logo</span>
+            <span className="text-xs" style={{ color: dark ? '#9aa1ab' : '#6b727d' }}>No logo</span>
           )}
         </div>
         <input ref={ref} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="sr-only" aria-label={`${label} file`} onChange={(e) => { pick(e.target.files?.[0]); e.target.value = '' }} />

@@ -13,6 +13,7 @@ const opts = (req: ApiRequest) => ({ requestId: req.requestId, expectedVersion: 
 const num = (v: string | null) => (v === null || v === '' ? undefined : Number(v))
 
 /** POST /meetings/:id/<action>: body merged with { meetingId }. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic plumbing over every meeting command's input/output types
 const live = (cmd: Command<any, any>) => async (req: ApiRequest) =>
   fromExecute(await execute(req.ctx as Ctx, cmd, { ...(await body(req)), meetingId: req.params.id! }, opts(req)))
 

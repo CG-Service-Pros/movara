@@ -31,7 +31,6 @@ export function safeNext(next: string | null | undefined, fallback = '/'): strin
 function isSafeForm(s: string): boolean {
   if (!s.startsWith('/')) return false
   if (s.startsWith('//') || s[1] === '\\') return false
-  // eslint-disable-next-line no-control-regex
   if (/[\u0000-\u001f\u007f\\]/.test(s)) return false
   return true
 }
