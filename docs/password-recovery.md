@@ -8,6 +8,20 @@ Set `SMTP_HOST`, `SMTP_PORT` (587 for STARTTLS or 465 for TLS), `SMTP_USER`, `SM
 
 Recovery deliberately uses SMTP directly, bypassing the recap console/no-op fallback. Without `SMTP_HOST`, requests for both existing and unknown accounts return a service-unavailable error. Reset links and transport error details are never written to application logs. Delivery runs with Next.js `after()` so Vercel keeps the function alive after the response. A delivery failure logs only a generic message; the user can request a new link after checking spam and confirming the provider configuration.
 
+### Resend
+
+Resend works with the existing SMTP sender. Set these production environment variables:
+
+```dotenv
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_USER=resend
+SMTP_PASS=<Resend API key with sending access>
+SMTP_FROM=Movara <sender@your-verified-domain.example>
+```
+
+Choose a sender address on a domain verified in your Resend account. Store the API key as a sensitive Vercel environment variable, never in the repository. Port 465 enables implicit TLS in Movara's SMTP transport. See [Resend SMTP settings](https://resend.com/docs/send-with-smtp).
+
 Better Auth manages token creation, expiry, consumption, password hashing, origin checks and session revocation. Its default production rate limit for recovery requests is three requests per minute per IP per instance; deployments needing a shared limit should configure shared Better Auth rate-limit storage. Existing and unknown accounts receive the same successful response. No Supabase Auth users or schema changes are required: Movara uses Better Auth tables in Postgres.
 
 ## Verification
