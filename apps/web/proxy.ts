@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { notFoundResponse } from './src/lib/not-found-response'
 import { classifyOrgPath } from './src/lib/org-routes'
 
-const PUBLIC = ['/sign-in', '/sign-up', '/invite', '/api/auth', '/api/v1', '/api/health', '/mcp', '/_next', '/favicon.ico']
+const PUBLIC = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/invite', '/api/auth', '/api/v1', '/api/health', '/mcp', '/_next', '/favicon.ico']
 
 /**
  * 1. Auth guard: anything but the public paths needs a Better Auth session cookie. (Real session checks happen in getCtx.)

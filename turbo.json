@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["APP_URL", "BETTER_AUTH_URL", "BETTER_AUTH_SECRET", "DATABASE_URL", "MOVARA_ALLOW_SIGNUP", "MOVARA_SEED_DEMO", "MOVARA_TERMINOLOGY_PACKS"]
+      "env": ["APP_URL", "BETTER_AUTH_URL", "BETTER_AUTH_SECRET", "DATABASE_URL", "MOVARA_ALLOW_SIGNUP", "MOVARA_SEED_DEMO", "MOVARA_TERMINOLOGY_PACKS", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM"]
     },
     "typecheck": { "dependsOn": ["^typecheck"] },
     "lint": {},

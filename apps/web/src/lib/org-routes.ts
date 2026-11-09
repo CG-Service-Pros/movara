@@ -40,7 +40,7 @@ export const ORG_PAGE_ROUTES: Route[] = [
 export const ORG_HANDLER_ROUTES = ['meetings/:id/state']
 
 /** Top-level app paths that are not organization slugs. */
-export const NON_ORG_TOP_LEVEL = new Set(['sign-in', 'sign-up', 'invite', 'oauth', 'onboarding', 'api', 'mcp', '.well-known', '_next', 'favicon.ico'])
+export const NON_ORG_TOP_LEVEL = new Set(['sign-in', 'sign-up', 'forgot-password', 'reset-password', 'invite', 'oauth', 'onboarding', 'api', 'mcp', '.well-known', '_next', 'favicon.ico'])
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
