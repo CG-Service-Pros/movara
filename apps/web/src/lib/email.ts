@@ -9,6 +9,9 @@ export function createSmtpSender(env: NodeJS.ProcessEnv = process.env): EmailSen
     host: env.SMTP_HOST,
     port,
     secure: port === 465,
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
     auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS ?? '' } : undefined,
   })
   const from = env.SMTP_FROM || env.SMTP_USER || 'Movara <no-reply@localhost>'

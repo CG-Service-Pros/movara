@@ -7,6 +7,7 @@ import { Field } from '@movara/ui/field'
 import { Input } from '@movara/ui/input'
 import { authClient } from '@/lib/auth-client'
 import { safeNext } from '@/lib/safe-next'
+import Link from 'next/link'
 
 export function SignInForm({ next, demoHint = false }: { next?: string; demoHint?: boolean }) {
   const router = useRouter()
@@ -34,6 +35,7 @@ export function SignInForm({ next, demoHint = false }: { next?: string; demoHint
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </Field>
       <Button variant="primary" type="submit" loading={pending} className="mt-1 w-full justify-center">Sign in</Button>
+      <Link className="text-center text-sm text-accent-text hover:underline" href="/forgot-password">Forgot password?</Link>
       {demoHint && <p className="text-center text-xs text-faint">Demo: demo@movara.local / movara-demo</p>}
     </form>
   )
